@@ -1,0 +1,55 @@
+{
+  "name": "twoside",
+  "version": "1.0.0",
+  "description": "This project was bootstrapped with Fastify-CLI.",
+  "main": "app.ts",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm run build:ts && tsc -p test/tsconfig.json && c8 node --test -r ts-node/register \"test/**/*.ts\"",
+    "build:ts": "tsc",
+    "watch:ts": "tsc -w",
+    "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
+    "dev:start": "nodemon --watch dist dist/server.js",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "imports": {
+    "#/prisma/*": "./dist/generated/prisma/*",
+    "#/plugins/*": "./dist/plugins/*",
+    "#/guards/*": "./dist/guards/*",
+    "#/errors/*": "./dist/errors/*",
+    "#/libs/*": "./dist/libs/*"
+  },
+  "dependencies": {
+    "@fastify/autoload": "^6.3.1",
+    "@fastify/cors": "^11.2.0",
+    "@fastify/sensible": "^6.0.4",
+    "@prisma/adapter-neon": "^7.8.0",
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.8.0",
+    "argon2": "^0.45.1",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5",
+    "fastify-cli": "^7.4.1",
+    "fastify-plugin": "^5.1.0",
+    "fastify-type-provider-zod": "^6.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.12.2",
+    "c8": "^10.1.3",
+    "concurrently": "^9.2.4",
+    "fastify-tsconfig": "^3.0.0",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.9.1",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.3"
+  }
+}

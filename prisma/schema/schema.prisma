@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+	@@map("users")
+
+	id										String @id @default(uuid())
+	username							String @unique // username instead of email cause like
+	password							String
+
+	created_at 						DateTime @default(now()) @db.Timestamptz(6)
+  updated_at 						DateTime @updatedAt @db.Timestamptz(6)
+
+  accounts							Account[]
+  categories						Category[]
+  counterparties 				Counterparty[]
+  budget_allocations 		BudgetAllocation[]
+  transaction_groups		TransactionGroup[]
+}
+
+model LoginAttempts {
+	@@map("login_attempts")
+
+	username							String @id
+	attempts							Int @default(0)
+	locked_until					DateTime? @db.Timestamptz(6)
+}
+
+model Account {
+	@@map("accounts")
+
+	id										String @id @default(uuid())
+	name									String
+	type									AccountType
+	default								DefaultAccounts?
+	is_disabled						Boolean @default(false)
+	
+	journal_entries				JournalEntry[]
+
+	user_id								String
+	user									User @relation(fields: [user_id], references: [id])
+
+	@@unique([user_id, name])
+	@@unique([user_id, default])
+}
+
+model TransactionGroup {
+	@@map("transaction_groups")
+
+	id										String @id @default(uuid())
+	created_at						DateTime @db.Timestamptz(6) @default(now())
+
+	loans									Loan[]
+	journal_entries				JournalEntry[]
+	loan_repayments				LoanRepayment[]
+
+	user_id								String
+	user									User @relation(fields: [user_id], references: [id])
+}
+
+model JournalEntry {
+	@@map("journal_entries")
+
+	id										String @id @default(uuid())
+	
+	side									EntrySide
+	amount								Decimal @db.Decimal(12, 2)
+	description						String
+	
+	trx_date							DateTime @db.Timestamptz(6) // the date the transaction actually happened
+	created_at						DateTime @db.Timestamptz(6) @default(now()) // the date the transaction was recorded into the app
+
+	transaction_group_id	String // links the two (or more, in the case of compound entry) rows of one transaction together
+	transaction_group			TransactionGroup @relation(fields: [transaction_group_id], references: [id])
+	
+	account_id						String
+	account								Account @relation(fields: [account_id], references: [id])
+
+	category_id						String? // it's only meaningful when the account type is EXPENSE or INCOME
+	category							Category? @relation(fields: [category_id], references: [id])
+}
+
+model Category {
+	@@map("categories")
+
+	id										String @id @default(uuid())
+	name									String
+	is_disabled						Boolean @default(false)
+
+	journal_entries				JournalEntry[]
+	budget_allocations		BudgetAllocation[]
+
+	user_id								String
+	user									User @relation(fields: [user_id], references: [id])
+
+	@@unique([user_id, name])
+}
+
+model Loan {
+	@@map("loans")
+	
+	id										String @id @default(uuid())
+	status								LoanStatus @default(OPEN)
+	direction							LoanDirection
+	
+	amount								Decimal @db.Decimal(12, 2)
+
+	date_issued						DateTime @db.Timestamptz(6) // the date the loan was given or received
+	created_at						DateTime @db.Timestamptz(6) @default(now()) // the date the loan was recored into the app
+	
+	repayments						LoanRepayment[]
+
+	counterparty_id					String
+	counterparty						Counterparty @relation(fields: [counterparty_id], references: [id])
+	
+	transaction_group_id	String // links to the transaction group (the entry pair in the journal) that recorded the loan being issued.
+	transaction_group			TransactionGroup @relation(fields: [transaction_group_id], references: [id])
+}
+
+model Counterparty {
+	@@map("counterparties")
+
+	id										String @id @default(uuid())
+	name									String
+	is_disabled						Boolean @default(false)
+	
+	loans									Loan[]
+
+	user_id								String
+	user									User @relation(fields: [user_id], references: [id])
+
+	@@unique([user_id, name])
+}
+
+model LoanRepayment {
+	@@map("loan_repayments")
+	
+	id										String @id @default(uuid())
+
+	loan_id								String
+	loan									Loan @relation(fields: [loan_id], references: [id])
+
+	amount								Decimal @db.Decimal(12, 2)
+	date_repaid						DateTime @db.Timestamptz(6) // the date the loan was repaid
+	created_at						DateTime @db.Timestamptz(6) @default(now()) // the date the repayment was recored into the app
+
+	transaction_group_id	String // links to the Journal entry pair for this repayment event (can be shared across multiple LoanRepayment rows if one payment splits across loans)
+	transaction_group			TransactionGroup @relation(fields: [transaction_group_id], references: [id])
+}
+
+model BudgetAllocation {
+	@@map("budget_allocations")
+
+	id										String @id @default(uuid())
+	amount								Decimal @db.Decimal(12, 2)
+	description						String
+	period_label					String // e.g "August 2026"
+
+	date_allocated				DateTime @db.Timestamptz(6) // the date the budget was approved (not like I'm approving budgets but eh :- )
+	created_at						DateTime @db.Timestamptz(6) @default(now()) // the date the budget allocation was recored into the app
+
+	category_id						String
+	category							Category @relation(fields: [category_id], references: [id])
+
+	user_id								String
+	user									User @relation(fields: [user_id], references: [id])
+}
+
+enum AccountType {
+	ASSET
+	LIABILITY
+	EQUITY
+	INCOME
+	EXPENSE
+}
+
+enum DefaultAccounts {
+	BANK
+	CASH
+	PAYABLES
+	RECEIVABLES
+	INCOME
+	EXPENSE
+}
+
+enum EntrySide {
+	DEBIT
+	CREDIT
+}
+
+enum LoanDirection {
+	GIVEN
+	BORROWED
+}
+
+enum LoanStatus {
+	OPEN
+	PARTIALLY_REPAID
+	CLOSED
+}

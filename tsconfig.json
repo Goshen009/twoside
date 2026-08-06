@@ -1,0 +1,60 @@
+{
+	"compilerOptions": {
+    // File Layout
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Environment Settings
+    // See also https://aka.ms/tsconfig/module
+    "module": "nodenext",
+    "target": "ES2023",
+    "moduleResolution": "nodenext",
+    "types": [],
+    // For nodejs:
+    // "lib": ["esnext"],
+    // "types": ["node"],
+    // and npm install -D @types/node
+
+    // Other Outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
+    // "exactOptionalPropertyTypes": true,
+
+    // Style Options
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "newLine": "lf",
+    "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    // Recommended Options
+    "strict": true,
+    // "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "#/prisma/*": ["src/generated/prisma/*"],
+      "#/plugins/*": ["src/plugins/*"],
+      "#/guards/*": ["src/guards/*"],
+      "#/errors/*": ["src/errors/*"],
+      "#/libs/*": ["src/libs/*"],
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

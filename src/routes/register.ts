@@ -1,0 +1,60 @@
+import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
+import { APIError } from "#/errors/APIError.js";
+import { Prisma } from "#/prisma/client.js";
+import { JWT, Password } from "#/libs/index.js";
+import { z } from "zod/v4";
+
+const schema = z.object({
+	username: z.string("username is required and must be a string").max(100, "username must not be more than 20 characters"),
+	pin: z.string("pin is required").regex(/^\d{6}$/, "pin must be 6 digits"),
+	confirm_pin: z.string("confirm pin is required").regex(/^\d{6}$/, "confirm pin must be 6 digits"),
+}).refine(data => data.pin === data.confirm_pin, {
+	error: "Pins do not match",
+	path: ['confirm_pin']
+});
+
+async function handler(
+  this: FastifyInstance,
+  request: FastifyRequest<{ Body: z.infer<typeof schema> }>,
+  reply: FastifyReply
+) {
+  const { username, pin } = request.body;
+
+  const password = await Password.hash(pin);
+
+  let user;
+  try {
+  	user = await this.prisma.user.create({
+ 			data: {
+  			username,
+   			password,
+     		accounts: {
+     			create: [
+	       		{ name: 'Cash', type: 'ASSET', default: 'CASH' },
+	      		{ name: 'Bank', type: 'ASSET', default: 'BANK' },
+						{ name: 'Equity', type: 'EQUITY', default: null },
+						{ name: 'Savings', type: 'ASSET', default: null },
+						{ name: 'Income', type: 'INCOME', default: 'INCOME' },
+						{ name: 'Expense', type: 'EXPENSE', default: 'EXPENSE' },
+						{ name: 'Payables', type: 'LIABILITY', default: 'PAYABLES' },
+						{ name: 'Recieveables', type: 'ASSET', default: 'RECEIVABLES' },
+	        ]
+       	}
+    	}
+   	});
+  } catch (err) {
+ 		if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+  		throw APIError.validationError([{ field: 'username', message: 'This username has been taken by another fellow.' }]);
+   	}
+	  throw err;
+  }
+
+  const token = JWT.generate(this.config, { id: user.id });
+
+  return reply
+    .header('Authorization', `Bearer ${token}`)
+   	.code(201)
+    .send({ message: "Successful" });
+}
+
+export const register_user = { handler, schema: { body: schema } };
