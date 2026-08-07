@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
-import { LineValidation } from "#/libs/index.js";
+import { LineValidation, Calc } from "#/libs/index.js";
 import { LoanStatus } from "#/prisma/client.js";
 import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
@@ -8,7 +8,7 @@ const amount_schema = z.number("amount is required and must be a number").positi
 
 const schema = z.object({
 	description: z.string("description is required and must be a string").max(100, "description must not be more than 100 characters"),
-	trx_date: z.iso.datetime("trx_date is required and must be in the format 2020-01-01T06:15:00"),
+	trx_date: z.iso.datetime("trx_date is required and must be in the format 2020-01-01T00:00:00"),
 	lines: z.array(
 		z.discriminatedUnion('kind', [
 			z.object({
@@ -75,9 +75,8 @@ async function handler(
     ...loan_repayment_lines_result.data,
   ];
 
-  const to_whole = (n: number) => Math.round(n * 100);
-  const total_debit = all_lines.filter(l => l.entry_side === 'DEBIT').reduce((sum, l) => sum + to_whole(l.amount), 0);
-  const total_credit = all_lines.filter(l => l.entry_side === 'CREDIT').reduce((sum, l) => sum + to_whole(l.amount), 0);
+  const total_debit = all_lines.filter(l => l.entry_side === 'DEBIT').reduce((sum, l) => sum + Calc.to_whole(l.amount), 0);
+  const total_credit = all_lines.filter(l => l.entry_side === 'CREDIT').reduce((sum, l) => sum + Calc.to_whole(l.amount), 0);
 
   if (total_debit !== total_credit)
     throw APIError.custom({ status: 400, message: 'The accounts are not balanced!' });
@@ -128,8 +127,8 @@ async function handler(
 		for (const loan_id of loans_repaid) {
 			const loan = loans.find(l => l.id === loan_id)!; // cause it literally cannot not exist.
 
-			const total_repaid = loan.repayments.reduce((sum, r) => sum + to_whole(Number(r.amount)), 0);
-			const original = to_whole(Number(loan.amount));
+			const total_repaid = loan.repayments.reduce((sum, r) => sum + Calc.to_whole(Number(r.amount)), 0);
+			const original = Calc.to_whole(Number(loan.amount));
 
 			const new_status: LoanStatus = total_repaid >= original ? 'CLOSED' : 'PARTIALLY_REPAID';
 
@@ -138,9 +137,28 @@ async function handler(
 		    data: { status: new_status }
 		  });
 		}
+
+		// now we re-calculate the snapshot (if need be)
+		for (const line of all_lines) {
+			const latest_snapshot = await tx.accountBalanceSnapshot.findFirst({
+				where: { account_id: line.account_id },
+				orderBy: { as_of_date: 'desc' }
+			});
+
+			if (latest_snapshot && new Date(trx_date) <= latest_snapshot.as_of_date) {
+				const delta = Calc.resolve_delta(line.account_type, line.entry_side, Calc.to_whole(Number(line.amount)));
+				
+				await tx.accountBalanceSnapshot.updateMany({
+					where: { account_id: line.account_id, as_of_date: { gte: new Date(trx_date) } },
+					data: { 
+						balance: { increment: delta / 100 }
+					}
+				});
+			}
+		}
   });
 
   return reply.code(200).send({ message: "Transaction recorded!" });
 }
 
-export const new_transaction = { handler, schema: { body: schema } };
+export const log_transaction = { handler, schema: { body: schema } };

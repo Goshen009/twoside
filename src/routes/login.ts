@@ -8,7 +8,7 @@ const BASE_LOCKOUT_MINUTES = 5;
 const MAX_LOCKOUT_MINUTES = 60 * 24;
 
 const schema = z.object({
-	username: z.string("username is required and must be a string").max(100, "username must not be more than 20 characters"),
+	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
 	pin: z.string("pin is required").regex(/^\d{6}$/, "pin must be 6 digits"),
 });
 

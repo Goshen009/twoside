@@ -1,8 +1,7 @@
-import fp from "fastify-plugin";
 import cors from '@fastify/cors';
+import fp from "fastify-plugin";
 
 export default fp(async (fastify) => {
-  // this should be after cors error
   fastify.register(cors, {
     origin: (origin, callback) => {
       const allowedOrigins = [

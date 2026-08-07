@@ -5,7 +5,7 @@ import { JWT, Password } from "#/libs/index.js";
 import { z } from "zod/v4";
 
 const schema = z.object({
-	username: z.string("username is required and must be a string").max(100, "username must not be more than 20 characters"),
+	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
 	pin: z.string("pin is required").regex(/^\d{6}$/, "pin must be 6 digits"),
 	confirm_pin: z.string("confirm pin is required").regex(/^\d{6}$/, "confirm pin must be 6 digits"),
 }).refine(data => data.pin === data.confirm_pin, {
@@ -22,6 +22,12 @@ async function handler(
 
   const password = await Password.hash(pin);
 
+  const balance_snapshots = {
+  	create: [
+   		{ balance: 0, as_of_date: new Date() }
+   	]
+  };
+
   let user;
   try {
   	user = await this.prisma.user.create({
@@ -30,14 +36,14 @@ async function handler(
    			password,
      		accounts: {
      			create: [
-	       		{ name: 'Cash', type: 'ASSET', default: 'CASH' },
-	      		{ name: 'Bank', type: 'ASSET', default: 'BANK' },
-						{ name: 'Equity', type: 'EQUITY', default: null },
-						{ name: 'Savings', type: 'ASSET', default: null },
-						{ name: 'Income', type: 'INCOME', default: 'INCOME' },
-						{ name: 'Expense', type: 'EXPENSE', default: 'EXPENSE' },
-						{ name: 'Payables', type: 'LIABILITY', default: 'PAYABLES' },
-						{ name: 'Recieveables', type: 'ASSET', default: 'RECEIVABLES' },
+	       		{ name: 'Cash', type: 'ASSET', default: 'CASH', balance_snapshots },
+		      	{ name: 'Bank', type: 'ASSET', default: 'BANK', balance_snapshots },
+						{ name: 'Equity', type: 'EQUITY', default: null, balance_snapshots },
+						{ name: 'Savings', type: 'ASSET', default: null, balance_snapshots },
+						{ name: 'Income', type: 'INCOME', default: 'INCOME', balance_snapshots },
+						{ name: 'Expense', type: 'EXPENSE', default: 'EXPENSE', balance_snapshots },
+						{ name: 'Payables', type: 'LIABILITY', default: 'PAYABLES', balance_snapshots },
+						{ name: 'Recieveables', type: 'ASSET', default: 'RECEIVABLES', balance_snapshots },
 	        ]
        	}
     	}

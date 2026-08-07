@@ -1,5 +1,6 @@
 import { AccountType, EntrySide, LoanDirection, PrismaClient } from "#/prisma/client.js";
 import { AuthenticatedUser } from "#/guards/requireAuth.js";
+import Calc from './calc.js';
 
 type Result<T, E> = { ok: true; data: T } | { ok: false; message: string; extensions?: E };
 
@@ -165,9 +166,7 @@ class LineValidation {
 		amount: number,
 		kind: "RECEIVE_LOAN_REPAYMENT" | "REPAY_LOAN",
 		loan_id: string
-	}[], user: AuthenticatedUser, prisma: PrismaClient) {
-		const to_whole = (n: number) => Math.round(n * 100);
-		
+	}[], user: AuthenticatedUser, prisma: PrismaClient) {		
 		const loans = await prisma.loan.findMany({
 			where: {
 				transaction_group: { user_id: user.id },
@@ -209,10 +208,10 @@ class LineValidation {
 				continue;
 			}
 
-			const already_repaid = loan.repayments.reduce((sum, r) => sum + to_whole(Number(r.amount)), 0);
-    	const remaining = to_whole(Number(loan.amount)) - already_repaid;
+			const already_repaid = loan.repayments.reduce((sum, r) => sum + Calc.to_whole(Number(r.amount)), 0);
+    	const remaining = Calc.to_whole(Number(loan.amount)) - already_repaid;
 
-     	const running_total = (requested_totals.get(loan.id) ?? 0) + to_whole(line.amount);
+    	const running_total = (requested_totals.get(loan.id) ?? 0) + Calc.to_whole(line.amount);
       requested_totals.set(loan.id, running_total);
       
       if (running_total > remaining) {
