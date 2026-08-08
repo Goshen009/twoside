@@ -2,7 +2,7 @@ import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { z } from "zod/v4";
 
 const schema = z.object({
-	show_disabled: z.boolean().default(false)
+	show_disabled: z.enum(["true", "false"]).default("false").transform(v => v === "true")
 });
 
 async function handler(

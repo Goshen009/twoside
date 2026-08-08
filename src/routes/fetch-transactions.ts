@@ -9,7 +9,7 @@ const query_schema = z.object({
   end_date: z.iso.date("end_date must be in the format YYYY-MM-DD").transform((val) => new Date(`${val}T23:59:59.999Z`)),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(25),
-  with_balances: z.boolean().default(false)
+  with_balances: z.enum(["true", "false"]).default("false").transform(v => v === "true")
 });
 
 const path_schema = z.object({

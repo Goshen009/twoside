@@ -1,67 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Twoside - Quick Test</title>
+<meta charset="UTF-8">
+<title>Twoside - Test Console</title>
+<style>
+  body { font-family: monospace; padding: 20px; max-width: 1000px; margin: auto; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  th, td { border: 1px solid #333; padding: 4px 8px; text-align: left; font-size: 13px; }
+  th { background: #eee; }
+  .debit-col { width: 20%; }
+  .credit-col { width: 20%; }
+  fieldset { margin-bottom: 20px; }
+  .line-row { border: 1px solid #999; padding: 6px; margin: 4px 0; }
+  .balance-row td { font-weight: bold; background: #f5f5f5; }
+  #global-refresh { font-size: 16px; padding: 8px 16px; margin: 10px 0; }
+  .section { margin-bottom: 30px; }
+  h3 { border-bottom: 2px solid #333; padding-bottom: 4px; }
+</style>
 </head>
 <body>
 
-<h3>Transaction Entry</h3>
+<h2>Twoside — Test Console</h2>
+<label>Token: <input type="text" id="token" size="50" placeholder="Bearer token"></label>
+<button id="global-refresh" onclick="refreshAll()">🔄 Refresh All Views</button>
+
+<hr>
+
+<!-- ============ TRANSACTION ENTRY ============ -->
+<div class="section">
+<h3>Log Transaction</h3>
 <label>Description: <input type="text" id="description" size="40"></label><br><br>
 <label>Trx Date: <input type="datetime-local" id="trx_date"></label>
-
 <div id="lines"></div>
-
 <button onclick="addLine()">+ Add Line</button>
-<button onclick="submitTransaction()">Submit</button>
+<button onclick="submitTransaction()">Submit Transaction</button>
+<pre id="tx-output"></pre>
+</div>
 
-<pre id="output"></pre>
+<!-- ============ BUDGET ALLOCATION ============ -->
+<div class="section">
+<h3>Allocate Budget</h3>
+<label>Category: <select id="alloc_category"></select></label>
+<button type="button" onclick="quickCreateCategory()">+ New</button>
+<label>Amount: <input type="number" id="alloc_amount" step="0.01"></label>
+<label>Description: <input type="text" id="alloc_description"></label>
+<label>Date: <input type="datetime-local" id="alloc_date"></label>
+<button onclick="submitAllocation()">Allocate</button>
+<pre id="alloc-output"></pre>
+</div>
+
+<!-- ============ ACCOUNT BALANCES ============ -->
+<div class="section">
+<h3>Account Balances (as of now)</h3>
+<table id="balances-table">
+  <thead><tr><th>Account</th><th>Balance</th></tr></thead>
+  <tbody></tbody>
+</table>
+</div>
+
+<!-- ============ LEDGER VIEW ============ -->
+<div class="section">
+<h3>Account Ledgers</h3>
+<label>From: <input type="date" id="ledger_start" onchange="loadLedger()"></label>
+<label>To: <input type="date" id="ledger_end" onchange="loadLedger()"></label>
+<div id="ledger-container"></div>
+</div>
+
+<!-- ============ BUDGET REPORT ============ -->
+<div class="section">
+<h3>Budget Reports</h3>
+<label>From: <input type="date" id="budget_start" onchange="loadBudgetReport()"></label>
+<label>To: <input type="date" id="budget_end" onchange="loadBudgetReport()"></label>
+<div id="budget-container"></div>
+</div>
 
 <script>
-const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUyNzM0OTAxLTc4NDUtNGFkYS04ZDlmLWVjNDRhMjE4MmQ2NiIsImlhdCI6MTc4NjAzMjMzOCwiZXhwIjoxNzg2MjA1MTM4fQ.EplW4IN6h_dNbA1sdCIXbdonuz4_vOU0v4Q8p3dY5UU";
 const BASE_URL = "http://localhost:8080"; // adjust to your actual port
+
+function token() { return document.getElementById("token").value; }
+function authHeaders(extra = {}) {
+  return { Authorization: `Bearer ${token()}`, ...extra };
+}
 
 let accounts = [];
 let categories = [];
 let lineCount = 0;
+let loans = [];
+let counterparties = [];
 
+// ---------- shared fetchers ----------
 async function fetchAccounts() {
-  const res = await fetch(`${BASE_URL}/accounts`, {
-    headers: { Authorization: `Bearer ${TOKEN}` }
-  });
+  const res = await fetch(`${BASE_URL}/accounts`, { headers: authHeaders() });
   const data = await res.json();
   accounts = data.accounts;
 }
 
 async function fetchCategories() {
-  const res = await fetch(`${BASE_URL}/categories`, {
-    headers: { Authorization: `Bearer ${TOKEN}` }
-  });
+  const res = await fetch(`${BASE_URL}/categories`, { headers: authHeaders() });
   const data = await res.json();
   categories = data.categories;
 }
 
+async function fetchLoans() {
+  const res = await fetch(`${BASE_URL}/loans?limit=100`, { headers: authHeaders() });
+  const data = await res.json();
+  loans = data.loans.filter(l => l.status !== 'CLOSED');
+}
+
+async function fetchCounterparties() {
+  const res = await fetch(`${BASE_URL}/counterparties`, { headers: authHeaders() });
+  const data = await res.json();
+  counterparties = data.counterparties;
+}
+
+function loanOptions() {
+  return loans.map(l =>
+    `<option value="${l.id}">${l.counterparty_name} — ${l.amount} (${l.direction}, ${l.total_repaid} repaid)</option>`
+  ).join("");
+}
+
+function fmt(n) {
+  return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function populateSelect(select, items, valueKey, labelKey, withNone) {
+  select.innerHTML = (withNone ? `<option value="">None</option>` : "") +
+    items.map(i => `<option value="${i[valueKey]}">${i[labelKey]}</option>`).join("");
+}
+
+// ---------- transaction entry (same as before) ----------
 function accountOptions(selectedId) {
   return accounts.map(a =>
     `<option value="${a.id}" ${a.id === selectedId ? "selected" : ""}>${a.name}</option>`
   ).join("");
 }
-
 function categoryOptions() {
   return `<option value="">None</option>` + categories.map(c =>
     `<option value="${c.id}">${c.name}</option>`
   ).join("");
 }
-
 function addLine(defaultAccountId) {
   lineCount++;
   const id = `line-${lineCount}`;
   const div = document.createElement("div");
   div.id = id;
-  div.style.border = "1px solid black";
-  div.style.margin = "5px";
-  div.style.padding = "5px";
-
+  div.className = "line-row";
   div.innerHTML = `
     <select onchange="renderLine('${id}', this.value)">
       <option value="ACCOUNT">ACCOUNT</option>
@@ -73,104 +156,262 @@ function addLine(defaultAccountId) {
     <button onclick="removeLine('${id}')">remove</button>
     <div class="fields"></div>
   `;
-
   document.getElementById("lines").appendChild(div);
   renderLine(id, "ACCOUNT", defaultAccountId);
 }
-
-function removeLine(id) {
-  document.getElementById(id).remove();
-}
-
+function removeLine(id) { document.getElementById(id).remove(); }
 function renderLine(id, kind, defaultAccountId) {
   const container = document.getElementById(id).querySelector(".fields");
-
   if (kind === "ACCOUNT") {
     container.innerHTML = `
       <label>Account: <select class="account_id">${accountOptions(defaultAccountId)}</select></label>
       <label>Category: <select class="category_id">${categoryOptions()}</select></label>
+      <button type="button" onclick="quickCreateCategoryForLine('${id}')">+ New</button>
       <label>Amount: <input type="number" class="amount" step="0.01"></label>
       <label>Direction:
         <select class="direction">
           <option value="INCREASE">INCREASE</option>
           <option value="DECREASE">DECREASE</option>
         </select>
-      </label>
-    `;
+      </label>`;
   } else if (kind === "GIVE_LOAN" || kind === "BORROW") {
     container.innerHTML = `
       <label>Amount: <input type="number" class="amount" step="0.01"></label>
-      <label>Counterparty ID: <input type="text" class="counterparty_id" placeholder="uuid"></label>
-    `;
-  } else if (kind === "RECEIVE_LOAN_REPAYMENT" || kind === "REPAY_LOAN") {
+      <label>Counterparty:
+        <select class="counterparty_id">${counterparties.map(c => `<option value="${c.id}">${c.name}</option>`).join("")}</select>
+      </label>
+      <button type="button" onclick="quickCreateCounterparty('${id}')">+ New</button>`;
+  } else {
     container.innerHTML = `
       <label>Amount: <input type="number" class="amount" step="0.01"></label>
-      <label>Loan ID: <input type="text" class="loan_id" placeholder="uuid"></label>
-    `;
+      <label>Loan: <select class="loan_id">${loanOptions()}</select></label>`;
   }
 }
-
 function collectLines() {
   const lineDivs = document.querySelectorAll("#lines > div");
   const lines = [];
-
   lineDivs.forEach(div => {
     const kind = div.querySelector("select").value;
     const amount = parseFloat(div.querySelector(".amount").value);
-
     if (kind === "ACCOUNT") {
       lines.push({
-        kind,
-        amount,
+        kind, amount,
         account_id: div.querySelector(".account_id").value,
         category_id: div.querySelector(".category_id").value || null,
         direction: div.querySelector(".direction").value
       });
     } else if (kind === "GIVE_LOAN" || kind === "BORROW") {
-      lines.push({
-        kind,
-        amount,
-        counterparty_id: div.querySelector(".counterparty_id").value
-      });
-    } else if (kind === "RECEIVE_LOAN_REPAYMENT" || kind === "REPAY_LOAN") {
-      lines.push({
-        kind,
-        amount,
-        loan_id: div.querySelector(".loan_id").value
-      });
+      lines.push({ kind, amount, counterparty_id: div.querySelector(".counterparty_id").value });
+    } else {
+      lines.push({ kind, amount, loan_id: div.querySelector(".loan_id").value });
     }
   });
-
   return lines;
 }
-
 async function submitTransaction() {
   const body = {
     description: document.getElementById("description").value,
     trx_date: new Date(document.getElementById("trx_date").value).toISOString(),
     lines: collectLines()
   };
-
   const res = await fetch(`${BASE_URL}/transactions`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${TOKEN}`
-    },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(body)
   });
-
   const data = await res.json();
-  document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+  document.getElementById("tx-output").textContent = JSON.stringify(data, null, 2);
+  if (res.ok) refreshAll();
+}
+
+// ---------- budget allocation ----------
+async function submitAllocation() {
+  const body = {
+    category_id: document.getElementById("alloc_category").value,
+    amount: parseFloat(document.getElementById("alloc_amount").value),
+    description: document.getElementById("alloc_description").value,
+    date_allocated: new Date(document.getElementById("alloc_date").value).toISOString()
+  };
+  const res = await fetch(`${BASE_URL}/budget`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  document.getElementById("alloc-output").textContent = JSON.stringify(data, null, 2);
+  if (res.ok) refreshAll();
+}
+
+async function quickCreateCounterparty(lineId) {
+  const name = prompt("New counterparty name:");
+  if (!name) return;
+  const res = await fetch(`${BASE_URL}/counterparties`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ name })
+  });
+  const data = await res.json();
+  if (!res.ok) { alert(JSON.stringify(data)); return; }
+  await fetchCounterparties();
+  renderLine(lineId, "GIVE_LOAN"); // re-render this line so the new option appears
+  document.getElementById(lineId).querySelector(".counterparty_id").value = data.id;
+}
+
+async function quickCreateCategoryForLine(lineId) {
+  const name = prompt("New category name:");
+  if (!name) return;
+  const res = await fetch(`${BASE_URL}/categories`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ name })
+  });
+  const data = await res.json();
+  if (!res.ok) { alert(JSON.stringify(data)); return; }
+  await fetchCategories();
+  renderLine(lineId, "ACCOUNT");
+  document.getElementById(lineId).querySelector(".category_id").value = data.id;
+}
+
+async function quickCreateCategory() {
+  const name = prompt("New category name:");
+  if (!name) return;
+  const res = await fetch(`${BASE_URL}/categories`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ name })
+  });
+  const data = await res.json();
+  if (!res.ok) { alert(JSON.stringify(data)); return; }
+  await fetchCategories();
+  refreshAll(); // repopulate every category dropdown across the whole page
+}
+
+// ---------- account balances ----------
+async function loadBalances() {
+  const res = await fetch(`${BASE_URL}/report/balances`, { headers: authHeaders() });
+  const data = await res.json();
+  const tbody = document.querySelector("#balances-table tbody");
+  tbody.innerHTML = (data.data || []).map(a =>
+    `<tr><td>${a.account_name}${a.is_account_disabled ? " (disabled)" : ""}</td><td>${fmt(a.balance)}</td></tr>`
+  ).join("");
+}
+
+// ---------- ledger view (debit left / credit right, classic account book) ----------
+async function loadLedger() {
+  const start = document.getElementById("ledger_start").value;
+  const end = document.getElementById("ledger_end").value;
+  const container = document.getElementById("ledger-container");
+  if (!start || !end) { container.innerHTML = ""; return; }
+
+  container.innerHTML = "";
+
+  for (const account of accounts) {
+    const res = await fetch(
+      `${BASE_URL}/transactions/${account.id}?start_date=${start}&end_date=${end}&with_balances=true&page=1&limit=100`,
+      { headers: authHeaders() }
+    );
+    const data = await res.json();
+
+    let rows = `<tr class="balance-row"><td colspan="2">Opening Balance</td>
+                <td>${data.opening_balance >= 0 ? fmt(data.opening_balance) : ""}</td>
+                <td>${data.opening_balance < 0 ? fmt(-data.opening_balance) : ""}</td></tr>`;
+
+    (data.entries || []).forEach(e => {
+      const date = new Date(e.trx_date).toLocaleDateString();
+      rows += `<tr>
+        <td>${date}</td>
+        <td>${e.description}${e.category_name ? " [" + e.category_name + "]" : ""}</td>
+        <td>${e.side === "DEBIT" ? fmt(e.amount) : ""}</td>
+        <td>${e.side === "CREDIT" ? fmt(e.amount) : ""}</td>
+      </tr>`;
+    });
+
+    rows += `<tr class="balance-row"><td colspan="2">Closing Balance</td>
+             <td>${data.closing_balance >= 0 ? fmt(data.closing_balance) : ""}</td>
+             <td>${data.closing_balance < 0 ? fmt(-data.closing_balance) : ""}</td></tr>`;
+
+    container.innerHTML += `
+      <h4>${account.name}${account.is_disabled ? " (disabled)" : ""}</h4>
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th class="debit-col">Debit</th><th class="credit-col">Credit</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+}
+
+// ---------- budget report ----------
+async function loadBudgetReport() {
+  const start = document.getElementById("budget_start").value;
+  const end = document.getElementById("budget_end").value;
+  const container = document.getElementById("budget-container");
+  if (!start || !end) { container.innerHTML = ""; return; }
+
+  container.innerHTML = "";
+
+  for (const category of categories) {
+    const [reportRes, allocRes, expRes] = await Promise.all([
+      fetch(`${BASE_URL}/report/budget?category_id=${category.id}&start_date=${start}&end_date=${end}`, { headers: authHeaders() }),
+      fetch(`${BASE_URL}/allocations/${category.id}?start_date=${start}&end_date=${end}&page=1&limit=50`, { headers: authHeaders() }),
+      fetch(`${BASE_URL}/expenses/${category.id}?start_date=${start}&end_date=${end}&page=1&limit=50`, { headers: authHeaders() })
+    ]);
+    const report = await reportRes.json();
+    const alloc = await allocRes.json();
+    const exp = await expRes.json();
+
+    const allocRows = (alloc.allocations || []).map(a =>
+      `<tr><td>${new Date(a.date_allocated).toLocaleDateString()}</td><td>${a.description}</td><td>${fmt(a.amount)}</td></tr>`
+    ).join("");
+
+    const expRows = (exp.entries || []).map(e =>
+      `<tr><td>${new Date(e.trx_date).toLocaleDateString()}</td><td>${e.description}</td><td>${fmt(e.amount)}</td></tr>`
+    ).join("");
+
+    container.innerHTML += `
+      <h4>${category.name}</h4>
+      <table>
+        <tbody>
+          <tr><td>Balance Before</td><td>${fmt(report.balance_before)}</td></tr>
+          <tr><td>Allocated Within Range</td><td>${fmt(report.allocated_within)}</td></tr>
+          <tr><td>Spent Within Range</td><td>${fmt(report.spent_within)}</td></tr>
+          <tr class="balance-row"><td>Remaining</td><td>${fmt(report.remaining)}</td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th colspan="3">Allocations</th></tr></thead>
+        <tbody>${allocRows}</tbody>
+      </table>
+      <table>
+        <thead><tr><th colspan="3">Expenses</th></tr></thead>
+        <tbody>${expRows}</tbody>
+      </table>`;
+  }
+}
+
+// ---------- global refresh ----------
+async function refreshAll() {
+  await fetchAccounts();
+  await fetchCategories();
+  await fetchCounterparties();
+  await fetchLoans();
+  populateSelect(document.getElementById("alloc_category"), categories, "id", "name");
+  await loadBalances();
+  await loadLedger();
+  await loadBudgetReport();
 }
 
 async function init() {
   await fetchAccounts();
   await fetchCategories();
+  await fetchCounterparties();
+  await fetchLoans();
+  populateSelect(document.getElementById("alloc_category"), categories, "id", "name");
+
   const bank = accounts.find(a => a.default === "BANK");
   const income = accounts.find(a => a.default === "INCOME");
   addLine(bank ? bank.id : undefined);
   addLine(income ? income.id : undefined);
+
+  await loadBalances();
 }
 
 init();
