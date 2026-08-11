@@ -16,6 +16,8 @@ import { list_counterparties } from './routes/list-counterparties.js';
 import { generate_budget_report } from './routes/generate-budget-report.js';
 import { generate_account_balance } from './routes/generate-account-balance.js';
 import { fetch_expenses_by_category } from './routes/fetch-expenses-by-category.js';
+import { test_gemini_chat } from './routes/test-gemini-chat.js';
+import { list_test_chats } from './routes/list-test-chats.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -26,6 +28,8 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   // WE STILL NEED TO WRITE UP THE CRON JOB FOR CREATING SNAPSHOTS
   
   fastify.get("/seed", seed);
+  fastify.post("/test/gemini-chat", test_gemini_chat);
+  fastify.get("/test/gemini-chat", list_test_chats);
 
   fastify.post("/login", login);
   fastify.post("/register", register_user);
