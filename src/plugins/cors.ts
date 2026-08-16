@@ -7,6 +7,7 @@ export default fp(async (fastify) => {
       const allowedOrigins = [
         'http://localhost:3000',
         'http://localhost:5173',
+        'http://192.168.1.200:5173'
       ];
 
       // Allow requests with no origin (like mobile apps or Postman)

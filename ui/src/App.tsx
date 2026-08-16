@@ -1,23 +1,18 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Sidebar } from "./components/Sidebar";
-import { ChatView } from "./pages/ChatView";
-import { LedgerView } from "./pages/LedgerView";
-// import { BudgetView } from "./pages/BudgetView";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { TransactionBuilder } from './components/finance/TransactionBuilder';
+import { Navbar } from './components/shared/Navbar';
+import { LedgerScreen } from './components/finance/LedgerScreen';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div style={{ display: "flex", height: "100vh" }}>
-        <Sidebar />
-        <div style={{ flex: 1, overflow: "auto" }}>
-          <Routes>
-            <Route path="/" element={<ChatView />} />
-            <Route path="/ledger" element={<LedgerView />} />
-            
-            {/* add /categories, /counterparties, /loans the same way */}
-          </Routes>
-        </div>
-      </div>
+      <Routes>
+        <Route path="/" element={<Navigate to="/add" replace />} />
+        <Route path="/add" element={<TransactionBuilder />} />
+        <Route path="/ledger" element={<LedgerScreen />} />
+        {/* /ledger, /budgets, /profile routes land here as you build them */}
+      </Routes>
+      <Navbar />
     </BrowserRouter>
   );
 }
