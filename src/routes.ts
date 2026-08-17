@@ -18,6 +18,7 @@ import { generate_account_balance } from './routes/generate-account-balance.js';
 import { fetch_expenses_by_category } from './routes/fetch-expenses-by-category.js';
 import { test_gemini_chat } from './routes/test-gemini-chat.js';
 import { list_test_chats } from './routes/list-test-chats.js';
+import { log_transfer } from './routes/logs/log-transfer.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -33,6 +34,17 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
   fastify.post("/login", login);
   fastify.post("/register", register_user);
+
+
+  fastify.post("/log/expense", );
+  fastify.post("/log/income", );
+  fastify.post("/log/transfer", log_transfer);
+  fastify.post("/log/loan", );
+  fastify.post("/log/borrow", );
+  fastify.post("/log/loan-repayed", );
+  fastify.post("/log/borrow-returned", );
+  
+  
 
   fastify.post("/budget", allocate_budget);
   fastify.post("/categories", create_category);

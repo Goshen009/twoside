@@ -44,17 +44,24 @@ model Account {
 
 	id										String @id @default(uuid())
 	name									String
-	type									AccountType
-	default								DefaultAccounts?
-	is_disabled						Boolean @default(false)
-	
-	journal_entries				JournalEntry[]
-	balance_snapshots			AccountBalanceSnapshot[]
+	is_active							Boolean @default(true)
+	increases_with				EntrySide
 
 	user_id								String
 	user									User @relation(fields: [user_id], references: [id])
 
+	journal_entries				JournalEntry[]
+	balance_snapshots			AccountBalanceSnapshot[]
+	
 	@@unique([user_id, name])
+	
+	
+	type									AccountType
+	default								DefaultAccounts?
+	is_disabled						Boolean @default(false)
+	
+
+
 	@@unique([user_id, default])
 }
 

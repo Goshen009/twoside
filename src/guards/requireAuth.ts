@@ -17,13 +17,8 @@ export default fp(async (fastify) => {
 			select: { 
 				id: true,
 				username: true,
-				accounts: {
-					select: {
-						id: true,
-						default: true
-					}
-				}
-			}
+				accounts: true
+			},
 		})
 		
 		if (!user)
@@ -49,12 +44,7 @@ export type AuthenticatedUser = Prisma.UserGetPayload<{
 	select: {
 		id: true,
 		username: true,
-		accounts: {
-			select: {
-				id: true,
-				default: true
-			}
-		}
+		accounts: true
 	}
 }> & { 
 	defaults: {
