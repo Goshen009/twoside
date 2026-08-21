@@ -19,6 +19,8 @@ import { fetch_expenses_by_category } from './routes/fetch-expenses-by-category.
 import { test_gemini_chat } from './routes/test-gemini-chat.js';
 import { list_test_chats } from './routes/list-test-chats.js';
 import { log_transfer } from './routes/logs/log-transfer.js';
+import { log_expense } from './routes/logs/log-expense.js';
+import { log_income } from './routes/logs/log-income.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -36,8 +38,8 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.post("/register", register_user);
 
 
-  fastify.post("/log/expense", );
-  fastify.post("/log/income", );
+  fastify.post("/log/expense", log_expense);
+  fastify.post("/log/income", log_income);
   fastify.post("/log/transfer", log_transfer);
   fastify.post("/log/loan", );
   fastify.post("/log/borrow", );
