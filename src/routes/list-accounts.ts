@@ -2,9 +2,8 @@ import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { z } from "zod/v4";
 
 const schema = z.object({
-	show_disabled: z.enum(["true", "false"]).default("false").transform(v => v === "true")
+  show_inactive: z.enum(["true", "false"]).default("false").transform(v => v === "true")
 });
-
 async function handler(
   this: FastifyInstance,
   request: FastifyRequest<{ Querystring: z.infer<typeof schema> }>,
@@ -12,12 +11,12 @@ async function handler(
 ) {
 	const user = await request.requireAuth();
 
-	const { show_disabled } = request.query;
+	const { show_inactive } = request.query;
 
 	const accounts = await this.prisma.account.findMany({
 		where: { 
 			user_id: user.id,
-			...(!show_disabled && { is_disabled: false } )
+			...(!show_inactive && { is_active: true })
 		}
 	});
 	
@@ -25,7 +24,8 @@ async function handler(
   	accounts: accounts.map(a => ({
    		id: a.id,
      	name: a.name,
-      default: a.default
+      type: a.type,
+      is_active: a.is_active,
    	}))
   });
 }

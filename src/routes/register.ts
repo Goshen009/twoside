@@ -1,8 +1,10 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { APIError } from "#/errors/APIError.js";
 import { Prisma } from "#/prisma/client.js";
-import { JWT, Password } from "#/libs/index.js";
 import { z } from "zod/v4";
+
+import Password from "#/libs/password.js";
+import JWT from "#/libs/jwt.js";
 
 const schema = z.object({
 	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
@@ -36,14 +38,14 @@ async function handler(
    			password,
      		accounts: {
      			create: [
-	       		{ name: 'Cash', type: 'ASSET', default: 'CASH', balance_snapshots },
-		      	{ name: 'Bank', type: 'ASSET', default: 'BANK', balance_snapshots },
-						{ name: 'Equity', type: 'EQUITY', default: null, balance_snapshots },
-						{ name: 'Savings', type: 'ASSET', default: null, balance_snapshots },
-						{ name: 'Income', type: 'INCOME', default: 'INCOME', balance_snapshots },
-						{ name: 'Expense', type: 'EXPENSE', default: 'EXPENSE', balance_snapshots },
-						{ name: 'Payables', type: 'LIABILITY', default: 'PAYABLES', balance_snapshots },
-						{ name: 'Recieveables', type: 'ASSET', default: 'RECEIVABLES', balance_snapshots },
+	       		{ name: 'Cash', type: 'ASSET', system_role: null, balance_snapshots },
+			     	{ name: 'Bank', type: 'ASSET', system_role: null, balance_snapshots },
+						{ name: 'Equity', type: 'EQUITY', system_role: null, balance_snapshots },
+						{ name: 'Savings', type: 'ASSET', system_role: null, balance_snapshots },
+						{ name: 'Income', type: 'INCOME', system_role: 'INCOME', balance_snapshots },
+						{ name: 'Expense', type: 'EXPENSE', system_role: 'EXPENSE', balance_snapshots },
+						{ name: 'Payables', type: 'LIABILITY', system_role: 'PAYABLES', balance_snapshots },
+						{ name: 'Recieveables', type: 'ASSET', system_role: 'RECEIVABLES', balance_snapshots },
 	        ]
        	}
     	}
