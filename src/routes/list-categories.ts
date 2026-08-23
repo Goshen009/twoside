@@ -25,6 +25,7 @@ async function handler(
   	categories: categories.map(c => ({
    		id: c.id,
     	name: c.name,
+     	is_active: c.is_active
    	}))
   });
 }

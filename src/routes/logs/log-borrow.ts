@@ -3,7 +3,7 @@ import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
 
 import Ledger from "#/libs/ledger.js";
-import TransactionSchemas from "#/libs/TransactionSchemas.js";
+import TransactionSchemas from "#/libs/transaction-schemas.js";
 
 const schema = z.object({
   ...TransactionSchemas.commonFields(),

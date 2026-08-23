@@ -16,6 +16,7 @@ async function handler(
 	const accounts = await this.prisma.account.findMany({
 		where: { 
 			user_id: user.id,
+			system_role: null,
 			...(!show_inactive && { is_active: true })
 		}
 	});

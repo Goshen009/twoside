@@ -13,25 +13,29 @@ async function handler(
   reply: FastifyReply
 ) {
   const user = await request.requireAuth();
-    
   const { name } = request.body;
 
-  let counterparty;
+  let account;
   try {
-    counterparty = await this.prisma.counterparty.create({
+    account = await this.prisma.account.create({
       data: {
-      	name,
-        user_id: user.id
-      }
+        name,
+        type: 'ASSET',
+        system_role: null,
+        user_id: user.id,
+        balance_snapshots: {
+          create: [{ balance: 0, as_of_date: new Date() }],
+        },
+      },
     });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-      throw APIError.validationError([{ field: 'counterparty', message: 'This name has been used for another counterparty.' }]);
+      throw APIError.validationError([{ field: 'account', message: 'This name has been used by another account.' }]);
     }
     throw err;
   }
 
-  return reply.code(200).send({ id: counterparty.id });
+  return reply.code(200).send({ id: account.id });
 }
 
-export const create_counterparty = { handler, schema: { body: schema } };
+export const create_account = { handler, schema: { body: schema } };

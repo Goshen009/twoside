@@ -1,7 +1,9 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
-import { JWT, Password } from "#/libs/index.js";
 import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
+
+import Password from "#/libs/password.js";
+import JWT from "#/libs/jwt.js";
 
 const LOCKOUT_THRESHOLD = 5;
 const BASE_LOCKOUT_MINUTES = 5;

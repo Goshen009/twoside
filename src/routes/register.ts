@@ -40,8 +40,8 @@ async function handler(
      			create: [
 	       		{ name: 'Cash', type: 'ASSET', system_role: null, balance_snapshots },
 			     	{ name: 'Bank', type: 'ASSET', system_role: null, balance_snapshots },
-						{ name: 'Equity', type: 'EQUITY', system_role: null, balance_snapshots },
 						{ name: 'Savings', type: 'ASSET', system_role: null, balance_snapshots },
+						{ name: 'Equity', type: 'EQUITY', system_role: 'EQUITY', balance_snapshots },
 						{ name: 'Income', type: 'INCOME', system_role: 'INCOME', balance_snapshots },
 						{ name: 'Expense', type: 'EXPENSE', system_role: 'EXPENSE', balance_snapshots },
 						{ name: 'Payables', type: 'LIABILITY', system_role: 'PAYABLES', balance_snapshots },

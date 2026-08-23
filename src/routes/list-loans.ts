@@ -2,10 +2,12 @@ import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { Prisma } from "#/prisma/client.js";
 import { z } from "zod/v4";
 
+import Calc from "#/libs/calc.js";
+
 const schema = z.object({
   status: z.enum(["OPEN", "PARTIALLY_REPAID", "CLOSED"]).optional(),
   direction: z.enum(["GIVEN", "BORROWED"]).optional(),
-  page: z.coerce.number().int().positive().default(1),
+  cursor: z.iso.datetime("cursor must be in the format YYYY-MM-DD").transform((val) => new Date(`${val}T00:00:00.000Z`)).optional(),
   limit: z.coerce.number().int().positive().max(100).default(25),
 });
 
@@ -14,51 +16,46 @@ async function handler(
   request: FastifyRequest<{ Querystring: z.infer<typeof schema> }>,
   reply: FastifyReply
 ) {
-	const user = await request.requireAuth();
+  const user = await request.requireAuth();
+  
+  const { status, direction, cursor, limit } = request.query;
 
-	const { status, direction, page, limit } = request.query;
+  const where: Prisma.LoanWhereInput = {
+    transaction_group: { user_id: user.id },
+    ...(status && { status }),
+    ...(direction && { direction }),
+    ...(cursor && { date_issued: { lt: cursor } }),
+  };
 
-	const skip = (page - 1) * limit;
-  const where: Prisma.LoanWhereInput = { 
-	 	transaction_group: { user_id: user.id },
-	  ...(status && { status }),
-	  ...(direction && { direction })
-  }
+  const loans = await this.prisma.loan.findMany({
+    where,
+    take: limit + 1,
+    orderBy: { date_issued: 'desc' },
+    include: { 
+    	counterparty: true,
+     	repayments: true
+    },
+  });
 
-  const [loans, total] = await Promise.all([
- 		this.prisma.loan.findMany({
-     	where,
-      orderBy: { date_issued: 'desc' },
-      skip,
-      take: limit,
-      include: { 
-     		counterparty: true,
-       repayments: true
-      },
-   	}),
-   	this.prisma.loan.count({ where })
-  ]);
+  const has_next = loans.length > limit;
+  const page_loans = loans.slice(0, limit);
+  
+  const next_cursor = has_next
+    ? page_loans[page_loans.length - 1]!.date_issued
+    : null;
 
-  const total_pages = Math.ceil(total / limit);
-
-	return reply.code(200).send({
-    loans: loans.map(l => ({
+  return reply.code(200).send({
+    loans: page_loans.map((l) => ({
       id: l.id,
       direction: l.direction,
       status: l.status,
       amount: l.amount,
       counterparty_name: l.counterparty.name,
       date_issued: l.date_issued,
-      total_repaid: l.repayments.reduce((sum, r) => sum + Number(r.amount), 0)
+      total_repaid: Calc.toDecimalNumber(l.repayments.reduce((sum, r) => sum + Calc.toWholeNumber(Number(r.amount)), 0)),
     })),
-    pagination: {
-    	total,
-     	page,
-     	limit,
-     	total_pages,
-     	has_next: page < total_pages,
-     	has_prev: page > 1
-    }
+    next_cursor,
+    has_next,
   });
 }
 

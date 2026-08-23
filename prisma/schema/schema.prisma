@@ -241,6 +241,7 @@ enum SystemAccountRole {
   RECEIVABLES
   INCOME
   EXPENSE
+  EQUITY
 }
 
 enum AccountingSide {

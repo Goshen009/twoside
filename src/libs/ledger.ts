@@ -2,12 +2,11 @@ import { AccountingSide, AccountType, LoanDirection, LoanStatus, PrismaClient } 
 import { APIError } from "#/errors/APIError.js";
 import { Prisma } from "#/prisma/client.js";
 
+import Calc from "./calc.js";
+
 type CashflowDirection = 'INCREASE' | 'DECREASE';
 
 class Ledger {
-	static toWholeNumber(n: number) { return Math.round(n * 100); }
-  static toDecimalNumber(n: number) { return n / 100; }
-
 	static checkAccount<T extends { id: string, name: string, is_active: boolean}>(
 		account_id: string,
 		accounts: T[],
@@ -54,8 +53,8 @@ class Ledger {
 	  if (loan.direction !== expected_direction)
 	    throw APIError.custom({ status: 400, message: "This loan's direction does not match this action" });
 		
-	  const total_repaid = loan.repayments.reduce((sum, r) => sum + this.toWholeNumber(Number(r.amount)), 0);
-	  const remaining = this.toWholeNumber(Number(loan.amount)) - total_repaid;
+	  const total_repaid = loan.repayments.reduce((sum, r) => sum + Calc.toWholeNumber(Number(r.amount)), 0);
+	  const remaining = Calc.toWholeNumber(Number(loan.amount)) - total_repaid;
 		
 	  return { ...loan, remaining_cents: remaining };
 	}
@@ -82,11 +81,11 @@ class Ledger {
 	): boolean {
 		const total_debits = accounts
 			.filter(a => this.resolveAccountingSide(a.type, a.cashflow_direction) === AccountingSide.DEBIT)
-			.reduce((sum, l) => sum + this.toWholeNumber(l.amount), 0);
+			.reduce((sum, l) => sum + Calc.toWholeNumber(l.amount), 0);
 
 		const total_credits = accounts
 			.filter(a => this.resolveAccountingSide(a.type, a.cashflow_direction) === AccountingSide.CREDIT)
-			.reduce((sum, l) => sum + this.toWholeNumber(l.amount), 0);
+			.reduce((sum, l) => sum + Calc.toWholeNumber(l.amount), 0);
 
 		if (total_debits != total_credits)
 			throw APIError.custom({ status: 400, message: 'The accounts are not balanced!' });
@@ -194,8 +193,8 @@ class Ledger {
     });
   
     for (const loan of loans) {
-      const total_repaid = loan.repayments.reduce((sum, r) => sum + this.toWholeNumber(Number(r.amount)), 0);
-      const original = this.toWholeNumber(Number(loan.amount));
+      const total_repaid = loan.repayments.reduce((sum, r) => sum + Calc.toWholeNumber(Number(r.amount)), 0);
+      const original = Calc.toWholeNumber(Number(loan.amount));
       
       const new_status = total_repaid >= original 
       	? LoanStatus.CLOSED
