@@ -1,12 +1,12 @@
 import { FastifyPluginAsync } from 'fastify';
 
 import { seed } from './routes/seed.js';
-import { login } from './routes/working/login.js';
-import { list_loans } from './routes/working/list-loans.js';
-import { register_user } from './routes/working/register.js';
-import { list_accounts } from './routes/working/list-accounts.js';
-import { list_categories } from './routes/working/list-categories.js';
-import { list_counterparties } from './routes/working/list-counterparties.js';
+import { login } from './routes/login.js';
+import { list_loans } from './routes/list-loans.js';
+import { register_user } from './routes/register.js';
+import { list_accounts } from './routes/list-accounts.js';
+import { list_categories } from './routes/list-categories.js';
+import { list_counterparties } from './routes/list-counterparties.js';
 import { log_transfer } from './routes/logs/log-transfer.js';
 import { log_expense } from './routes/logs/log-expense.js';
 import { log_income } from './routes/logs/log-income.js';
@@ -14,22 +14,22 @@ import { log_give_loan } from './routes/logs/log-give-loan.js';
 import { log_borrow } from './routes/logs/log-borrow.js';
 import { log_repay_loan } from './routes/logs/log_repay_loan.js';
 import { log_receive_repayment } from './routes/logs/log_receive_repayment.js';
-import { create_account } from './routes/working/create-account.js';
-import { toggle_account_status } from './routes/working/toggle-account-status.js';
-import { toggle_category_status } from './routes/working/toggle-category-status.js';
-import { toggle_counterparty_status } from './routes/working/toggle-counterparty-status.js';
-import { get_balances } from './routes/working/get-balances.js';
-import { get_transaction_group } from './routes/working/get-transaction-group.js';
-import { get_account_summary } from './routes/working/get-account-summary.js';
-import { list_transactions } from './routes/working/list-transactions.js';
-import { get_loan_repayment } from './routes/working/get-loan-repayments.js';
-import { get_loan } from './routes/working/get-loan.js';
-import { get_loans_summary } from './routes/working/get-loans-summary.js';
-import { get_category_summary } from './routes/working/get-category-summary.js';
-import { get_counterparty_loans } from './routes/working/get-counterparty-loans.js';
-import { list_category_transactions } from './routes/working/list-category-transactions.js';
-import { create_category } from './routes/working/create-category.js';
-import { create_counterparty } from './routes/working/create-counterparty.js';
+import { create_account } from './routes/create-account.js';
+import { toggle_account_status } from './routes/toggle-account-status.js';
+import { toggle_category_status } from './routes/toggle-category-status.js';
+import { toggle_counterparty_status } from './routes/toggle-counterparty-status.js';
+import { get_balances } from './routes/get-balances.js';
+import { get_transaction_group } from './routes/get-transaction-group.js';
+import { get_account_summary } from './routes/get-account-summary.js';
+import { list_transactions } from './routes/list-transactions.js';
+import { get_loan_repayment } from './routes/get-loan-repayments.js';
+import { get_loan } from './routes/get-loan.js';
+import { get_loans_summary } from './routes/get-loans-summary.js';
+import { get_category_summary } from './routes/get-category-summary.js';
+import { get_counterparty_loans } from './routes/get-counterparty-loans.js';
+import { list_category_transactions } from './routes/list-category-transactions.js';
+import { create_category } from './routes/create-category.js';
+import { create_counterparty } from './routes/create-counterparty.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  

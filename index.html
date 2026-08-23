@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Twoside — Test Console</title>
+<style>
+  body { font-family: monospace; padding: 15px; max-width: 900px; margin: auto; background: #111; color: #ddd; }
+  section { border: 1px solid #444; padding: 12px; margin-bottom: 15px; border-radius: 6px; }
+  h3 { margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 6px; }
+  input, select, button { background: #222; color: #ddd; border: 1px solid #555; padding: 6px; margin: 3px 0; border-radius: 4px; }
+  button { cursor: pointer; }
+  button:hover { background: #333; }
+  pre { background: #000; padding: 10px; overflow-x: auto; font-size: 12px; max-height: 300px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  td, th { border: 1px solid #444; padding: 4px 8px; text-align: left; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .tabs button.active { background: #555; }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 15px; }
+  .nav button { flex: 1; min-width: 80px; }
+  .hidden { display: none; }
+  .credit { color: #6f6; }
+  .debit { color: #f66; }
+</style>
+</head>
+<body>
+
+<h2>Twoside</h2>
+
+<section id="auth-section">
+  <h3>Auth</h3>
+  <div class="row">
+    <input id="auth-username" placeholder="username">
+    <input id="auth-pin" placeholder="pin" type="password">
+    <input id="auth-confirm-pin" placeholder="confirm pin (register only)" type="password">
+    <button onclick="doLogin()">Login</button>
+    <button onclick="doRegister()">Register</button>
+    <button onclick="doLogout()">Logout</button>
+  </div>
+  <div id="auth-status"></div>
+</section>
+
+<div class="nav">
+  <button onclick="showScreen('home')">Home</button>
+  <button onclick="showScreen('ledger')">Ledger</button>
+  <button onclick="showScreen('loans')">Loans</button>
+  <button onclick="showScreen('counterparties')">Counterparties</button>
+  <button onclick="showScreen('categories')">Categories</button>
+  <button onclick="showScreen('manage')">Manage</button>
+</div>
+
+<!-- HOME -->
+<div id="screen-home">
+  <section>
+    <h3>Balances</h3>
+    <button onclick="loadBalances()">Refresh</button>
+    <table id="balances-table"><thead><tr><th>Account</th><th>Balance</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h3>Log Transaction</h3>
+    <div class="tabs" id="log-tabs"></div>
+    <div id="log-form"></div>
+    <button onclick="submitLog()">Submit</button>
+    <pre id="log-output"></pre>
+  </section>
+</div>
+
+<!-- LEDGER -->
+<div id="screen-ledger" class="hidden">
+  <section>
+    <h3>Account Summary</h3>
+    <div class="row">
+      <select id="ledger-account"></select>
+      <input type="date" id="ledger-start">
+      <input type="date" id="ledger-end">
+      <button onclick="loadSummary()">Get Summary</button>
+    </div>
+    <pre id="summary-output"></pre>
+  </section>
+
+  <section>
+    <h3>Transactions</h3>
+    <div class="row">
+      <button onclick="loadTransactions(true)">Load / Reset</button>
+      <button onclick="loadTransactions(false)">Load More (older)</button>
+    </div>
+    <table id="transactions-table"><thead><tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Category</th><th>Group</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h3>Transaction Group Detail</h3>
+    <div class="row"><input id="group-id-input" placeholder="paste group id"><button onclick="loadGroup()">Load</button></div>
+    <pre id="group-output"></pre>
+  </section>
+</div>
+
+<!-- LOANS -->
+<div id="screen-loans" class="hidden">
+  <section>
+    <h3>Loans Summary</h3>
+    <div class="row">
+      <input type="date" id="loans-summary-start">
+      <input type="date" id="loans-summary-end">
+      <button onclick="loadLoansSummary()">Get Summary</button>
+    </div>
+    <pre id="loans-summary-output"></pre>
+  </section>
+
+  <section>
+    <h3>Loans List</h3>
+    <div class="row">
+      <select id="loan-status-filter"><option value="">Any status</option><option>OPEN</option><option>PARTIALLY_REPAID</option><option>CLOSED</option></select>
+      <select id="loan-direction-filter"><option value="">Any direction</option><option>GIVEN</option><option>BORROWED</option></select>
+      <button onclick="loadLoans(true)">Load / Reset</button>
+      <button onclick="loadLoans(false)">Load More</button>
+    </div>
+    <table id="loans-table"><thead><tr><th>Direction</th><th>Status</th><th>Counterparty</th><th>Amount</th><th>Repaid</th><th>Date</th><th>Id</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h3>Loan Detail</h3>
+    <div class="row"><input id="loan-id-input" placeholder="paste loan id"><button onclick="loadLoanDetail()">Load</button></div>
+    <pre id="loan-detail-output"></pre>
+  </section>
+
+  <section>
+    <h3>Repayment Detail</h3>
+    <div class="row"><input id="repayment-id-input" placeholder="paste repayment id"><button onclick="loadRepaymentDetail()">Load</button></div>
+    <pre id="repayment-detail-output"></pre>
+  </section>
+</div>
+
+<!-- COUNTERPARTIES -->
+<div id="screen-counterparties" class="hidden">
+  <section>
+    <h3>Counterparties</h3>
+    <select id="counterparty-select"></select>
+    <button onclick="loadCounterpartyLoans()">View Loans</button>
+    <pre id="counterparty-output"></pre>
+  </section>
+</div>
+
+<!-- CATEGORIES -->
+<div id="screen-categories" class="hidden">
+  <section>
+    <h3>Category Summary</h3>
+    <div class="row">
+      <select id="category-select"></select>
+      <select id="category-account-filter"><option value="">All accounts</option></select>
+      <input type="date" id="category-start">
+      <input type="date" id="category-end">
+      <button onclick="loadCategorySummary()">Get Summary</button>
+    </div>
+    <pre id="category-summary-output"></pre>
+  </section>
+
+  <section>
+    <h3>Category Transactions</h3>
+    <button onclick="loadCategoryTransactions(true)">Load / Reset</button>
+    <button onclick="loadCategoryTransactions(false)">Load More</button>
+    <table id="category-transactions-table"><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Account</th></tr></thead><tbody></tbody></table>
+  </section>
+</div>
+
+<!-- MANAGE -->
+<div id="screen-manage" class="hidden">
+  <section>
+    <h3>Create Account</h3>
+    <div class="row"><input id="new-account-name" placeholder="name"><button onclick="createAccount()">Create</button></div>
+  </section>
+  <section>
+    <h3>Create Category</h3>
+    <div class="row"><input id="new-category-name" placeholder="name"><button onclick="createCategory()">Create</button></div>
+  </section>
+  <section>
+    <h3>Create Counterparty</h3>
+    <div class="row"><input id="new-counterparty-name" placeholder="name"><button onclick="createCounterparty()">Create</button></div>
+  </section>
+  <section>
+    <h3>Toggle Active Status</h3>
+    <div class="row">
+      <select id="toggle-type"><option value="accounts">Account</option><option value="categories">Category</option><option value="counterparties">Counterparty</option></select>
+      <input id="toggle-id" placeholder="id">
+      <select id="toggle-value"><option value="true">Active</option><option value="false">Inactive</option></select>
+      <button onclick="toggleStatus()">Apply</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const BASE_URL = "http://localhost:3000";
+
+function token() { return localStorage.getItem('token'); }
+function authHeaders(extra = {}) {
+  const t = token();
+  return { 'Content-Type': 'application/json', ...(t ? { Authorization: `Bearer ${t}` } : {}), ...extra };
+}
+function fmt(n) { return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+// ---------- AUTH ----------
+async function doLogin() {
+  const username = document.getElementById('auth-username').value;
+  const pin = document.getElementById('auth-pin').value;
+  const res = await fetch(`${BASE_URL}/login`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ username, pin }) });
+  const t = res.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!res.ok || !t) { document.getElementById('auth-status').textContent = 'Login failed: ' + (await res.text()); return; }
+  localStorage.setItem('token', t);
+  document.getElementById('auth-status').textContent = 'Logged in.';
+  init();
+}
+async function doRegister() {
+  const username = document.getElementById('auth-username').value;
+  const pin = document.getElementById('auth-pin').value;
+  const confirm_pin = document.getElementById('auth-confirm-pin').value;
+  const res = await fetch(`${BASE_URL}/register`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ username, pin, confirm_pin }) });
+  const t = res.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!res.ok || !t) { document.getElementById('auth-status').textContent = 'Register failed: ' + (await res.text()); return; }
+  localStorage.setItem('token', t);
+  document.getElementById('auth-status').textContent = 'Registered and logged in.';
+  init();
+}
+function doLogout() { localStorage.removeItem('token'); document.getElementById('auth-status').textContent = 'Logged out.'; }
+
+// ---------- NAV ----------
+function showScreen(name) {
+  ['home','ledger','loans','counterparties','categories','manage'].forEach(s => {
+    document.getElementById('screen-' + s).classList.toggle('hidden', s !== name);
+  });
+}
+
+// ---------- SHARED STATE ----------
+let accounts = [], categories = [], counterparties = [], loans = [];
+let logKind = 'ACCOUNT_EXPENSE';
+let ledgerCursor = null, loansCursor = null, categoryTxCursor = null;
+
+async function fetchAccounts() {
+  const res = await fetch(`${BASE_URL}/accounts`, { headers: authHeaders() });
+  const data = await res.json();
+  accounts = data.accounts || [];
+}
+async function fetchCategories() {
+  const res = await fetch(`${BASE_URL}/categories`, { headers: authHeaders() });
+  const data = await res.json();
+  categories = data.categories || [];
+}
+async function fetchCounterparties() {
+  const res = await fetch(`${BASE_URL}/counterparties`, { headers: authHeaders() });
+  const data = await res.json();
+  counterparties = data.counterparties || [];
+}
+
+function populate(select, items, labelKey = 'name', includeBlank = false) {
+  select.innerHTML = (includeBlank ? '<option value="">-- none --</option>' : '') +
+    items.map(i => `<option value="${i.id}">${i[labelKey]}</option>`).join('');
+}
+
+// ---------- HOME: balances ----------
+async function loadBalances() {
+  const res = await fetch(`${BASE_URL}/balances`, { headers: authHeaders() });
+  const data = await res.json();
+  document.querySelector('#balances-table tbody').innerHTML = (data.balances || []).map(b =>
+    `<tr><td>${b.name}</td><td>${fmt(b.balance)}</td></tr>`
+  ).join('');
+}
+
+// ---------- HOME: log transaction ----------
+const logKinds = {
+  ACCOUNT_EXPENSE: 'Expense',
+  ACCOUNT_INCOME: 'Income',
+  TRANSFER: 'Transfer',
+  GIVE_LOAN: 'Give Loan',
+  BORROW: 'Borrow',
+  RECEIVE_REPAYMENT: 'Receive Repayment',
+  REPAY_LOAN: 'Repay Loan',
+};
+
+function renderLogTabs() {
+  document.getElementById('log-tabs').innerHTML = Object.entries(logKinds).map(([k, label]) =>
+    `<button class="${k === logKind ? 'active' : ''}" onclick="setLogKind('${k}')">${label}</button>`
+  ).join('');
+}
+function setLogKind(k) { logKind = k; renderLogTabs(); renderLogForm(); }
+
+function accountOptionsHtml() {
+  return accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+}
+function categoryOptionsHtml() {
+  return '<option value="">None</option>' + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+function counterpartyOptionsHtml() {
+  return counterparties.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+function loanOptionsHtml(direction) {
+  return loans.filter(l => l.direction === direction && l.status !== 'CLOSED')
+    .map(l => `<option value="${l.id}">${l.counterparty_name} — ${l.amount} (${l.total_repaid} repaid)</option>`).join('');
+}
+
+function renderLogForm() {
+  const el = document.getElementById('log-form');
+  const common = `
+    <div class="row"><input id="log-description" placeholder="description"></div>
+    <div class="row"><input id="log-trxdate" type="datetime-local"></div>
+  `;
+  if (logKind === 'ACCOUNT_EXPENSE') {
+    el.innerHTML = common + `
+      <div class="row">Category: <select id="log-category">${categoryOptionsHtml()}</select></div>
+      <div id="log-sources"></div>
+      <button type="button" onclick="addAllocation('log-sources')">+ Source</button>`;
+    document.getElementById('log-sources').innerHTML = '';
+    addAllocation('log-sources');
+  } else if (logKind === 'ACCOUNT_INCOME') {
+    el.innerHTML = common + `<div id="log-destinations"></div><button type="button" onclick="addAllocation('log-destinations')">+ Destination</button>`;
+    document.getElementById('log-destinations').innerHTML = '';
+    addAllocation('log-destinations');
+  } else if (logKind === 'TRANSFER') {
+    el.innerHTML = common + `
+      <div class="row">From: <select id="log-from">${accountOptionsHtml()}</select></div>
+      <div class="row">To: <select id="log-to">${accountOptionsHtml()}</select></div>
+      <div class="row">Amount: <input id="log-amount" type="number" step="0.01"></div>`;
+  } else if (logKind === 'GIVE_LOAN') {
+    el.innerHTML = common + `
+      <div class="row">Counterparty: <select id="log-counterparty">${counterpartyOptionsHtml()}</select></div>
+      <div id="log-sources"></div><button type="button" onclick="addAllocation('log-sources')">+ Source</button>`;
+    document.getElementById('log-sources').innerHTML = '';
+    addAllocation('log-sources');
+  } else if (logKind === 'BORROW') {
+    el.innerHTML = common + `
+      <div class="row">Counterparty: <select id="log-counterparty">${counterpartyOptionsHtml()}</select></div>
+      <div id="log-destinations"></div><button type="button" onclick="addAllocation('log-destinations')">+ Destination</button>`;
+    document.getElementById('log-destinations').innerHTML = '';
+    addAllocation('log-destinations');
+  } else if (logKind === 'RECEIVE_REPAYMENT') {
+    el.innerHTML = common + `
+      <div class="row">Loan: <select id="log-loan">${loanOptionsHtml('GIVEN')}</select></div>
+      <div id="log-destinations"></div><button type="button" onclick="addAllocation('log-destinations')">+ Destination</button>`;
+    document.getElementById('log-destinations').innerHTML = '';
+    addAllocation('log-destinations');
+  } else if (logKind === 'REPAY_LOAN') {
+    el.innerHTML = common + `
+      <div class="row">Loan: <select id="log-loan">${loanOptionsHtml('BORROWED')}</select></div>
+      <div id="log-sources"></div><button type="button" onclick="addAllocation('log-sources')">+ Source</button>`;
+    document.getElementById('log-sources').innerHTML = '';
+    addAllocation('log-sources');
+  }
+}
+
+function addAllocation(containerId) {
+  const container = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'row allocation-row';
+  div.innerHTML = `<select class="alloc-account">${accountOptionsHtml()}</select><input class="alloc-amount" type="number" step="0.01" placeholder="amount"><button type="button" onclick="this.parentElement.remove()">x</button>`;
+  container.appendChild(div);
+}
+
+function collectAllocations(containerId) {
+  return [...document.querySelectorAll(`#${containerId} .allocation-row`)].map(row => ({
+    account_id: row.querySelector('.alloc-account').value,
+    amount: parseFloat(row.querySelector('.alloc-amount').value),
+  }));
+}
+
+async function submitLog() {
+  const description = document.getElementById('log-description').value;
+  const trx_date = new Date(document.getElementById('log-trxdate').value).toISOString();
+  let path, body;
+
+  if (logKind === 'ACCOUNT_EXPENSE') {
+    path = '/log/expense';
+    body = { description, trx_date, category_id: document.getElementById('log-category').value || null, sources: collectAllocations('log-sources') };
+  } else if (logKind === 'ACCOUNT_INCOME') {
+    path = '/log/income';
+    body = { description, trx_date, destinations: collectAllocations('log-destinations') };
+  } else if (logKind === 'TRANSFER') {
+    path = '/log/transfer';
+    body = { description, trx_date, amount: parseFloat(document.getElementById('log-amount').value), from_account_id: document.getElementById('log-from').value, to_account_id: document.getElementById('log-to').value };
+  } else if (logKind === 'GIVE_LOAN') {
+    path = '/log/loan';
+    body = { description, trx_date, counterparty_id: document.getElementById('log-counterparty').value, sources: collectAllocations('log-sources') };
+  } else if (logKind === 'BORROW') {
+    path = '/log/borrow';
+    body = { description, trx_date, counterparty_id: document.getElementById('log-counterparty').value, destinations: collectAllocations('log-destinations') };
+  } else if (logKind === 'RECEIVE_REPAYMENT') {
+    path = '/log/borrow-returned';
+    body = { description, trx_date, loan_id: document.getElementById('log-loan').value, destinations: collectAllocations('log-destinations') };
+  } else if (logKind === 'REPAY_LOAN') {
+    path = '/log/loan-repayed';
+    body = { description, trx_date, loan_id: document.getElementById('log-loan').value, sources: collectAllocations('log-sources') };
+  }
+
+  const res = await fetch(`${BASE_URL}${path}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+  document.getElementById('log-output').textContent = JSON.stringify(await res.json(), null, 2);
+  if (res.ok) { loadBalances(); fetchLoansForPickers(); }
+}
+
+async function fetchLoansForPickers() {
+  const res = await fetch(`${BASE_URL}/loans?limit=100`, { headers: authHeaders() });
+  const data = await res.json();
+  loans = data.loans || [];
+}
+
+// ---------- LEDGER ----------
+async function loadSummary() {
+  const account_id = document.getElementById('ledger-account').value;
+  const start_date = document.getElementById('ledger-start').value;
+  const end_date = document.getElementById('ledger-end').value;
+  const res = await fetch(`${BASE_URL}/accounts/${account_id}/summary?start_date=${start_date}&end_date=${end_date}`, { headers: authHeaders() });
+  document.getElementById('summary-output').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+async function loadTransactions(reset) {
+  if (reset) ledgerCursor = null;
+  const account_id = document.getElementById('ledger-account').value;
+  const url = new URL(`${BASE_URL}/accounts/${account_id}/transactions`);
+  if (ledgerCursor) url.searchParams.set('cursor', ledgerCursor);
+  const res = await fetch(url, { headers: authHeaders() });
+  const data = await res.json();
+  const tbody = document.querySelector('#transactions-table tbody');
+  const rows = (data.entries || []).map(e =>
+    `<tr><td>${new Date(e.trx_date).toLocaleString()}</td><td>${e.description}</td>
+     <td class="debit">${e.side === 'DEBIT' ? fmt(e.amount) : ''}</td>
+     <td class="credit">${e.side === 'CREDIT' ? fmt(e.amount) : ''}</td>
+     <td>${e.category_name || ''}</td>
+     <td><a href="#" onclick="document.getElementById('group-id-input').value='${e.transaction_group_id}'; loadGroup(); return false;">${e.transaction_group_id.slice(0,8)}</a></td></tr>`
+  ).join('');
+  tbody.innerHTML = reset ? rows : tbody.innerHTML + rows;
+  ledgerCursor = data.next_cursor;
+}
+
+async function loadGroup() {
+  const id = document.getElementById('group-id-input').value;
+  const res = await fetch(`${BASE_URL}/transaction-groups/${id}`, { headers: authHeaders() });
+  document.getElementById('group-output').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+// ---------- LOANS ----------
+async function loadLoansSummary() {
+  const start_date = document.getElementById('loans-summary-start').value;
+  const end_date = document.getElementById('loans-summary-end').value;
+  const res = await fetch(`${BASE_URL}/loans/summary?start_date=${start_date}&end_date=${end_date}`, { headers: authHeaders() });
+  document.getElementById('loans-summary-output').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+async function loadLoans(reset) {
+  if (reset) loansCursor = null;
+  const status = document.getElementById('loan-status-filter').value;
+  const direction = document.getElementById('loan-direction-filter').value;
+  const url = new URL(`${BASE_URL}/loans`);
+  if (status) url.searchParams.set('status', status);
+  if (direction) url.searchParams.set('direction', direction);
+  if (loansCursor) url.searchParams.set('cursor', loansCursor);
+  const res = await fetch(url, { headers: authHeaders() });
+  const data = await res.json();
+  const tbody = document.querySelector('#loans-table tbody');
+  const rows = (data.loans || []).map(l =>
+    `<tr><td>${l.direction}</td><td>${l.status}</td><td>${l.counterparty_name}</td><td>${fmt(l.amount)}</td><td>${fmt(l.total_repaid)}</td><td>${new Date(l.date_issued).toLocaleDateString()}</td>
+     <td><a href="#" onclick="document.getElementById('loan-id-input').value='${l.id}'; loadLoanDetail(); return false;">${l.id.slice(0,8)}</a></td></tr>`
+  ).join('');
+  tbody.innerHTML = reset ? rows : tbody.innerHTML + rows;
+  loansCursor = data.next_cursor;
+}
+
+async function loadLoanDetail() {
+  const id = document.getElementById('loan-id-input').value;
+  const res = await fetch(`${BASE_URL}/loans/${id}`, { headers: authHeaders() });
+  document.getElementById('loan-detail-output').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+async function loadRepaymentDetail() {
+  const id = document.getElementById('repayment-id-input').value;
+  const res = await fetch(`${BASE_URL}/loan-repayments/${id}`, { headers: authHeaders() });
+  document.getElementById('repayment-detail-output').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+// ---------- COUNTERPARTIES ----------
+async function loadCounterpartyLoans() {
+  const id = document.getElementById('counterparty-select').value;
+  const res = await fetch(`${BASE_URL}/counterparties/${id}/loans`, { headers: authHeaders() });
+  document.getElementById('counterparty-output').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+// ---------- CATEGORIES ----------
+async function loadCategorySummary() {
+  const category_id = document.getElementById('category-select').value;
+  const account_id = document.getElementById('category-account-filter').value;
+  const start_date = document.getElementById('category-start').value;
+  const end_date = document.getElementById('category-end').value;
+  const url = new URL(`${BASE_URL}/categories/${category_id}/summary`);
+  url.searchParams.set('start_date', start_date);
+  url.searchParams.set('end_date', end_date);
+  if (account_id) url.searchParams.set('account_id', account_id);
+  const res = await fetch(url, { headers: authHeaders() });
+  document.getElementById('category-summary-output').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+async function loadCategoryTransactions(reset) {
+  if (reset) categoryTxCursor = null;
+  const category_id = document.getElementById('category-select').value;
+  const account_id = document.getElementById('category-account-filter').value;
+  const url = new URL(`${BASE_URL}/categories/${category_id}/transactions`);
+  if (account_id) url.searchParams.set('account_id', account_id);
+  if (categoryTxCursor) url.searchParams.set('cursor', categoryTxCursor);
+  const res = await fetch(url, { headers: authHeaders() });
+  const data = await res.json();
+  const tbody = document.querySelector('#category-transactions-table tbody');
+  const rows = (data.entries || []).map(e =>
+    `<tr><td>${new Date(e.trx_date).toLocaleString()}</td><td>${e.description}</td><td>${fmt(e.amount)}</td><td>${e.account_name}</td></tr>`
+  ).join('');
+  tbody.innerHTML = reset ? rows : tbody.innerHTML + rows;
+  categoryTxCursor = data.next_cursor;
+}
+
+// ---------- MANAGE ----------
+async function createAccount() {
+  const name = document.getElementById('new-account-name').value;
+  await fetch(`${BASE_URL}/accounts`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name }) });
+  await init();
+}
+async function createCategory() {
+  const name = document.getElementById('new-category-name').value;
+  await fetch(`${BASE_URL}/categories`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name }) });
+  await init();
+}
+async function createCounterparty() {
+  const name = document.getElementById('new-counterparty-name').value;
+  await fetch(`${BASE_URL}/counterparties`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name }) });
+  await init();
+}
+async function toggleStatus() {
+  const type = document.getElementById('toggle-type').value;
+  const id = document.getElementById('toggle-id').value;
+  const is_active = document.getElementById('toggle-value').value === 'true';
+  await fetch(`${BASE_URL}/${type}/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ is_active }) });
+  await init();
+}
+
+// ---------- INIT ----------
+async function init() {
+  await fetchAccounts();
+  await fetchCategories();
+  await fetchCounterparties();
+  await fetchLoansForPickers();
+
+  populate(document.getElementById('ledger-account'), accounts);
+  populate(document.getElementById('counterparty-select'), counterparties);
+  populate(document.getElementById('category-select'), categories);
+  populate(document.getElementById('category-account-filter'), accounts, 'name', true);
+
+  renderLogTabs();
+  renderLogForm();
+  loadBalances();
+}
+
+init();
+</script>
+
+</body>
+</html>
