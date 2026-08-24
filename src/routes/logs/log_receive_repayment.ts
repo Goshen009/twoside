@@ -3,6 +3,7 @@ import { APIError } from "#/errors/APIError.js";
 import { LoanDirection } from "#/prisma/client.js";
 import { z } from "zod/v4";
 
+import Calc from "#/libs/calc.js";
 import Ledger from "#/libs/ledger.js";
 import TransactionSchemas from "#/libs/transaction-schemas.js";
 
@@ -24,7 +25,7 @@ async function handler(
 
   const total_amount = destinations.reduce((sum, d) => sum + d.amount, 0);
   
-  if (Ledger.toWholeNumber(total_amount) > loan.remaining_cents)
+  if (Calc.toWholeNumber(total_amount) > loan.remaining_cents)
     throw APIError.custom({ status: 400, message: `This payment exceeds what's left on this loan` });
 
   const destination_lines = destinations.map((d) => {
