@@ -1,18 +1,9 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
+import BottomNav from "@/components/BottomNav";
 
-const agave = localFont({
-  src: [
-    { path: "../fonts/AgaveNerdFont-Regular.ttf", weight: "400", style: "normal" },
-    { path: "../fonts/AgaveNerdFont-Bold.ttf", weight: "700", style: "normal" },
-  ],
-  variable: "--font-agave",
-});
-
-export const metadata: Metadata = {
+export const metadata = {
   title: "Twoside",
-  description: "Personal finance tracker",
+  description: "Financial tracking made simple.",
 };
 
 export default function RootLayout({
@@ -21,8 +12,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${agave.variable} dark antialiased`}>
-      <body>{children}</body>
+    <html lang="en" className="dark">
+      <body className="bg-background text-zinc-100 flex justify-center min-h-screen">
+        {/* Mobile App Frame */}
+        <div className="w-full max-w-md bg-background min-h-screen flex flex-col relative border-x border-border shadow-2xl pb-20">
+          
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
+
+          <BottomNav />
+        </div>
+      </body>
     </html>
   );
 }
