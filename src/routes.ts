@@ -39,6 +39,9 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   // IT IS VERY IMPORTANT THAT YOU DO NOT FORGET
   // WE STILL NEED TO WRITE UP THE CRON JOB FOR CREATING SNAPSHOTS
   // 
+  // IT IS VERY IMPORTANT THAT WE SHOW THE USERS ALL THE WARNINGS 
+  // AT ONCE.
+  // 
   // 
   // Let's add in a way to delete an account, category or counterparty if
   // it hasn't been referenced before.
