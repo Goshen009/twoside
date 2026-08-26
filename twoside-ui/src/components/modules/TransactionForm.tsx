@@ -1,269 +1,89 @@
 "use client";
 
-import { useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, ChevronDown } from "lucide-react";
-import { AccountBalance, TransactionType, ValidationErrorField } from "@/lib/types";
-import { api } from "@/lib/api";
+import { X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, HandCoins, Landmark, ArrowRightLeft, CreditCard } from "lucide-react";
+import { AccountBalance, TransactionType } from "@/lib/types";
+import ExpenseForm from "@/components/modules/forms/ExpenseForm";
 
-interface TransactionFormProps {
+interface TransactionFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   accounts: AccountBalance[];
+  initialType: TransactionType;
 }
 
-const TRANSACTION_TYPES: { id: TransactionType; label: string }[] = [
-  { id: "expense", label: "Log Expense" },
-  { id: "income", label: "Log Income" },
-  { id: "transfer", label: "Log Transfer" },
-  { id: "loan_given", label: "Log Loan Given" },
-  { id: "loan_borrowed", label: "Log Borrowing" },
-  { id: "loan_repay_received", label: "Log Loan Repayment Received" },
-  { id: "loan_repay_paid", label: "Log Loan Repayment Paid" },
-];
+export default function TransactionFormModal({
+  isOpen,
+  onClose,
+  accounts,
+  initialType,
+}: TransactionFormModalProps) {
+  if (!isOpen) return null;
 
-export default function TransactionForm({ accounts }: TransactionFormProps) {
-  const [activeTab, setActiveTab] = useState<TransactionType>("expense");
-  const [description, setDescription] = useState("");
-  const [trxDate, setTrxDate] = useState(new Date().toISOString().slice(0, 16));
-  const [amount, setAmount] = useState("");
-  
-  const [fromAccountId, setFromAccountId] = useState(accounts[0]?.account_id || "");
-  const [toAccountId, setToAccountId] = useState(accounts[1]?.account_id || "");
-  const [destinationId, setDestinationId] = useState(accounts[0]?.account_id || "");
-  const [sourceId, setSourceId] = useState(accounts[0]?.account_id || "");
-  
-  const [bypassWarnings, setBypassWarnings] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrorField[]>([]);
-  const [generalError, setGeneralError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Helper to map type to exact UI title
+  const getTitle = (type: TransactionType) => {
+    switch (type) {
+      case "expense": return "Expense";
+      case "income": return "Income";
+      case "transfer": return "Transfer";
+      case "loan_given": return "Loan Given";
+      case "loan_borrowed": return "Borrowing";
+      case "loan_repay_received": return "Repay In";
+      case "loan_repay_paid": return "Repay Out";
+      default: return "Transaction";
+    }
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setValidationErrors([]);
-    setGeneralError(null);
-    setSuccessMessage(null);
-    setIsSubmitting(true);
+  const getIcon = (type: TransactionType) => {
+    switch (type) {
+      case "expense": return <ArrowUpRight className="w-4 h-4 text-red-400" />;
+      case "income": return <ArrowDownLeft className="w-4 h-4 text-emerald-400" />;
+      case "transfer": return <ArrowLeftRight className="w-4 h-4 text-sky-400" />;
+      case "loan_given": return <HandCoins className="w-4 h-4 text-purple-400" />;
+      case "loan_borrowed": return <Landmark className="w-4 h-4 text-amber-400" />;
+      case "loan_repay_received": return <ArrowRightLeft className="w-4 h-4 text-emerald-400" />;
+      case "loan_repay_paid": return <CreditCard className="w-4 h-4 text-rose-400" />;
+    }
+  };
 
-    try {
-      let payload: any = {
-        description,
-        trx_date: new Date(trxDate).toISOString(),
-      };
-
-      const numericAmount = parseFloat(amount);
-
-      switch (activeTab) {
-        case "transfer":
-          payload = {
-            ...payload,
-            amount: numericAmount,
-            from_account_id: fromAccountId,
-            to_account_id: toAccountId,
-            bypass_warnings: bypassWarnings,
-          };
-          break;
-        case "income":
-          payload = {
-            ...payload,
-            destinations: [{ account_id: destinationId, amount: numericAmount }],
-          };
-          break;
-        case "expense":
-          payload = {
-            ...payload,
-            sources: [{ account_id: sourceId, amount: numericAmount }],
-            bypass_warnings: bypassWarnings,
-          };
-          break;
-        default:
-          payload = {
-            ...payload,
-            sources: [{ account_id: sourceId, amount: numericAmount }],
-            bypass_warnings: bypassWarnings,
-          };
-      }
-
-      await api.logTransaction(activeTab, payload);
-      setSuccessMessage("Transaction recorded successfully!");
-      setDescription("");
-      setAmount("");
-      setBypassWarnings(false);
-    } catch (err: any) {
-      if (err.fields) {
-        setValidationErrors(err.fields);
-      } else {
-        setGeneralError(err.message || "An unexpected error occurred.");
-      }
-    } finally {
-      setIsSubmitting(false);
+  const getIconBg = (type: TransactionType) => {
+    switch (type) {
+      case "expense": return "bg-red-500/10 border-red-500/20";
+      case "income": return "bg-emerald-500/10 border-emerald-500/20";
+      case "transfer": return "bg-sky-500/10 border-sky-500/20";
+      case "loan_given": return "bg-purple-500/10 border-purple-500/20";
+      case "loan_borrowed": return "bg-amber-500/10 border-amber-500/20";
+      case "loan_repay_received": return "bg-emerald-500/10 border-emerald-500/20";
+      case "loan_repay_paid": return "bg-rose-500/10 border-rose-500/20";
     }
   };
 
   return (
-    <div className="bg-surface border border-border rounded-2xl p-5 shadow-lg">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+      <div className="w-full sm:max-w-md bg-surface border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         
-        {/* Header with Dropdown Switcher */}
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <div className="relative">
-            <select
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value as TransactionType)}
-              className="appearance-none bg-background border border-border rounded-xl px-3 py-2 pr-8 text-xs font-semibold text-zinc-100 focus:outline-none focus:border-primary cursor-pointer"
-            >
-              {TRANSACTION_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>{t.label}</option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Universal Header */}
+        <div className="flex items-center justify-between pb-2 border-b border-white/5">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-xl border flex items-center justify-center ${getIconBg(initialType)}`}>
+              {getIcon(initialType)}
+            </div>
+            <h2 className="text-base font-bold text-zinc-100">{getTitle(initialType)}</h2>
           </div>
+          <button onClick={onClose} className="p-2 rounded-xl text-muted hover:text-zinc-100 hover:bg-white/5 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-[10px] text-muted uppercase tracking-wider mb-1">Description</label>
-          <input
-            type="text"
-            maxLength={100}
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., Monthly internet subscription"
-            className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        {/* Date & Time */}
-        <div>
-          <label className="block text-[10px] text-muted uppercase tracking-wider mb-1">Date & Time</label>
-          <input
-            type="datetime-local"
-            value={trxDate}
-            onChange={(e) => setTrxDate(e.target.value)}
-            className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        {/* Conditional Account Fields */}
-        {activeTab === "transfer" && (
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[10px] text-muted uppercase tracking-wider mb-1">From Account</label>
-              <select
-                value={fromAccountId}
-                onChange={(e) => setFromAccountId(e.target.value)}
-                className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-primary"
-              >
-                {accounts.map((a) => (
-                  <option key={a.account_id} value={a.account_id}>{a.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] text-muted uppercase tracking-wider mb-1">To Account</label>
-              <select
-                value={toAccountId}
-                onChange={(e) => setToAccountId(e.target.value)}
-                className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-primary"
-              >
-                {accounts.map((a) => (
-                  <option key={a.account_id} value={a.account_id}>{a.name}</option>
-                ))}
-              </select>
-            </div>
+        {/* Form Switcher */}
+        {initialType === "expense" ? (
+          <ExpenseForm accounts={accounts} onClose={onClose} />
+        ) : (
+          <div className="text-center py-8 text-xs text-muted">
+            Form for {getTitle(initialType)} is being configured next...
           </div>
         )}
 
-        {activeTab === "expense" && (
-          <div>
-            <label className="block text-[10px] text-muted uppercase tracking-wider mb-1">Source Account</label>
-            <select
-              value={sourceId}
-              onChange={(e) => setSourceId(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-primary"
-            >
-              {accounts.map((a) => (
-                <option key={a.account_id} value={a.account_id}>{a.name} (₦{a.balance})</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {activeTab === "income" && (
-          <div>
-            <label className="block text-[10px] text-muted uppercase tracking-wider mb-1">Destination Account</label>
-            <select
-              value={destinationId}
-              onChange={(e) => setDestinationId(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-primary"
-            >
-              {accounts.map((a) => (
-                <option key={a.account_id} value={a.account_id}>{a.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Amount */}
-        <div>
-          <label className="block text-[10px] text-muted uppercase tracking-wider mb-1">Amount (₦)</label>
-          <input
-            type="number"
-            step="0.01"
-            required
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-            className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-primary font-mono"
-          />
-        </div>
-
-        {/* Warnings / Validation Errors */}
-        {(validationErrors.length > 0 || generalError) && (
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 space-y-2">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="text-[11px] text-amber-200/90 font-medium">
-                {generalError || "Please review the following warnings:"}
-              </div>
-            </div>
-            {validationErrors.map((err, idx) => (
-              <div key={idx} className="text-[10px] text-amber-300/80 pl-6 font-mono">
-                • [{err.field}]: {err.message}
-              </div>
-            ))}
-            <div className="pt-2 border-t border-amber-500/20 flex items-center gap-2 pl-6">
-              <input
-                type="checkbox"
-                id="bypass"
-                checked={bypassWarnings}
-                onChange={(e) => setBypassWarnings(e.target.checked)}
-                className="rounded border-amber-500/40 bg-background text-primary focus:ring-0 w-3.5 h-3.5"
-              />
-              <label htmlFor="bypass" className="text-[11px] text-amber-200 cursor-pointer font-medium">
-                Bypass warnings & force transaction
-              </label>
-            </div>
-          </div>
-        )}
-
-        {/* Success Banner */}
-        {successMessage && (
-          <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 flex items-center gap-2 text-primary text-[11px] font-medium">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-primary hover:bg-primary-hover text-background font-semibold py-2.5 rounded-xl text-xs transition-colors shadow-lg shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          <span>Record Transaction</span>
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

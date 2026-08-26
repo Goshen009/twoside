@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import { Wallet, Sparkles } from "lucide-react";
 import { AccountBalance } from "@/lib/types";
 
 interface BalanceCarouselProps {
@@ -16,7 +16,7 @@ export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
 
   if (!accounts || accounts.length === 0) {
     return (
-      <div className="bg-surface border border-border rounded-2xl p-5 shadow-lg text-center text-muted text-xs">
+      <div className="bg-surface/50 border border-white/5 rounded-2xl p-5 shadow-xl text-center text-muted text-xs">
         No accounts available
       </div>
     );
@@ -39,11 +39,8 @@ export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
     const clickX = e.clientX - rect.left;
     const thirdWidth = rect.width / 3;
 
-    if (clickX < thirdWidth) {
-      handlePrev();
-    } else if (clickX > rect.width - thirdWidth) {
-      handleNext();
-    }
+    if (clickX < thirdWidth) handlePrev();
+    else if (clickX > rect.width - thirdWidth) handleNext();
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -52,35 +49,18 @@ export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX;
-
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 40) {
-      if (diff > 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
+      if (diff > 0) handleNext();
+      else handlePrev();
     }
     touchStartX.current = null;
   };
 
   const variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 25 : -25,
-      opacity: 0,
-      scale: 0.98,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-    },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 25 : -25,
-      opacity: 0,
-      scale: 0.98,
-    }),
+    enter: (direction: number) => ({ x: direction > 0 ? 20 : -20, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (direction: number) => ({ x: direction < 0 ? 20 : -20, opacity: 0 }),
   };
 
   return (
@@ -88,38 +68,32 @@ export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
       onClick={handleCardClick}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="bg-surface border border-border rounded-2xl p-5 shadow-lg relative overflow-hidden cursor-pointer select-none group"
+      className="relative overflow-hidden rounded-3xl p-5 cursor-pointer select-none group transition-all duration-300"
+      style={{
+        background: "linear-gradient(135deg, rgba(20, 20, 24, 0.6) 0%, rgba(12, 12, 15, 0.7) 100%)",
+        boxShadow: "0 15px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+        border: "1px solid rgba(255, 255, 255, 0.04)",
+      }}
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <Wallet className="w-4 h-4 text-primary" />
-          <span className="text-xs font-semibold text-zinc-200 tracking-wide">
-            {currentAccount.name} Account
+      <div className="flex items-center justify-between mb-2 relative z-10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
+            <Wallet className="w-3 h-3" />
+          </div>
+          <span className="text-sm font-semibold text-zinc-200 tracking-wide">
+            {currentAccount.name}
           </span>
         </div>
 
-        <div className="flex items-center gap-1 bg-background border border-border rounded-lg p-0.5" onClick={(e) => e.stopPropagation()}>
-          {/*<button 
-            onClick={handlePrev}
-            className="p-1 rounded hover:bg-surface text-muted hover:text-zinc-200 transition-colors"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>*/}
-          <span className="text-[10px] text-muted px-1.5 font-mono">
-            {currentIndex + 1}/{accounts.length}
-          </span>
-          {/*<button 
-            onClick={handleNext}
-            className="p-1 rounded hover:bg-surface text-muted hover:text-zinc-200 transition-colors"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>*/}
+        {/* Counter Badge without arrows */}
+        <div className="bg-black/30 border border-white/5 rounded-lg px-2 py-0.5 text-[10px] text-muted font-mono" onClick={(e) => e.stopPropagation()}>
+          {currentIndex + 1} / {accounts.length}
         </div>
       </div>
 
-      <div className="overflow-hidden py-1 min-h-[52px] flex items-center">
+      <div className="overflow-hidden py-0.5 min-h-[46px] flex items-center relative z-10">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={currentIndex}
@@ -128,16 +102,16 @@ export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.18, ease: "easeInOut" }}
-            className="text-3xl font-bold tracking-tight text-zinc-100 font-mono w-full"
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="text-2xl font-extrabold tracking-tight text-zinc-100 font-mono w-full"
           >
             ₦{Number(currentAccount.balance).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <div className="text-[10px] text-muted flex items-center justify-between pt-3 border-t border-border">
-        <span>Swipe or tap sides to switch accounts</span>
+      <div className="text-[10px] text-muted/60 flex items-center justify-between pt-3 mt-1 border-t border-white/5 relative z-10">
+        <span>Swipe card or tap edges to switch</span>
       </div>
     </div>
   );
