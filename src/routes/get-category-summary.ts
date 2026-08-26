@@ -40,10 +40,12 @@ async function handler(
     where: {
       category_id,
       trx_date: { gte: start_date, lte: end_date },
-      account: { 
-      	user_id: user.id,
-       	...(account_id && { id: account_id })
-      },
+      account: { user_id: user.id, type: 'EXPENSE' },
+      ...(account_id && {
+        transaction_group: {
+          journal_entries: { some: { account_id } },
+        },
+      }),
     },
     _sum: { amount: true },
   });

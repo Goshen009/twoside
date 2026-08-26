@@ -32,15 +32,27 @@ async function handler(
   const entries = await this.prisma.journalEntry.findMany({
     where: {
       category_id,
-      account: { 
-      	user_id: user.id, 
-       	...(account_id && { id: account_id })
-      },
+      account: { user_id: user.id, type: 'EXPENSE' },
+      ...(account_id && {
+        transaction_group: {
+          journal_entries: { some: { account_id } },
+        },
+      }),
       ...(cursor && { trx_date: { lt: new Date(cursor) } }),
     },
     orderBy: { trx_date: 'desc' },
     take: limit + 1,
-    include: { account: { select: { name: true } } },
+    include: {
+      account: { select: { name: true } },
+      transaction_group: {
+        include: {
+          journal_entries: {
+            where: { account: { type: { not: 'EXPENSE' } } },
+            include: { account: { select: { id: true, name: true } } },
+          },
+        },
+      },
+    },
   });
 
   const has_next = entries.length > limit;
@@ -53,15 +65,18 @@ async function handler(
   return reply.code(200).send({
     category_id: category.id,
     category_name: category.name,
-    entries: page_entries.map((e) => ({
-      id: e.id,
-      amount: e.amount,
-      trx_date: e.trx_date,
-      description: e.description,
-      account_id: e.account_id,
-      account_name: e.account.name,
-      transaction_group_id: e.transaction_group_id,
-    })),
+    entries: page_entries.map((e) => {
+      const paying_entry = e.transaction_group.journal_entries[0]; // the non-Expense sibling
+      return {
+        id: e.id,
+        amount: e.amount,
+        trx_date: e.trx_date,
+        description: e.description,
+        account_id: paying_entry?.account.id ?? null,
+        account_name: paying_entry?.account.name ?? null,
+        transaction_group_id: e.transaction_group_id,
+      };
+    }),
     next_cursor,
     has_next,
   });

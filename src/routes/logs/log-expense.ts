@@ -2,13 +2,16 @@ import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
 
-import Ledger from "#/libs/ledger.js";
 import TransactionSchemas from "#/libs/transaction-schemas.js";
+import Balances from "#/libs/balances.js";
+import Ledger from "#/libs/ledger.js";
+import Calc from "#/libs/calc.js";
 
 const schema = z.object({
 	...TransactionSchemas.commonFields(),
 	category_id: z.uuid("category_id must be a valid UUID").nullable().default(null),
   sources: TransactionSchemas.accountAllocations("source"),
+  bypass_warnings: z.boolean().default(false),
 });
 
 async function handler(
@@ -18,18 +21,26 @@ async function handler(
 ) {
 	const user = await request.requireAuth();
 
-	const { description, trx_date, category_id, sources } = request.body;
+	const { description, trx_date, category_id, sources, bypass_warnings } = request.body;
 
 	if (category_id)
 		await Ledger.checkCategory(this.prisma, user.id, category_id);
-	
-  const source_lines = sources.map((s) => {
-    const account = Ledger.checkAccount(s.account_id, user.accounts);
-    if (account.type !== 'ASSET')
-      throw APIError.custom({ status: 400, message: "An expense can only be paid out of an asset account" });
 
-    return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
-  });
+  const source_lines = await Promise.all(
+ 		sources.map(async (s) => {
+ 			const account = Ledger.checkAccount(s.account_id, user.accounts);
+    	if (account.type !== 'ASSET')
+     		throw APIError.custom({ status: 400, message: "An expense can only be paid out of an asset account" });
+
+     	if (!bypass_warnings) {
+	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(trx_date));
+				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
+	     		throw APIError.custom({ status: 403, message: `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.` });
+      }
+      
+     	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
+   	})
+  );
 	
   const total_amount = sources.reduce((sum, s) => sum + s.amount, 0);
   const expense_account = user.system_accounts.EXPENSE!;

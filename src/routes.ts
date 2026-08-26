@@ -38,6 +38,60 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
   // IT IS VERY IMPORTANT THAT YOU DO NOT FORGET
   // WE STILL NEED TO WRITE UP THE CRON JOB FOR CREATING SNAPSHOTS
+  // 
+  // 
+  // Let's add in a way to delete an account, category or counterparty if
+  // it hasn't been referenced before.
+  // 
+  // Just tried transfering from one account into another. It allowed me freely even though
+  // the amount I was transfering out was way more. I think we should add in a helper over
+  // here. It won't block it 100% but we could probably add a field like "check_amount" in
+  // each of the logs so it'll check the amount that you're transfering from 
+  // and it it's over the amount, it'll just return an error
+  // the UI will show it to the user and if the user says just do it, then it sends
+  // the same request again but check is set to false.
+  // 
+  // This also means that we'd need some way for users to 'adjust' their balances. Hmmeth Hmmeth
+  // I don't want to trade UX for actual financial accuracy so I need a way that is still
+  // accounting strong.
+  // 
+  // Purely UI, the place that shows the transactions is misleading. Account-wise, it's
+  // correct. But for the person looking, the colours should be the other way around.
+  // 
+  // I'm having a rethink on the destinations and sources being multiple. Hmmeth hmmeth.
+  // Does that truly work? I don't think so. Hmmeth hmmeth.
+  // On giving loans, it does kinda work cause like someone can ask me for money and I go
+  // I only have 5k in my account and I have another 3k in cash. That geniely does happen
+  // on the loan side of things.
+  // 
+  // On the category summary and list transactions, the summary and load reset 
+  // is wrong. I've caught the bug, the account that carries the category_id is the expense
+  // account not the Cash, bank or whatever that we're checking on
+  // const total = await this.prisma.journalEntry.aggregate({
+  //   where: {
+  //     category_id,
+  //     trx_date: { gte: start_date, lte: end_date },
+  //     account: { 
+  //     	user_id: user.id,
+  //      	...(account_id && { id: account_id })
+  //     },
+  //   },
+  //   _sum: { amount: true },
+  // });
+  // what's the fix
+  // 
+  // I dunno if it already exists but it's something subtl I realized
+  // I can repay or recieve payment for a loan before the day the loan was given
+  // I'm guessing this should be like the over spend one too where we check if the trx_date
+  // is before the loan and then show a warning that can be bypassed
+  // 
+  // The sibling repayments also return that exact repayment that was passed. Should we
+  // allow it?
+  // 
+  // Did something now, user was registered August 24
+  // I recieved repayment for a loan that is dated 26th
+  // Okay, it's not a bug. The get_balances hardcodes the date to be now
+  // so it won't see the ones after it
   
   fastify.get("/seed", seed);
 

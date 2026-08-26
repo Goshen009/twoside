@@ -42,11 +42,13 @@ async function handler(
       counterparty_name: repayment.loan.counterparty.name,
       date_issued: repayment.loan.date_issued,
     },
-    sibling_repayments: repayment.loan.repayments.map((r) => ({
-      id: r.id,
-      amount: r.amount,
-      date_repaid: r.date_repaid,
-    })),
+    sibling_repayments: repayment.loan.repayments
+    	.filter((r) => r.id !== repayment.id)
+     	.map((r) => ({
+	      id: r.id,
+	      amount: r.amount,
+	      date_repaid: r.date_repaid,
+	    })),
   });
 }
 
