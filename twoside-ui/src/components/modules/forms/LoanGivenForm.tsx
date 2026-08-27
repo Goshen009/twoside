@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Tag, Wallet, Search, Check, Calendar } from "lucide-react";
+import { Plus, Trash2, Wallet, Search, Calendar, User, FileText, ChevronRight } from "lucide-react";
 import { AccountBalance } from "@/lib/types";
 
 interface SplitSource {
@@ -10,30 +10,34 @@ interface SplitSource {
   amount: string;
 }
 
-interface ExpenseFormProps {
+interface LoanGivenFormProps {
   accounts: AccountBalance[];
   onClose: () => void;
 }
 
-// Mock categories for demonstration
-const MOCK_CATEGORIES = ["Food & Dining", "Groceries", "Transport", "Utilities", "Subscriptions"];
+// Mock counterparties list (can be dynamic or passed as props later)
+const MOCK_COUNTERPARTIES = [
+  { id: "1", name: "John Doe" },
+  { id: "2", name: "Sarah Williams" },
+  { id: "3", name: "Michael Ade" },
+];
 
-export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
-  const [title, setTitle] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+export default function LoanGivenForm({ accounts, onClose }: LoanGivenFormProps) {
+  const [description, setDescription] = useState("");
+  const [counterpartyId, setCounterpartyId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [splits, setSplits] = useState<SplitSource[]>([
     { id: "1", accountId: accounts[0]?.id || "", amount: "" },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Picker Sheet State ("account" | "category" | null)
-  const [activePicker, setActivePicker] = useState<"account" | "category" | null>(null);
+  // Bottom Sheet Picker State ("account" | "counterparty" | null)
+  const [activePicker, setActivePicker] = useState<"account" | "counterparty" | null>(null);
   const [targetSplitId, setTargetSplitId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [customCategories, setCustomCategories] = useState<string[]>(MOCK_CATEGORIES);
 
   const totalAmount = splits.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+  const selectedCounterparty = MOCK_COUNTERPARTIES.find((c) => c.id === counterpartyId);
 
   const handleAddSplit = () => {
     setSplits([...splits, { id: Math.random().toString(), accountId: accounts[0]?.id || "", amount: "" }]);
@@ -52,17 +56,6 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
     setSplits(splits.map((s) => (s.id === id ? { ...s, accountId } : s)));
   };
 
-  const handleAddNewCategory = (catName: string) => {
-    const formatted = catName.trim();
-    if (!formatted) return;
-    if (!customCategories.includes(formatted)) {
-      setCustomCategories([...customCategories, formatted]);
-    }
-    setSelectedCategory(formatted);
-    setActivePicker(null);
-    setSearchQuery("");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -74,38 +67,45 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 relative">
-      
-      {/* Description */}
+      {/* Description Field (Full Width) */}
       <div className="space-y-1.5">
         <label className="text-[10px] font-mono text-muted uppercase tracking-wider">Description</label>
-        <input
-          type="text"
-          placeholder="e.g., Grocery run, Coffee..."
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          className="w-full bg-black/30 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-zinc-100 placeholder:text-muted/50 focus:outline-none focus:border-primary/50"
-        />
+        <div className="relative">
+          <FileText className="absolute left-3 top-3 w-3.5 h-3.5 text-muted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="e.g., Emergency support, quick loan..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-zinc-100 placeholder:text-muted/50 focus:outline-none focus:border-primary/50"
+          />
+        </div>
       </div>
 
-      {/* Category & Date Side-by-Side */}
+      {/* Counterparty & Date Shared Line */}
       <div className="grid grid-cols-2 gap-2.5">
+        {/* Counterparty Selector */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-mono text-muted uppercase tracking-wider">Category (Optional)</label>
+          <label className="text-[10px] font-mono text-muted uppercase tracking-wider">Counterparty</label>
           <button
             type="button"
-            onClick={() => { setActivePicker("category"); setSearchQuery(""); }}
+            onClick={() => {
+              setActivePicker("counterparty");
+              setSearchQuery("");
+            }}
             className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-left flex items-center justify-between hover:border-primary/40 transition-all truncate"
           >
             <div className="flex items-center gap-2 truncate">
-              <Tag className="w-3.5 h-3.5 text-muted shrink-0" />
-              <span className={`truncate ${selectedCategory ? "text-zinc-100" : "text-muted/50"}`}>
-                {selectedCategory || "Select category"}
+              <User className="w-3.5 h-3.5 text-muted shrink-0" />
+              <span className="text-zinc-100 truncate">
+                {selectedCounterparty ? selectedCounterparty.name : "Select person"}
               </span>
             </div>
+            <ChevronRight className="w-3.5 h-3.5 text-muted shrink-0" />
           </button>
         </div>
 
+        {/* Date Field */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-mono text-muted uppercase tracking-wider">Date</label>
           <div className="relative">
@@ -114,7 +114,7 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-primary/50"
+              className="w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-primary/50"
             />
           </div>
         </div>
@@ -138,7 +138,6 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
             const selectedAccount = accounts.find((a) => a.id === split.accountId);
             return (
               <div key={split.id} className="flex items-center gap-2.5 bg-black/20 border border-white/5 p-2.5 rounded-2xl">
-                {/* Account Trigger */}
                 <button
                   type="button"
                   onClick={() => {
@@ -154,7 +153,6 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
                   </span>
                 </button>
 
-                {/* Amount Input */}
                 <div className="w-32 relative">
                   <span className="absolute left-3 top-3 text-xs text-muted">₦</span>
                   <input
@@ -184,8 +182,8 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
 
         {/* Total Summary Row */}
         <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-surface/60 border border-white/5 font-mono text-xs">
-          <span className="text-muted text-[10px] uppercase tracking-wider">Total Expense</span>
-          <span className="font-bold text-zinc-100">
+          <span className="text-muted text-[10px] uppercase tracking-wider">Total Loan Given</span>
+          <span className="font-bold text-purple-400">
             ₦{totalAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
           </span>
         </div>
@@ -197,20 +195,18 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
         disabled={isSubmitting}
         className="w-full py-3 rounded-xl bg-primary text-black font-semibold text-xs hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 mt-2"
       >
-        {isSubmitting ? "Saving..." : "Save Expense"}
+        {isSubmitting ? "Saving..." : "Save Loan Given"}
       </button>
 
-      {/* CUSTOM BOTTOM SHEET PICKER (Accounts & Categories with Search & Create) */}
+      {/* BOTTOM SHEET PICKER */}
       {activePicker && (
         <div className="absolute inset-0 z-50 bg-surface/95 backdrop-blur-md rounded-3xl p-4 flex flex-col space-y-3 border border-white/10 animate-in fade-in zoom-in-95 duration-150">
-          
-          {/* Picker Header & Search Bar */}
           <div className="flex items-center justify-between gap-2 pb-1">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-muted" />
               <input
                 type="text"
-                placeholder={`Search ${activePicker}...`}
+                placeholder={activePicker === "account" ? "Search accounts..." : "Search counterparty..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-100 placeholder:text-muted focus:outline-none focus:border-primary/50"
@@ -225,9 +221,8 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
             </button>
           </div>
 
-          {/* List items */}
           <div className="flex-1 overflow-y-auto space-y-1">
-            {activePicker === "account" && (
+            {activePicker === "account" &&
               accounts
                 .filter((acc) => acc.name.toLowerCase().includes(searchQuery.toLowerCase()))
                 .map((acc) => (
@@ -245,46 +240,25 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
                       ₦{Number(acc.balance).toLocaleString("en-NG")}
                     </span>
                   </button>
-                ))
-            )}
+                ))}
 
-            {activePicker === "category" && (
-              <>
-                {customCategories
-                  .filter((cat) => cat.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setActivePicker(null);
-                      }}
-                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
-                    >
-                      <span className="text-xs font-medium text-zinc-200">{cat}</span>
-                      {selectedCategory === cat && <Check className="w-3.5 h-3.5 text-primary" />}
-                    </button>
-                  ))}
-
-                {/* Create New Category Option when typing a non-existent name */}
-                {searchQuery.trim() && !customCategories.some((c) => c.toLowerCase() === searchQuery.trim().toLowerCase()) && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddNewCategory(searchQuery)}
-                    className="w-full flex items-center gap-2 p-3 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all text-left mt-2"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span className="text-xs font-semibold">Create category &ldquo;{searchQuery.trim()}&rdquo;</span>
-                  </button>
-                )}
-              </>
-            )}
+            {activePicker === "counterparty" &&
+              MOCK_COUNTERPARTIES.filter((c) => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => {
+                    setCounterpartyId(c.id);
+                    setActivePicker(null);
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
+                >
+                  <span className="text-xs font-medium text-zinc-200">{c.name}</span>
+                </button>
+              ))}
           </div>
-
         </div>
       )}
-
     </form>
   );
 }

@@ -1,14 +1,3 @@
-export interface AccountBalance {
-  account_id: string;
-  name: string;
-  balance: number;
-}
-
-export interface ValidationErrorField {
-  field: string;
-  message: string;
-}
-
 export type TransactionType = 
   | "expense" 
   | "income" 
@@ -18,7 +7,9 @@ export type TransactionType =
   | "loan_repay_received" 
   | "loan_repay_paid";
 
-export interface AccountAllocation {
-  account_id: string;
-  amount: number;
+export interface AccountBalance {
+  id: string;
+  name: string;
+  balance: number;
+  currency: string;
 }
