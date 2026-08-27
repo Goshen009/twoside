@@ -1,18 +1,38 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, Sparkles } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { AccountBalance } from "@/lib/types";
 
 interface BalanceCarouselProps {
   accounts: AccountBalance[];
+  onSelectAccount?: (accountId: string | null) => void;
 }
 
-export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
+export default function BalanceCarousel({ accounts, onSelectAccount }: BalanceCarouselProps) {
+  // Prepend an "All Accounts" pseudo-account item to the list
+  const allAccountsCard = {
+    id: "all",
+    name: "All Accounts",
+    balance: accounts.reduce((sum, a) => sum + Number(a.balance), 0),
+    type: "ASSET" as const,
+  };
+
+  const combinedAccounts = [allAccountsCard, ...accounts];
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const touchStartX = useRef<number | null>(null);
+
+  const currentAccount = combinedAccounts[currentIndex];
+
+  // Report the active account ID whenever it changes
+  useEffect(() => {
+    if (onSelectAccount) {
+      onSelectAccount(currentAccount.id);
+    }
+  }, [currentIndex, currentAccount.id, onSelectAccount]);
 
   if (!accounts || accounts.length === 0) {
     return (
@@ -22,16 +42,14 @@ export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
     );
   }
 
-  const currentAccount = accounts[currentIndex];
-
   const handlePrev = () => {
     setDirection(-1);
-    setCurrentIndex((prev) => (prev === 0 ? accounts.length - 1 : prev - 1));
+    setCurrentIndex((prev) => (prev === 0 ? combinedAccounts.length - 1 : prev - 1));
   };
 
   const handleNext = () => {
     setDirection(1);
-    setCurrentIndex((prev) => (prev === accounts.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) => (prev === combinedAccounts.length - 1 ? 0 : prev + 1));
   };
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -87,9 +105,8 @@ export default function BalanceCarousel({ accounts }: BalanceCarouselProps) {
           </span>
         </div>
 
-        {/* Counter Badge without arrows */}
         <div className="bg-black/30 border border-white/5 rounded-lg px-2 py-0.5 text-[10px] text-muted font-mono" onClick={(e) => e.stopPropagation()}>
-          {currentIndex + 1} / {accounts.length}
+          {currentIndex + 1} / {combinedAccounts.length}
         </div>
       </div>
 
