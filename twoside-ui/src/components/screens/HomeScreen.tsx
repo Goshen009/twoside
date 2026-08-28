@@ -91,9 +91,9 @@ export default function HomeScreen() {
               <span className="text-xs font-medium text-zinc-200 truncate">{stickyName}</span>
             </div>
       
-            <div className="text-xs font-mono font-semibold text-zinc-100 shrink-0">
+            {/*<div className="text-xs font-mono font-semibold text-zinc-100 shrink-0">
               ₦{stickyBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
-            </div>
+            </div>*/}
           </motion.div>
         )}
       </AnimatePresence>

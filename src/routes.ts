@@ -95,6 +95,9 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   // I recieved repayment for a loan that is dated 26th
   // Okay, it's not a bug. The get_balances hardcodes the date to be now
   // so it won't see the ones after it
+  // 
+  // When someone sets a start date and end date, it's only normal that the list
+  // starts from the start date and you scroll down to the end date.
   
   fastify.get("/seed", seed);
 
