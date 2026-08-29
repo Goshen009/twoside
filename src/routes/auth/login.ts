@@ -3,7 +3,7 @@ import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
 
 import Password from "#/libs/password.js";
-import JWT from "#/libs/jwt.js";
+import Tokens from "#/libs/tokens.js";
 
 const LOCKOUT_THRESHOLD = 5;
 const BASE_LOCKOUT_MINUTES = 5;
@@ -60,11 +60,18 @@ async function handler(
   if (login_attempts) // delete any attempt record on successful login
     	await this.prisma.loginAttempts.delete({ where: { username } });
 
-  const token = JWT.generate(this.config, { id: user.id });
+  const { access_token, refresh_token } = await Tokens.create(this.prisma, this.config, user.id);
 
   return reply
-    .header('Authorization', `Bearer ${token}`)
-   	.code(201)
+  	.header('Authorization', `Bearer ${access_token}`)
+  	.setCookie('refresh_token', refresh_token, {
+	  	httpOnly: true,
+	    sameSite: 'lax',
+	    secure: this.config.ENVIRONMENT === 'production',
+	    maxAge: 30 * 24 * 60 * 60,
+	    path: '/auth'
+	  })
+   	.code(200)
     .send({ message: "Successful" });
 }
 

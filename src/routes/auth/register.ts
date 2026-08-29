@@ -4,7 +4,7 @@ import { Prisma } from "#/prisma/client.js";
 import { z } from "zod/v4";
 
 import Password from "#/libs/password.js";
-import JWT from "#/libs/jwt.js";
+import Tokens from "#/libs/tokens.js";
 
 const schema = z.object({
 	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
@@ -57,11 +57,18 @@ async function handler(
 	  throw err;
   }
 
-  const token = JWT.generate(this.config, { id: user.id });
+  const { access_token, refresh_token } = await Tokens.create(this.prisma, this.config, user.id);
 
   return reply
-    .header('Authorization', `Bearer ${token}`)
-   	.code(201)
+  	.header('Authorization', `Bearer ${access_token}`)
+  	.setCookie('refresh_token', refresh_token, {
+	  	httpOnly: true,
+	    sameSite: 'lax',
+	    secure: this.config.ENVIRONMENT === 'production',
+	    maxAge: 30 * 24 * 60 * 60,
+	    path: '/auth'
+	  })
+   	.code(200)
     .send({ message: "Successful" });
 }
 

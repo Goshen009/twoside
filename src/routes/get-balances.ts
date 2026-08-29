@@ -8,7 +8,7 @@ async function handler(
 ) {
   const user = await request.requireAuth();
 
-  const asset_accounts = user.accounts.filter((a) => a.type === 'ASSET' && a.system_role === null && a.is_active);
+  const asset_accounts = user.accounts.filter((a) => a.type === 'ASSET' && a.system_role === null);
 
   const now = new Date();
 
@@ -20,7 +20,8 @@ async function handler(
     }))
   );
 
-  return reply.code(200).send({ balances });
+  const net_total = balances.reduce((sum, a) => sum + a.balance, 0);
+  return reply.code(200).send({ balances, net_total });
 }
 
 export const get_balances = { handler };

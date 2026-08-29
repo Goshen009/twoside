@@ -1,4 +1,4 @@
-import { AccountingSide, AccountType, LoanDirection, LoanStatus, PrismaClient } from "#/prisma/client.js";
+import { AccountingSide, AccountType, LoanDirection, LoanStatus, LogType, PrismaClient } from "#/prisma/client.js";
 import { APIError } from "#/errors/APIError.js";
 import { Prisma } from "#/prisma/client.js";
 
@@ -96,12 +96,13 @@ class Ledger {
 	static async logTransaction<T extends { id: string, type: AccountType, cashflow_direction: CashflowDirection, amount: number, category_id?: string | null }>(
     tx: Prisma.TransactionClient,
     params: {
-      user_id: string;
-      description: string;
-      trx_date: Date;
-      lines: T[];
-      loan?: { direction: LoanDirection; counterparty_id: string; amount: number };
-      repayments?: { loan_id: string; amount: number }[];
+      user_id: string,
+      description: string,
+      trx_date: Date,
+      log_type: LogType,
+      lines: T[],
+      loan?: { direction: LoanDirection; counterparty_id: string; amount: number },
+      repayments?: { loan_id: string; amount: number }[],
     }
   ) {
 		this.trialBalance(params.lines);
@@ -111,6 +112,7 @@ class Ledger {
         user_id: params.user_id,
         journal_entries: {
           create: params.lines.map(l => ({
+         		log_type: params.log_type,
             trx_date: params.trx_date,
             description: params.description,
             amount: l.amount,

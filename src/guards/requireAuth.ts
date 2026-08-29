@@ -2,13 +2,13 @@ import { Account, Prisma, SystemAccountRole } from '#/prisma/client.js';
 import { APIError } from '#/errors/APIError.js';
 
 import fp from 'fastify-plugin';
-import JWT from '#/libs/jwt.js';
+import Tokens from '#/libs/tokens.js';
 
 type SystemAccountMap = Partial<Record<SystemAccountRole, Account>>;
 
 export default fp(async (fastify) => {
 	fastify.decorateRequest('requireAuth', async function() {		
-		const { id } = JWT.verify(this.server.config, this.headers);
+		const { id } = Tokens.verifyAccessToken(this.server.config, this.headers);
 		
 		const user = await this.server.prisma.user.findUnique({
 			where: { id },

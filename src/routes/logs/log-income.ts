@@ -34,6 +34,7 @@ async function handler(
  			user_id: user.id,
    		description,
     	trx_date: new Date(trx_date),
+    	log_type: 'INCOME',
      	lines: [
     		...destination_lines,
      		{ ...income_account, amount: total_amount, cashflow_direction: 'INCREASE' as const }

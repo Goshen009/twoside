@@ -8,7 +8,9 @@ export default fp(async (fastify) => {
         'http://localhost:3000',
         'http://localhost:5173',
         'http://192.168.1.200:5173',
-        'http://100.103.127.67:3000'
+        'http://100.103.127.67:3000',
+        'http://100.103.127.67:5173',
+        'http://100.99.208.67:5173'
       ];
 
       // Allow requests with no origin (like mobile apps or Postman)
@@ -23,6 +25,8 @@ export default fp(async (fastify) => {
         callback(new Error('Not allowed by CORS'), false);
       }
     },
+    credentials: true,
+    exposedHeaders: ['Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
   })
 }, {

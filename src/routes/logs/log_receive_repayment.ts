@@ -49,6 +49,7 @@ async function handler(
       user_id: user.id,
       description,
       trx_date: new Date(trx_date),
+      log_type: 'RECEIVE_REPAYMENT',
       lines: [
         ...destination_lines,
         { ...receivables_account, amount: total_amount, cashflow_direction: 'DECREASE' as const },

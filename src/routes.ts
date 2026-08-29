@@ -1,9 +1,9 @@
 import { FastifyPluginAsync } from 'fastify';
 
 import { seed } from './routes/seed.js';
-import { login } from './routes/login.js';
+import { login } from './routes/auth/login.js';
 import { list_loans } from './routes/list-loans.js';
-import { register_user } from './routes/register.js';
+import { register_user } from './routes/auth/register.js';
 import { list_accounts } from './routes/list-accounts.js';
 import { list_categories } from './routes/list-categories.js';
 import { list_counterparties } from './routes/list-counterparties.js';
@@ -30,6 +30,8 @@ import { get_counterparty_loans } from './routes/get-counterparty-loans.js';
 import { list_category_transactions } from './routes/list-category-transactions.js';
 import { create_category } from './routes/create-category.js';
 import { create_counterparty } from './routes/create-counterparty.js';
+import { logout } from './routes/auth/logout.js';
+import { refresh } from './routes/auth/refresh.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -101,8 +103,10 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   
   fastify.get("/seed", seed);
 
-  fastify.post("/login", login);
-  fastify.post("/register", register_user);
+  fastify.post("/auth/login", login);
+  fastify.post("/auth/logout", logout);
+  fastify.post("/auth/refresh", refresh);
+  fastify.post("/auth/register", register_user);
 
   fastify.post("/log/expense", log_expense);
   fastify.post("/log/income", log_income);
@@ -125,8 +129,8 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get("/balances", get_balances);
   fastify.get("/transaction-groups/:group_id", get_transaction_group);
   
-  fastify.get("/accounts/:account_id/summary", get_account_summary);
-  fastify.get("/accounts/:account_id/transactions", list_transactions);
+  fastify.get("/accounts/summary", get_account_summary);
+  fastify.get("/accounts/transactions", list_transactions);
 
   fastify.get("/loans", list_loans);
   fastify.get("/loans/summary", get_loans_summary);
