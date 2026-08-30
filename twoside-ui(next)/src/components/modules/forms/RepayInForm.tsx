@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Wallet, Search, Calendar, FileText, ChevronRight, ArrowDownLeft } from "lucide-react";
+import { Plus, Trash2, Wallet, Calendar, FileText, ChevronRight, ArrowDownLeft, Search } from "lucide-react";
 import { AccountBalance } from "@/lib/types";
+import SelectSheet from "@/components/modules/SelectSheet";
 
 interface SplitDestination {
   id: string;
@@ -15,7 +16,6 @@ interface RepayInFormProps {
   onClose: () => void;
 }
 
-// Mock active loans given (would normally be passed or fetched)
 const MOCK_ACTIVE_LOANS = [
   { id: "l1", counterparty: "John Doe", description: "Emergency support", amount: 50000, date: "2026-08-10" },
   { id: "l2", counterparty: "Sarah Williams", description: "Gadget purchase support", amount: 120000, date: "2026-08-15" },
@@ -30,10 +30,9 @@ export default function RepayInForm({ accounts, onClose }: RepayInFormProps) {
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Bottom Sheet Picker State ("loan" | "account" | null)
   const [activePicker, setActivePicker] = useState<"loan" | "account" | null>(null);
   const [targetSplitId, setTargetSplitId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [loanSearchQuery, setLoanSearchQuery] = useState("");
 
   const totalAmount = splits.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
   const selectedLoan = MOCK_ACTIVE_LOANS.find((l) => l.id === selectedLoanId);
@@ -64,6 +63,15 @@ export default function RepayInForm({ accounts, onClose }: RepayInFormProps) {
     }, 500);
   };
 
+  const formatDateString = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 relative">
       {/* Loan Selector Field */}
@@ -73,7 +81,7 @@ export default function RepayInForm({ accounts, onClose }: RepayInFormProps) {
           type="button"
           onClick={() => {
             setActivePicker("loan");
-            setSearchQuery("");
+            setLoanSearchQuery("");
           }}
           className="w-full bg-black/30 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-left flex items-center justify-between hover:border-primary/40 transition-all truncate"
         >
@@ -139,7 +147,6 @@ export default function RepayInForm({ accounts, onClose }: RepayInFormProps) {
                   onClick={() => {
                     setTargetSplitId(split.id);
                     setActivePicker("account");
-                    setSearchQuery("");
                   }}
                   className="flex-1 flex items-center gap-2 bg-surface/90 border border-white/5 px-3 py-2.5 rounded-xl text-left hover:border-primary/30 transition-all truncate shadow-sm"
                 >
@@ -194,17 +201,40 @@ export default function RepayInForm({ accounts, onClose }: RepayInFormProps) {
         {isSubmitting ? "Saving..." : "Save Repay In"}
       </button>
 
-      {/* BOTTOM SHEET PICKER */}
-      {activePicker && (
+      {/* SelectSheet for Accounts */}
+      <SelectSheet
+        isOpen={activePicker === "account"}
+        onClose={() => {
+          setActivePicker(null);
+          setTargetSplitId(null);
+        }}
+        title="Select Account"
+        items={accounts.map(acc => ({
+          ...acc,
+          name: `${acc.name} (₦${Number(acc.balance).toLocaleString("en-NG")})`
+        }))}
+        selectedId={targetSplitId ? splits.find(s => s.id === targetSplitId)?.accountId : undefined}
+        onSelect={(id) => {
+          const originalId = accounts.find(acc => `${acc.name} (₦${Number(acc.balance).toLocaleString("en-NG")})` === id)?.id || id;
+          if (targetSplitId) {
+            updateSplitAccount(targetSplitId, originalId);
+          }
+          setActivePicker(null);
+          setTargetSplitId(null);
+        }}
+      />
+
+      {/* Custom Slide-Up Sheet for Loan Selection with detailed row layout */}
+      {activePicker === "loan" && (
         <div className="absolute inset-0 z-50 bg-surface/95 backdrop-blur-md rounded-3xl p-4 flex flex-col space-y-3 border border-white/10 animate-in fade-in zoom-in-95 duration-150">
           <div className="flex items-center justify-between gap-2 pb-1">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-muted" />
               <input
                 type="text"
-                placeholder={activePicker === "account" ? "Search accounts..." : "Search active loans..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search active loans..."
+                value={loanSearchQuery}
+                onChange={(e) => setLoanSearchQuery(e.target.value)}
                 className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-100 placeholder:text-muted focus:outline-none focus:border-primary/50"
               />
             </div>
@@ -218,50 +248,34 @@ export default function RepayInForm({ accounts, onClose }: RepayInFormProps) {
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1">
-            {activePicker === "account" &&
-              accounts
-                .filter((acc) => acc.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map((acc) => (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => {
-                      if (targetSplitId) updateSplitAccount(targetSplitId, acc.id);
-                      setActivePicker(null);
-                    }}
-                    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
-                  >
-                    <span className="text-xs font-medium text-zinc-200">{acc.name}</span>
-                    <span className="text-[11px] font-mono text-muted">
-                      ₦{Number(acc.balance).toLocaleString("en-NG")}
-                    </span>
-                  </button>
-                ))}
-
-            {activePicker === "loan" &&
-              MOCK_ACTIVE_LOANS.filter(
-                (l) =>
-                  l.counterparty.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  l.description.toLowerCase().includes(searchQuery.toLowerCase())
-              ).map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedLoanId(l.id);
-                    setActivePicker(null);
-                  }}
-                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
-                >
-                  <div className="space-y-0.5 pr-2">
-                    <div className="text-xs font-medium text-zinc-200">{l.counterparty}</div>
-                    <div className="text-[10px] text-muted truncate">{l.description} • {l.date}</div>
+            {MOCK_ACTIVE_LOANS.filter(
+              (l) =>
+                l.counterparty.toLowerCase().includes(loanSearchQuery.toLowerCase()) ||
+                l.description.toLowerCase().includes(loanSearchQuery.toLowerCase())
+            ).map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => {
+                  setSelectedLoanId(l.id);
+                  setActivePicker(null);
+                }}
+                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
+              >
+                <div className="space-y-0.5 pr-2 truncate">
+                  <div className="text-xs font-medium text-zinc-200">{l.counterparty}</div>
+                  <div className="text-[10px] text-muted truncate">{l.description}</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-xs font-mono text-emerald-400 font-semibold">
+                    ₦{l.amount.toLocaleString("en-NG")}
                   </div>
-                  <span className="text-xs font-mono text-emerald-400 font-semibold shrink-0">
-                    ₦{l.amount.toLocaleString()}
-                  </span>
-                </button>
-              ))}
+                  <div className="text-[10px] font-mono text-muted">
+                    {formatDateString(l.date)}
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       )}

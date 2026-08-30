@@ -43,7 +43,7 @@ class AuthApi {
 
   static async logout(): Promise<void> {
     try {
-      await ApiClient.request<AuthResponse>("/auth/logout", { method: "POST" });
+      await ApiClient.request<AuthResponse>("/auth/logout", { method: "POST", body: { }});
     } finally {
 	   	// Clear client-side state regardless of whether the network call succeeds —
 	    // no reason to leave the user "logged in" locally if the request fails.

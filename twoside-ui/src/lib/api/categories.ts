@@ -10,6 +10,14 @@ class CategoriesApi {
     );
     return data.categories;
   }
+
+  static async create(name: string): Promise<Category> {
+    const { data } = await ApiClient.request<Category>("/categories", {
+      method: "POST",
+      body: { name },
+    });
+    return data;
+  }
 }
 
 export default CategoriesApi;

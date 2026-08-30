@@ -16,6 +16,14 @@ class Format {
 	    maximumFractionDigits: 2,
 	  });
 	}
+
+	static todayDateStr() {
+  	return new Date().toISOString().slice(0, 10);
+	}
+	
+	static toISODateTime(date_str: string) {
+  	return `${date_str}T00:00:00`;
+	}
 }
 
 export default Format;

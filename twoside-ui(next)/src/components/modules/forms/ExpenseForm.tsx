@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Tag, Wallet, Search, Check, Calendar } from "lucide-react";
 import { AccountBalance } from "@/lib/types";
+import SelectSheet from "@/components/modules/SelectSheet";
 
 interface SplitSource {
   id: string;
@@ -30,7 +31,6 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
   // Picker Sheet State ("account" | "category" | null)
   const [activePicker, setActivePicker] = useState<"account" | "category" | null>(null);
   const [targetSplitId, setTargetSplitId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [customCategories, setCustomCategories] = useState<string[]>(MOCK_CATEGORIES);
 
   const totalAmount = splits.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
@@ -60,7 +60,6 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
     }
     setSelectedCategory(formatted);
     setActivePicker(null);
-    setSearchQuery("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,7 +93,7 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
           <label className="text-[10px] font-mono text-muted uppercase tracking-wider">Category (Optional)</label>
           <button
             type="button"
-            onClick={() => { setActivePicker("category"); setSearchQuery(""); }}
+            onClick={() => setActivePicker("category")}
             className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-left flex items-center justify-between hover:border-primary/40 transition-all truncate"
           >
             <div className="flex items-center gap-2 truncate">
@@ -144,7 +143,6 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
                   onClick={() => {
                     setTargetSplitId(split.id);
                     setActivePicker("account");
-                    setSearchQuery("");
                   }}
                   className="flex-1 flex items-center gap-2 bg-surface/90 border border-white/5 px-3 py-2.5 rounded-xl text-left hover:border-primary/30 transition-all truncate shadow-sm"
                 >
@@ -200,91 +198,55 @@ export default function ExpenseForm({ accounts, onClose }: ExpenseFormProps) {
         {isSubmitting ? "Saving..." : "Save Expense"}
       </button>
 
-      {/* CUSTOM BOTTOM SHEET PICKER (Accounts & Categories with Search & Create) */}
-      {activePicker && (
-        <div className="absolute inset-0 z-50 bg-surface/95 backdrop-blur-md rounded-3xl p-4 flex flex-col space-y-3 border border-white/10 animate-in fade-in zoom-in-95 duration-150">
-          
-          {/* Picker Header & Search Bar */}
-          <div className="flex items-center justify-between gap-2 pb-1">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-muted" />
-              <input
-                type="text"
-                placeholder={`Search ${activePicker}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-100 placeholder:text-muted focus:outline-none focus:border-primary/50"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setActivePicker(null)}
-              className="text-xs font-medium text-muted hover:text-zinc-100 px-2 py-2"
-            >
-              Cancel
-            </button>
-          </div>
+      {/* SelectSheet for Accounts */}
+      <SelectSheet
+        isOpen={activePicker === "account"}
+        onClose={() => {
+          setActivePicker(null);
+          setTargetSplitId(null);
+        }}
+        title="Select Account"
+        items={accounts.map(acc => ({
+          ...acc,
+          name: `${acc.name} (₦${Number(acc.balance).toLocaleString("en-NG")})`
+        }))}
+        selectedId={targetSplitId ? splits.find(s => s.id === targetSplitId)?.accountId : undefined}
+        onSelect={(id) => {
+          const originalId = accounts.find(acc => `${acc.name} (₦${Number(acc.balance).toLocaleString("en-NG")})` === id)?.id || id;
+          if (targetSplitId) {
+            updateSplitAccount(targetSplitId, originalId);
+          }
+          setActivePicker(null);
+          setTargetSplitId(null);
+        }}
+      />
 
-          {/* List items */}
-          <div className="flex-1 overflow-y-auto space-y-1">
-            {activePicker === "account" && (
-              accounts
-                .filter((acc) => acc.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map((acc) => (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => {
-                      if (targetSplitId) updateSplitAccount(targetSplitId, acc.id);
-                      setActivePicker(null);
-                    }}
-                    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
-                  >
-                    <span className="text-xs font-medium text-zinc-200">{acc.name}</span>
-                    <span className="text-[11px] font-mono text-muted">
-                      ₦{Number(acc.balance).toLocaleString("en-NG")}
-                    </span>
-                  </button>
-                ))
-            )}
-
-            {activePicker === "category" && (
-              <>
-                {customCategories
-                  .filter((cat) => cat.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setActivePicker(null);
-                      }}
-                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
-                    >
-                      <span className="text-xs font-medium text-zinc-200">{cat}</span>
-                      {selectedCategory === cat && <Check className="w-3.5 h-3.5 text-primary" />}
-                    </button>
-                  ))}
-
-                {/* Create New Category Option when typing a non-existent name */}
-                {searchQuery.trim() && !customCategories.some((c) => c.toLowerCase() === searchQuery.trim().toLowerCase()) && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddNewCategory(searchQuery)}
-                    className="w-full flex items-center gap-2 p-3 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all text-left mt-2"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span className="text-xs font-semibold">Create category &ldquo;{searchQuery.trim()}&rdquo;</span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-
-        </div>
-      )}
-
+      {/* SelectSheet for Categories */}
+      <SelectSheet
+        isOpen={activePicker === "category"}
+        onClose={() => setActivePicker(null)}
+        title="Select Category"
+        items={customCategories.map(cat => ({ id: cat, name: cat }))}
+        selectedId={selectedCategory}
+        onSelect={(id) => {
+          setSelectedCategory(id);
+          setActivePicker(null);
+        }}
+        showClearOption={true}
+        onClear={() => {
+          setSelectedCategory("");
+          setActivePicker(null);
+        }}
+        showAddOption={true}
+        addLabel="Create new category"
+        onAddClick={() => {
+          setActivePicker(null);
+          const categoryName = prompt("Enter new category name:");
+          if (categoryName) {
+            handleAddNewCategory(categoryName);
+          }
+        }}
+      />
     </form>
   );
 }

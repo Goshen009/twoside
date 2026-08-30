@@ -6,7 +6,7 @@ import type { TransactionType } from "@/lib/types";
 import Balances from "@/components/home/Balances";
 import TransactionsFeed from "@/components/home/TransactionsFeed";
 import Navbar from "@/components/shared/Navbar";
-import ActionSelectorSheet from "@/components/home/ActionSelectorSheet";
+import TransactionTypeSheet from "@/components/transactions/TransactionTypeSheet";
 import TransactionFormModal from "@/components/home/TransactionFormModal";
 
 export default function HomeScreen() {
@@ -109,10 +109,10 @@ export default function HomeScreen() {
         on_open_action_sheet={() => set_is_action_sheet_open(true)}
       />
 
-      <ActionSelectorSheet
-        isOpen={is_action_sheet_open}
-        onClose={() => set_is_action_sheet_open(false)}
-        onSelectType={(type) => {
+      <TransactionTypeSheet
+        is_open={is_action_sheet_open}
+        on_close={() => set_is_action_sheet_open(false)}
+        on_select_type={(type) => {
           set_is_action_sheet_open(false);
           set_active_modal_type(type);
         }}

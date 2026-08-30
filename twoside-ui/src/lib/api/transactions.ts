@@ -65,6 +65,74 @@ class TransactionsApi {
       has_next: data.has_next,
     };
   }
+
+  static async logExpense(payload: {
+    description: string;
+    trx_date: string;
+    category_id: string | null;
+    sources: { account_id: string; amount: number }[];
+    bypass_warnings: boolean;
+  }): Promise<void> {
+    await ApiClient.request("/log/expense", { method: "POST", body: payload });
+  }
+
+  static async logIncome(payload: {
+    description: string;
+    trx_date: string;
+    destinations: { account_id: string; amount: number }[];
+  }): Promise<void> {
+    await ApiClient.request("/log/income", { method: "POST", body: payload });
+  }
+  
+  static async logTransfer(payload: {
+    description: string;
+    trx_date: string;
+    from_account_id: string;
+    to_account_id: string;
+    amount: number;
+    bypass_warnings: boolean;
+  }): Promise<void> {
+    await ApiClient.request("/log/transfer", { method: "POST", body: payload });
+  }
+
+  static async logGiveLoan(payload: {
+    description: string;
+    trx_date: string;
+    counterparty_id: string;
+    sources: { account_id: string; amount: number }[];
+    bypass_warnings: boolean;
+  }): Promise<void> {
+    await ApiClient.request("/log/loan", { method: "POST", body: payload });
+  }
+  
+  static async logBorrow(payload: {
+    description: string;
+    trx_date: string;
+    counterparty_id: string;
+    destinations: { account_id: string; amount: number }[];
+  }): Promise<void> {
+    await ApiClient.request("/log/borrow", { method: "POST", body: payload });
+  }
+
+  static async logReceiveRepayment(payload: {
+    description: string;
+    trx_date: string;
+    loan_id: string;
+    destinations: { account_id: string; amount: number }[];
+    bypass_warnings: boolean;
+  }): Promise<void> {
+    await ApiClient.request("/log/borrow-returned", { method: "POST", body: payload });
+  }
+  
+  static async logRepayLoan(payload: {
+    description: string;
+    trx_date: string;
+    loan_id: string;
+    sources: { account_id: string; amount: number }[];
+    bypass_warnings: boolean;
+  }): Promise<void> {
+    await ApiClient.request("/log/loan-repayed", { method: "POST", body: payload });
+  }
 }
 
 export default TransactionsApi;

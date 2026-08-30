@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import FilterDrawer from "@/components/transactions/FilterDrawer";
 import TransactionSearchBar from "@/components/transactions/TransactionSearchBar";
-import CategoryPickerSheet from "@/components/transactions/CategoryPickerSheet";
+import PickerSheet from "@/components/shared/PickerSheet";
 import SummaryStrip from "@/components/transactions/SummaryStrip";
 import TransactionList from "@/components/transactions/TransactionList";
 import { useAccountSummary } from "@/hooks/useAccountSummary";
@@ -141,15 +141,15 @@ export default function TransactionsFeed({ selected_account_id }: TransactionsFe
         on_apply={handleApplyFilters}
       />
 
-      <CategoryPickerSheet
+      <PickerSheet
         is_open={is_category_modal_open}
-        categories={categories}
-        staged_category_id={staged_category_id}
-        on_select={(id) => {
-          set_staged_category_id(id);
-          set_is_category_modal_open(false);
-        }}
+        title="Select Category"
+        items={categories.map((c) => ({ id: c.id, name: c.is_active ? c.name : `${c.name} (inactive)` }))}
+        selected_id={staged_category_id ?? undefined}
+        on_select={(id) => set_staged_category_id(id)}
         on_close={() => set_is_category_modal_open(false)}
+        show_clear_option
+        on_clear={() => set_staged_category_id(null)}
       />
 
       <SummaryStrip summary={summary} loading={summary_loading} label={summary_label} />

@@ -1,0 +1,26 @@
+It works the same way — just swap the WiFi IP for the **Tailscale IP** (the `100.x.x.x` address). ADB over TCP is just a TCP connection, and Tailscale gives you that.
+
+**Setup:**
+
+1. Install **Tailscale** on both your phone and laptop, join the same tailnet.
+2. Enable ADB over TCP on the phone. Easiest one-time setup: plug in via USB, run:
+   ```bash
+   adb tcpip 5555
+   ```
+   Then unplug. (Alternatively, enable **Wireless debugging** in Developer Options — it works while on WiFi, but once enabled it also listens on the Tailscale interface.)
+3. On your laptop:
+   ```bash
+   adb connect <phone-tailscale-ip>:5555
+   # e.g. adb connect 100.64.12.3:5555
+   ```
+   Accept the authorization prompt on the phone.
+4. Open your app in Chrome on the phone at:
+   ```
+   http://<laptop-tailscale-ip>:3000
+   ```
+5. On your laptop, open **`chrome://inspect/#devices`** → click **Inspect** on the phone's tab.
+
+Full DevTools (Console, Elements, Application, Network, etc.) opens exactly as before.
+
+**One caveat:** if you go the wireless-debugging route (instead of `adb tcpip 5555`), you need the phone connected to *some* WiFi to enable the toggle in the first place. Once enabled, it stays on and is reachable via the Tailscale IP even if WiFi drops. The `adb tcpip 5555` route sidesteps that entirely since it doesn't require WiFi at all.
+

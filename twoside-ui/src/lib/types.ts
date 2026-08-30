@@ -58,3 +58,22 @@ export type AccountSummary = {
   total_in: number;
   total_out: number;
 };
+
+export type Counterparty = {
+  id: string;
+  name: string;
+  is_active: boolean;
+};
+
+export type LoanDirection = "GIVEN" | "BORROWED";
+export type LoanStatus = "OPEN" | "PARTIALLY_REPAID" | "CLOSED";
+
+export type Loan = {
+  id: string;
+  direction: LoanDirection;
+  status: LoanStatus;
+  amount: number;
+  counterparty_name: string;
+  date_issued: string;
+  total_repaid: number;
+};
