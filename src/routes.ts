@@ -100,6 +100,13 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   // 
   // When someone sets a start date and end date, it's only normal that the list
   // starts from the start date and you scroll down to the end date.
+
+
+
+  // on the part where we get summary, we gotta make it such that
+  // we don't need to always pass in the start date and end date
+  // if it don't exist it should just auto-magically get for all time.
+
   
   fastify.get("/seed", seed);
 

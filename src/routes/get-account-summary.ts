@@ -81,7 +81,8 @@ async function handler(
     opening_balance,
     closing_balance,
     net_change: closing_balance - opening_balance,
-    total_in, total_out,
+    total_in,
+    total_out,
   });
 }
 

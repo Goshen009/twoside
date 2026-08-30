@@ -1,7 +1,23 @@
-import { ApiError } from "./error";
-
 // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = "";
+
+export class ApiError extends Error {
+  status: number;
+  fields?: { field: string; message: string }[];
+  extensions?: Record<string, unknown>;
+
+  constructor(problem: { status: number; message: string; [key: string]: unknown }) {
+    super(problem.message);
+    this.status = problem.status;
+    this.fields = problem.fields as { field: string; message: string }[] | undefined;
+
+    const rest = { ...problem } as Record<string, unknown>;
+    delete rest.status;
+    delete rest.message;
+    delete rest.fields;
+    this.extensions = rest;
+  }
+}
 
 class APIClient {
 	private static access_token: string | null = null;

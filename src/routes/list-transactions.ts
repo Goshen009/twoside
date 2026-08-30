@@ -110,7 +110,7 @@ async function handler(
 	    is_active: e.account.is_active,
     	entry_id: e.id,
     	side: e.side,
-      amount: e.amount,
+      amount: Number(e.amount),
       log_type: e.log_type,
       trx_date: e.trx_date,
       date_logged: e.created_at,

@@ -1,21 +1,22 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { AuthContext } from "../useAuth";
+
 import APIClient from "../../libs/api/cilent";
 import API from "../../libs/api/api";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-	const [is_authenticated, set_is_authenticated] = useState(false);
-	const [checking_session, set_checking_session] = useState(true);
+	const [is_authenticated, setIsAuthenticated] = useState(false);
+	const [checking_session, setCheckingSession] = useState(true);
 
 	useEffect(() => {
 		API.refrshSession().then((success) => {
-			set_is_authenticated(success);
-			set_checking_session(false);
+			setIsAuthenticated(success);
+			setCheckingSession(false);
 		});
 	}, []);
 
 	useEffect(() => {
-		APIClient.onUnauthorized = () => set_is_authenticated(false);
+		APIClient.onUnauthorized = () => setIsAuthenticated(false);
 		return () => { 
 			APIClient.onUnauthorized = null;
 	 	}
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const logout = async () => {
 		await API.logout();
-		set_is_authenticated(false);
+		setIsAuthenticated(false);
 	}
 
 	if (checking_session) {
