@@ -39,7 +39,7 @@ export default function PickerSheet({
       >
         <div className="flex items-center justify-between pb-2 border-b border-white/5">
           <h3 className="text-sm font-bold text-zinc-100">{title}</h3>
-          <button onClick={on_close} className="p-2 rounded-xl text-muted hover:text-zinc-100 hover:bg-white/5 transition-colors">
+          <button type="button" onClick={on_close} className="p-2 rounded-xl text-muted hover:text-zinc-100 hover:bg-white/5 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -47,6 +47,7 @@ export default function PickerSheet({
         <div className="max-h-64 overflow-y-auto space-y-1.5 pr-1">
           {show_clear_option && (
             <button
+            	type="button" 
               onClick={() => { on_clear?.(); on_close(); }}
               className="w-full p-3 rounded-xl bg-black/10 border border-white/5 flex items-center justify-between text-muted hover:text-zinc-100 hover:bg-white/5 transition-all text-xs font-medium"
             >
@@ -57,6 +58,7 @@ export default function PickerSheet({
             const is_selected = item.id === selected_id;
             return (
               <button
+              	type="button"
                 key={item.id}
                 onClick={() => { on_select(item.id); on_close(); }}
                 className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all text-left ${
@@ -76,6 +78,7 @@ export default function PickerSheet({
         {show_add_option && (
           <div className="pt-2 border-t border-white/5">
             <button
+            	type="button"
               onClick={on_add_click}
               className="w-full py-3 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 flex items-center justify-center gap-2 text-xs font-semibold transition-all"
             >

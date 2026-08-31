@@ -35,7 +35,7 @@ export default function LoanPickerSheet({
       >
         <div className="flex items-center justify-between pb-2 border-b border-white/5">
           <h3 className="text-sm font-bold text-zinc-100">{title}</h3>
-          <button onClick={on_close} className="p-2 rounded-xl text-muted hover:text-zinc-100 hover:bg-white/5 transition-colors">
+          <button type="button" onClick={on_close} className="p-2 rounded-xl text-muted hover:text-zinc-100 hover:bg-white/5 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -49,6 +49,7 @@ export default function LoanPickerSheet({
             const outstanding = loan.amount - loan.total_repaid;
             return (
               <button
+              	type="button"
                 key={loan.id}
                 onClick={() => { on_select(loan.id); on_close(); }}
                 className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all text-left ${

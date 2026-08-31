@@ -24,9 +24,9 @@ export default function DateField({ value, on_change, label = "Date" }: DateFiel
         onClick={openPicker}
         className="flex items-center gap-2 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 cursor-pointer hover:border-primary/40 transition-all"
       >
-        <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
-        <span className="text-xs text-zinc-100 font-medium truncate">
-          {value ? Format.formatDate(value) : "Select date"}
+        <Calendar className="w-3.5 h-3.5 text-muted shrink-0" />
+        <span className={`text-xs font-normal truncate ${value ? "text-zinc-100" : "text-muted/50"}`}>
+          {value ? Format.formatDateLong(value) : "Set date"}
         </span>
         <input ref={input_ref} type="date" value={value} onChange={(e) => on_change(e.target.value)} className="sr-only" />
       </div>

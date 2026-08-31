@@ -41,6 +41,7 @@ export default function CategoryPickerSheet({
                 <span className="text-xs font-semibold text-zinc-100">Select Category</span>
               </div>
               <button
+              	type="button"
                 onClick={on_close}
                 className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-muted hover:text-zinc-100 transition-colors"
               >
@@ -49,6 +50,7 @@ export default function CategoryPickerSheet({
             </div>
             <div className="space-y-1.5 overflow-y-auto pr-1">
               <button
+              	type="button"
                 onClick={() => on_select(null)}
                 className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between ${
                   staged_category_id === null
@@ -61,6 +63,7 @@ export default function CategoryPickerSheet({
               </button>
               {categories.map((cat) => (
                 <button
+                	type="button"
                   key={cat.id}
                   onClick={() => on_select(cat.id)}
                   className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between ${

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp, Wallet } from "lucide-react";
 import { useAccounts } from "../hooks/useAccounts";
-import type { TransactionType } from "@/lib/types";
+import type { TransactionType } from "@/libs/transaction-style";
 import Balances from "@/components/home/Balances";
 import TransactionsFeed from "@/components/home/TransactionsFeed";
 import Navbar from "@/components/shared/Navbar";

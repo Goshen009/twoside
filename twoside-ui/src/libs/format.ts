@@ -7,7 +7,13 @@ class Format {
 	static formatDate(date_str: string) {
 	  const date = new Date(date_str);
 	  if (isNaN(date.getTime())) return date_str;
-	  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+	  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+	}
+
+	static formatDateLong(date_str: string) {
+	  const date = new Date(date_str);
+	  if (isNaN(date.getTime())) return date_str;
+	  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 	}
 	
 	static formatMoney(amount: number | string) {
