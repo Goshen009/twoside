@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Tag, X } from "lucide-react";
-import type { Category } from "@/lib/types";
+import { type Category } from "../../hooks/useCategories";
+
 
 type CategoryPickerSheetProps = {
   is_open: boolean;

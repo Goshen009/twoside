@@ -26,7 +26,7 @@ class Balances {
     // now we get all the journals that weren't covered by the snapshot by picking
     // entries that came after the snapshot but before the time we want to see.
     const gap_entries = await prisma.journalEntry.findMany({
-      where: { account_id, trx_date: { gt: span_start, lte: target_date } },
+      where: { account_id, transaction_date: { gt: span_start, lte: target_date } },
     });
 
     const delta = gap_entries.reduce((sum, e) => 

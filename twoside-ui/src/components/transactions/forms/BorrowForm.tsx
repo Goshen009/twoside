@@ -3,14 +3,13 @@ import DescriptionField from "./shared/DescriptionField";
 import DateField from "./shared/DateField";
 import CounterpartyField from "./shared/CounterpartyField";
 import AllocationsList from "./shared/AllocationsList";
-import PickerSheet, { type PickerItem } from "@/components/shared/PickerSheet";
-import { useAllocations } from "@/hooks/useAllocations";
-import { useAccounts } from "@/hooks/accounts-context";
-import { useCounterparties } from "@/hooks/useCounterparties";
-import { useFormErrors } from "@/hooks/useFormErrors";
-import TransactionsApi from "@/lib/api/transactions";
-import CounterpartiesApi from "@/lib/api/counterparties";
-import Format from "@/lib/format";
+import PickerSheet, { type PickerItem } from "../../../components/shared/PickerSheet";
+import { useAllocations } from "../../../hooks/useAllocations";
+import { useAccounts } from "../../../hooks/useAccounts";
+import { useCounterparties } from "../../../hooks/useCounterparties";
+import { useFormErrors } from "../../../hooks/useFormErrors";
+import API from "../../../libs/api/api";
+import Format from "../../../libs/format";
 
 type BorrowFormProps = {
   on_success: () => void;
@@ -48,7 +47,7 @@ export default function BorrowForm({ on_success }: BorrowFormProps) {
   async function handleCreateCounterparty() {
     const name = window.prompt("Enter lender's name:");
     if (!name) return;
-    const created = await CounterpartiesApi.create(name);
+    const created = await API.createCounterparty(name);
     await refetch_counterparties();
     set_counterparty_id(created.id);
     set_active_picker(null);
@@ -60,13 +59,13 @@ export default function BorrowForm({ on_success }: BorrowFormProps) {
     if (!counterparty_id) return;
     set_is_submitting(true);
     try {
-      await TransactionsApi.logBorrow({
+      await API.logBorrow({
         description,
-        trx_date: Format.toISODateTime(date),
+        transaction_date: Format.toISODateTime(date),
         counterparty_id,
         destinations: allocations.map((a) => ({ account_id: a.account_id, amount: parseFloat(a.amount) || 0 })),
       });
-      await refetch_accounts();
+      refetch_accounts();
       on_success();
     } catch (err) {
       applyError(err);

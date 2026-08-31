@@ -38,9 +38,9 @@ async function handler(
           journal_entries: { some: { account_id } },
         },
       }),
-      ...(cursor && { trx_date: { lt: new Date(cursor) } }),
+      ...(cursor && { transaction_date: { lt: new Date(cursor) } }),
     },
-    orderBy: { trx_date: 'desc' },
+    orderBy: { transaction_date: 'desc' },
     take: limit + 1,
     include: {
       account: { select: { name: true } },
@@ -59,7 +59,7 @@ async function handler(
   const page_entries = entries.slice(0, limit);
   
   const next_cursor = has_next
-    ? page_entries[page_entries.length - 1]!.trx_date
+    ? page_entries[page_entries.length - 1]!.transaction_date
     : null;
 
   return reply.code(200).send({
@@ -70,7 +70,7 @@ async function handler(
       return {
         id: e.id,
         amount: e.amount,
-        trx_date: e.trx_date,
+        transaction_date: e.transaction_date,
         description: e.description,
         account_id: paying_entry?.account.id ?? null,
         account_name: paying_entry?.account.name ?? null,

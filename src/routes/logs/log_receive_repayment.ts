@@ -20,12 +20,12 @@ async function handler(
   reply: FastifyReply
 ) {
   const user = await request.requireAuth();
-  const { description, trx_date, loan_id, destinations, bypass_warnings } = request.body;
+  const { description, transaction_date, loan_id, destinations, bypass_warnings } = request.body;
 
   const loan = await Ledger.checkLoan(this.prisma, user.id, loan_id, LoanDirection.GIVEN);
 
   if (!bypass_warnings) {
- 		if (new Date(trx_date) < loan.date_issued)
+ 		if (new Date(transaction_date) < loan.date_issued)
     	throw APIError.custom({ status: 403, message: `This repayment is dated before the loan was issued (${loan.date_issued.toISOString().slice(0,10)}).` });
   }
 
@@ -48,7 +48,7 @@ async function handler(
     await Ledger.logTransaction(tx, {
       user_id: user.id,
       description,
-      trx_date: new Date(trx_date),
+      transaction_date: new Date(transaction_date),
       log_type: 'RECEIVE_REPAYMENT',
       lines: [
         ...destination_lines,

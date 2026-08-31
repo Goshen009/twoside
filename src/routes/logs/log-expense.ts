@@ -21,7 +21,7 @@ async function handler(
 ) {
 	const user = await request.requireAuth();
 
-	const { description, trx_date, category_id, sources, bypass_warnings } = request.body;
+	const { description, transaction_date, category_id, sources, bypass_warnings } = request.body;
 
 	if (category_id)
 		await Ledger.checkCategory(this.prisma, user.id, category_id);
@@ -33,7 +33,7 @@ async function handler(
      		throw APIError.custom({ status: 400, message: "An expense can only be paid out of an asset account" });
 
      	if (!bypass_warnings) {
-	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(trx_date));
+	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(transaction_date));
 				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
 	     		throw APIError.custom({ status: 403, message: `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.` });
       }
@@ -49,7 +49,7 @@ async function handler(
   	await Ledger.logTransaction(tx, {
  			user_id: user.id,
    		description,
-    	trx_date: new Date(trx_date),
+    	transaction_date: new Date(transaction_date),
     	log_type: 'EXPENSE',
      	lines: [
     		...source_lines,

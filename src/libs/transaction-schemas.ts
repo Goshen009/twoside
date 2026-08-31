@@ -4,7 +4,7 @@ class TransactionSchemas {
   static commonFields() {
     return {
       description: z.string("description is required and must be a string").max(100, "description must not be more than 100 characters"),
-      trx_date: z.iso.datetime("trx_date is required and must be in the format 2020-01-01T00:00:00Z"),
+      transaction_date: z.iso.datetime("transaction_date is required and must be in the format 2020-01-01T00:00:00Z"),
     };
   }
 

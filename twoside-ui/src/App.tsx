@@ -1,22 +1,29 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AccountsProvider } from "@/hooks/AccountsProvider";
-import { AuthProvider } from "./hooks/AuthProvider";
-import { useAuth } from "./hooks/auth-context";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { TransactionsCacheProvider } from "./hooks/providers/TransactionsCacheProvider";
+import { AccountsProvider } from "./hooks/providers/AccountsProvider";
+import { AuthProvider } from "./hooks/providers/AuthProvider";
+import { useAuth } from "./hooks/useAuth";
 
-import HomePage from "@/pages/HomePage";
-import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { is_authenticated } = useAuth();
-  if (!is_authenticated) return <Navigate to="/login" replace />;
-  return <AccountsProvider>{children}</AccountsProvider>;
-}
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { is_authenticated } = useAuth();
   if (is_authenticated) return <Navigate to="/" replace />;
   return <>{children}</>;
+}
+
+function ProtectedLayout() {
+  const { is_authenticated } = useAuth();
+  if (!is_authenticated) return <Navigate to="/login" replace />;
+  return (
+    <AccountsProvider>
+      <TransactionsCacheProvider>
+        <Outlet />
+      </TransactionsCacheProvider>
+    </AccountsProvider>
+  );
 }
 
 export default function App() {
@@ -40,14 +47,9 @@ export default function App() {
               </PublicOnlyRoute>
             }
           />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <HomePage />
-              </ProtectedRoute>
-            }
-          />
+          <Route element={<ProtectedLayout />}>
+	         	<Route path="/" element={ <HomePage /> }/>
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

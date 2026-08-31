@@ -1,13 +1,12 @@
 import { X } from "lucide-react";
-import type { TransactionType } from "@/lib/types";
-import { TRANSACTION_TYPE_META } from "@/lib/transaction-style";
-import ExpenseForm from "@/components/transactions/forms/ExpenseForm";
-import IncomeForm from "@/components/transactions/forms/IncomeForm";
-import TransferForm from "@/components/transactions/forms/TransferForm";
-import GiveLoanForm from "@/components/transactions/forms/GiveLoanForm";
-import BorrowForm from "@/components/transactions/forms/BorrowForm";
-import ReceiveRepaymentForm from "@/components/transactions/forms/ReceiveRepaymentForm";
-import RepayLoanForm from "@/components/transactions/forms/RepayLoanForm";
+import { type TransactionType, TRANSACTION_TYPE_META } from "../../libs/transaction-style";
+import ExpenseForm from "../transactions/forms/ExpenseForm";
+import IncomeForm from "../transactions/forms/IncomeForm";
+import TransferForm from "../transactions/forms/TransferForm";
+import GiveLoanForm from "../transactions/forms/GiveLoanForm";
+import BorrowForm from "../transactions/forms/BorrowForm";
+import ReceiveRepaymentForm from "../transactions/forms/ReceiveRepaymentForm";
+import RepayLoanForm from "../transactions/forms/RepayLoanForm";
 
 type TransactionFormModalProps = {
   isOpen: boolean;

@@ -4,11 +4,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { registerSchema, type RegisterInput } from "@/lib/schemas/auth";
-import { useAuth } from "@/hooks/auth-context";
+import { useAuth } from "../hooks/useAuth";
+import API from "../libs/api/api";
+import FormError from "../libs/form-error";
+import { z } from "zod";
 
-import AuthApi from "@/lib/api/auth";
-import FormError from "@/lib/form-error";
+const registerSchema = z.object({
+	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
+	pin: z.string("pin is required").regex(/^\d{6}$/, "pin must be 6 digits"),
+	confirm_pin: z.string("confirm pin is required").regex(/^\d{6}$/, "confirm pin must be 6 digits"),
+}).refine(data => data.pin === data.confirm_pin, {
+	error: "Pins do not match",
+	path: ['confirm_pin']
+});
+
+type RegisterInput = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +26,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { markAsAuthenticated } = useAuth();
-
   const {
     register: registerField,
     handleSubmit,
@@ -30,16 +39,16 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      await AuthApi.register(values.username, values.pin, values.confirm_pin);
+      await API.register(values.username, values.pin, values.confirm_pin);
       markAsAuthenticated();
       navigate("/");
     } catch (err) {
-   		FormError.applyServerErrors(err, setFormError, setError);
+      FormError.applyServerErrors(err, setFormError, setError);
     } finally {
       setLoading(false);
     }
   }
-
+  
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
       <div className="absolute top-1/4 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />

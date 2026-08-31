@@ -29,7 +29,7 @@ async function handler(
 
   return reply.code(200).send({
     id: group.id,
-    trx_date: group.journal_entries[0]?.trx_date,
+    transaction_date: group.journal_entries[0]?.transaction_date,
     description: group.journal_entries[0]?.description,
     entries: group.journal_entries.map((e) => ({
       id: e.id,

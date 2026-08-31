@@ -75,7 +75,7 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   // const total = await this.prisma.journalEntry.aggregate({
   //   where: {
   //     category_id,
-  //     trx_date: { gte: start_date, lte: end_date },
+  //     transaction_date: { gte: start_date, lte: end_date },
   //     account: { 
   //     	user_id: user.id,
   //      	...(account_id && { id: account_id })
@@ -87,7 +87,7 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   // 
   // I dunno if it already exists but it's something subtl I realized
   // I can repay or recieve payment for a loan before the day the loan was given
-  // I'm guessing this should be like the over spend one too where we check if the trx_date
+  // I'm guessing this should be like the over spend one too where we check if the transaction_date
   // is before the loan and then show a warning that can be bypassed
   // 
   // The sibling repayments also return that exact repayment that was passed. Should we

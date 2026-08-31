@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp, Wallet } from "lucide-react";
-import { useAccounts } from "@/hooks/accounts-context";
+import { useAccounts } from "../hooks/useAccounts";
 import type { TransactionType } from "@/lib/types";
 import Balances from "@/components/home/Balances";
 import TransactionsFeed from "@/components/home/TransactionsFeed";
@@ -10,7 +10,7 @@ import TransactionTypeSheet from "@/components/transactions/TransactionTypeSheet
 import TransactionFormModal from "@/components/home/TransactionFormModal";
 
 export default function HomeScreen() {
-  const { accounts, loading: loading_accounts } = useAccounts();
+  const { accounts, net_total, loading: loading_accounts } = useAccounts();
 
   const [active_tab, set_active_tab] = useState<"home" | "history">("home");
   const [selected_account_id, set_selected_account_id] = useState<string>("all");
@@ -72,7 +72,7 @@ export default function HomeScreen() {
               </div>
             ) : (
               <div ref={carousel_ref}>
-                <Balances accounts={accounts} onSelectAccount={set_selected_account_id} />
+                <Balances accounts={accounts} net_total={net_total} onSelectAccount={set_selected_account_id} />
               </div>
             )}
             <div className="pt-2 border-t border-white/5">

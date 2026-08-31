@@ -1,7 +1,7 @@
 import { Plus, Trash2, Wallet } from "lucide-react";
-import type { Account } from "@/lib/types";
-import type { Allocation } from "@/hooks/useAllocations";
-import Format from "@/lib/format";
+import { type Account } from "../../../../hooks/useAccounts";
+import Format from "../../../../libs/format";
+import { type Allocation } from "../../../../hooks/useAllocations";
 
 type AllocationsListProps = {
   label: string;

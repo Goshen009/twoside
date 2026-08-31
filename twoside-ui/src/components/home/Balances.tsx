@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Wallet } from "lucide-react";
-import type { Account } from "@/lib/types";
-import Format from "@/lib/format";
+import Format from "../../libs/format";
+import { type Account } from "../../hooks/useAccounts";
 
 type BalanceCarouselProps = {
   accounts: Account[];

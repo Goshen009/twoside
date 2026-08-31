@@ -7,8 +7,8 @@ import {
   ArrowRightLeft,
   CreditCard,
 } from "lucide-react";
-import Format from "@/lib/format";
-import type { JournalEntry, LogType } from "@/lib/types";
+import Format from "../../libs/format";
+import { type JournalEntry, type LogType } from "../../hooks/useAccountTransactions";
 
 const TYPE_STYLES: Record<LogType, { icon: typeof ArrowUpRight; bg: string; color: string }> = {
   INCOME: { icon: ArrowDownLeft, bg: "bg-emerald-500/10 border-emerald-500/20", color: "text-emerald-400" },
@@ -48,7 +48,7 @@ export default function TransactionRow({ entry, show_account_name }: Transaction
           <div className="min-w-0 space-y-1">
             <div className="text-xs font-medium text-zinc-100 truncate">{entry.description}</div>
             <div className="flex items-center gap-2 text-[10px] text-muted font-sans">
-              <span className="tracking-normal text-zinc-400 font-medium">{Format.formatDate(entry.trx_date)}</span>
+              <span className="tracking-normal text-zinc-400 font-medium">{Format.formatDate(entry.transaction_date)}</span>
               {show_account_name && (
                 <>
                   <span>•</span>

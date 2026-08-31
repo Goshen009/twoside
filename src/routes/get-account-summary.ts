@@ -50,7 +50,7 @@ async function handler(
     by: ['account_id', 'side'],
     where: {
       account_id: { in: accounts.map((a) => a.id) },
-      trx_date: { gte: start_date, lte: end_date },
+      transaction_date: { gte: start_date, lte: end_date },
     },
     _sum: { amount: true },
   });

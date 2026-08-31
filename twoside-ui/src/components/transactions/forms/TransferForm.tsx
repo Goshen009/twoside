@@ -4,11 +4,11 @@ import DescriptionField from "./shared/DescriptionField";
 import DateField from "./shared/DateField";
 import AccountField from "./shared/AccountField";
 import AmountField from "./shared/AmountField";
-import PickerSheet, { type PickerItem } from "@/components/shared/PickerSheet";
-import { useAccounts } from "@/hooks/accounts-context";
-import { useFormErrors } from "@/hooks/useFormErrors";
-import TransactionsApi from "@/lib/api/transactions";
-import Format from "@/lib/format";
+import PickerSheet, { type PickerItem } from "../../../components/shared/PickerSheet";
+import { useAccounts } from "../../../hooks/useAccounts";
+import { useFormErrors } from "../../../hooks/useFormErrors";
+import API from "../../../libs/api/api";
+import Format from "../../../libs/format";
 
 type TransferFormProps = {
   on_success: () => void;
@@ -41,15 +41,15 @@ export default function TransferForm({ on_success }: TransferFormProps) {
     if (!from_account_id || !to_account_id) return;
     set_is_submitting(true);
     try {
-      await TransactionsApi.logTransfer({
+      await API.logTransfer({
         description,
-        trx_date: Format.toISODateTime(date),
+        transaction_date: Format.toISODateTime(date),
         from_account_id,
         to_account_id,
         amount: parseFloat(amount) || 0,
         bypass_warnings: false,
       });
-      await refetch_accounts();
+      refetch_accounts();
       on_success();
     } catch (err) {
       applyError(err);

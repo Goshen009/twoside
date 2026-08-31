@@ -1,5 +1,5 @@
 import { Wallet } from "lucide-react";
-import type { Account } from "@/lib/types";
+import { type Account } from "../../../../hooks/useAccounts";
 
 type AccountFieldProps = {
   label: string;

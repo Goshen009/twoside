@@ -1,0 +1,13 @@
+import { createContext, useContext } from "react";
+
+export const AuthContext = createContext<{
+	is_authenticated: boolean,
+	markAsAuthenticated: () => void,
+  logout: () => Promise<void>
+} | null>(null);
+
+export const useAuth = () => {
+	const ctx = useContext(AuthContext);
+	if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+	return ctx;
+}

@@ -1,4 +1,4 @@
-import type { JournalEntry } from "@/lib/types";
+import { type JournalEntry } from "../../hooks/useAccountTransactions";
 import TransactionRow from "./TransactionRow";
 
 type TransactionListProps = {

@@ -4,11 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { loginSchema, type LoginInput } from "@/lib/schemas/auth";
-import { useAuth } from "@/hooks/auth-context";
+import { useAuth } from "../hooks/useAuth";
+import API from "../libs/api/api";
+import FormError from "../libs/form-error";
+import { z } from "zod";
 
-import AuthApi from "@/lib/api/auth";
-import FormError from "@/lib/form-error";
+const loginSchema = z.object({
+	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
+	pin: z.string("pin is required").regex(/^\d{6}$/, "pin must be 6 digits"),
+});
+
+type LoginInput = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +22,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { markAsAuthenticated } = useAuth();
-
   const {
     register: registerField,
     handleSubmit,
@@ -30,11 +35,12 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await AuthApi.login(values.username, values.pin);
+      await API.login(values.username, values.pin);
       markAsAuthenticated();
       navigate("/");
     } catch (err) {
-    	FormError.applyServerErrors(err, setFormError, setError);
+    	console.log(err);
+      FormError.applyServerErrors(err, setFormError, setError);
     } finally {
       setLoading(false);
     }

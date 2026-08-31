@@ -25,13 +25,13 @@ async function handler(
 ) {
 	const user = await request.requireAuth();
 	
-  const { description, trx_date, amount, from_account_id, to_account_id, bypass_warnings } = request.body;
+  const { description, transaction_date, amount, from_account_id, to_account_id, bypass_warnings } = request.body;
 
   const from_account = Ledger.checkAccount(from_account_id, user.accounts);
   const to_account = Ledger.checkAccount(to_account_id, user.accounts);
 
   if (!bypass_warnings) {
-   	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, from_account.id, from_account.type, new Date(trx_date));
+   	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, from_account.id, from_account.type, new Date(transaction_date));
 		if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(amount))
 	  	throw APIError.custom({ status: 403, message: `${from_account.name} only has ${balance_in_account.toFixed(2)}, but ${amount.toFixed(2)} was requested.` });
   }
@@ -45,7 +45,7 @@ async function handler(
   	await Ledger.logTransaction(tx, {
  			user_id: user.id,
    		description,
-    	trx_date: new Date(trx_date),
+    	transaction_date: new Date(transaction_date),
     	log_type: 'TRANSFER',
      	lines: [
      		{ ...from_account, amount, cashflow_direction: 'DECREASE' as const },

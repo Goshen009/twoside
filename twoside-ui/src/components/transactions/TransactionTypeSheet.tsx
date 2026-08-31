@@ -1,5 +1,6 @@
 import { X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Landmark, HandCoins, ArrowRightLeft, CreditCard } from "lucide-react";
-import type { TransactionType } from "@/lib/types";
+import { type TransactionType } from "../../libs/transaction-style";
+
 
 type TransactionTypeSheetProps = {
   is_open: boolean;

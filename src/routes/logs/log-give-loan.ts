@@ -20,7 +20,7 @@ async function handler(
   reply: FastifyReply
 ) {
   const user = await request.requireAuth();
-  const { description, trx_date, counterparty_id, sources, bypass_warnings } = request.body;
+  const { description, transaction_date, counterparty_id, sources, bypass_warnings } = request.body;
 
   const counterparty = await Ledger.checkCounterparty(this.prisma, user.id, counterparty_id);
 
@@ -31,7 +31,7 @@ async function handler(
      		throw APIError.custom({ status: 400, message: "Loans can only be given from asset accounts" });
 
      	if (!bypass_warnings) {
-	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(trx_date));
+	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(transaction_date));
 				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
 	     		throw APIError.custom({ status: 403, message: `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.` });
       }
@@ -47,7 +47,7 @@ async function handler(
     await Ledger.logTransaction(tx, {
       user_id: user.id,
       description,
-      trx_date: new Date(trx_date),
+      transaction_date: new Date(transaction_date),
       log_type: 'GIVE_LOAN',
       lines: [
         ...source_lines,

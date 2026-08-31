@@ -3,14 +3,13 @@ import { Tag } from "lucide-react";
 import DescriptionField from "./shared/DescriptionField";
 import DateField from "./shared/DateField";
 import AllocationsList from "./shared/AllocationsList";
-import PickerSheet, { type PickerItem } from "@/components/shared/PickerSheet";
-import { useAllocations } from "@/hooks/useAllocations";
-import { useAccounts } from "@/hooks/accounts-context";
-import { useCategories } from "@/hooks/useCategories";
-import { useFormErrors } from "@/hooks/useFormErrors";
-import TransactionsApi from "@/lib/api/transactions";
-import CategoriesApi from "@/lib/api/categories";
-import Format from "@/lib/format";
+import PickerSheet, { type PickerItem } from "../../../components/shared/PickerSheet";
+import { useAllocations } from "../../../hooks/useAllocations";
+import { useAccounts } from "../../../hooks/useAccounts";
+import { useCategories } from "../../../hooks/useCategories";
+import { useFormErrors } from "../../../hooks/useFormErrors";
+import API from "../../../libs/api/api";
+import Format from "../../../libs/format";
 
 type ExpenseFormProps = {
   on_success: () => void;
@@ -46,7 +45,7 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
   async function handleCreateCategory() {
     const name = window.prompt("Enter new category name:");
     if (!name) return;
-    const created = await CategoriesApi.create(name);
+    const created = await API.createCategory(name);
     await refetch_categories();
     set_category_id(created.id);
     set_active_picker(null);
@@ -57,14 +56,14 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
     clear();
     set_is_submitting(true);
     try {
-      await TransactionsApi.logExpense({
+      await API.logExpense({
         description,
-        trx_date: Format.toISODateTime(date),
+        transaction_date: Format.toISODateTime(date),
         category_id,
         sources: allocations.map((a) => ({ account_id: a.account_id, amount: parseFloat(a.amount) || 0 })),
         bypass_warnings: false,
       });
-      await refetch_accounts();
+      refetch_accounts();
       on_success();
     } catch (err) {
       applyError(err);

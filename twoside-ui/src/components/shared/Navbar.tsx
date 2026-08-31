@@ -1,5 +1,5 @@
 import { Home, ArrowLeftRight, Plus, LogOut } from "lucide-react";
-import { useAuth } from "@/hooks/auth-context";
+import { useAuth } from "../../hooks/useAuth";
 
 type NavbarProps = {
   active_tab: string;
@@ -8,7 +8,7 @@ type NavbarProps = {
 };
 
 export default function Navbar({ active_tab, set_active_tab, on_open_action_sheet }: NavbarProps) {
-  const { signOut } = useAuth();
+  const { logout } = useAuth();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-surface/85 backdrop-blur-xl border-t border-white/5 px-6 py-3 flex items-center justify-between max-w-md mx-auto">
@@ -41,7 +41,7 @@ export default function Navbar({ active_tab, set_active_tab, on_open_action_shee
       </button>
 
       <button
-        onClick={() => signOut()}
+        onClick={() => logout()}
         className="flex flex-col items-center gap-1 text-muted hover:text-red-400 transition-colors"
       >
         <LogOut className="w-5 h-5" />

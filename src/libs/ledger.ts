@@ -98,7 +98,7 @@ class Ledger {
     params: {
       user_id: string,
       description: string,
-      trx_date: Date,
+      transaction_date: Date,
       log_type: LogType,
       lines: T[],
       loan?: { direction: LoanDirection; counterparty_id: string; amount: number },
@@ -113,7 +113,7 @@ class Ledger {
         journal_entries: {
           create: params.lines.map(l => ({
          		log_type: params.log_type,
-            trx_date: params.trx_date,
+            transaction_date: params.transaction_date,
             description: params.description,
             amount: l.amount,
             side: this.resolveAccountingSide(l.type, l.cashflow_direction),
@@ -126,7 +126,7 @@ class Ledger {
             create: [{
               status: LoanStatus.OPEN,
               amount: params.loan.amount,
-              date_issued: params.trx_date,
+              date_issued: params.transaction_date,
               direction: params.loan.direction,
               counterparty_id: params.loan.counterparty_id,
             }],
@@ -137,14 +137,14 @@ class Ledger {
             create: params.repayments.map(r => ({
               amount: r.amount,
               loan_id: r.loan_id,
-              date_repaid: params.trx_date,
+              date_repaid: params.transaction_date,
             })),
           },
         }),
       },
     });
 		
-    await this.rebuildAccountSnapshots(tx, params.trx_date, params.lines);
+    await this.rebuildAccountSnapshots(tx, params.transaction_date, params.lines);
 		
     if (params.repayments && params.repayments.length > 0) {
       await this.updateStatusAfterRepayment(tx, params.user_id, params.repayments.map(r => r.loan_id));
@@ -155,7 +155,7 @@ class Ledger {
 
 	static async rebuildAccountSnapshots<T extends { id: string; amount: number; cashflow_direction: CashflowDirection }>(
     tx: Prisma.TransactionClient,
-    trx_date: Date,
+    transaction_date: Date,
     lines: T[]
   ) {
   	// Deliberately one query pair per line, not batched — keeps each account's snapshot lookup 
@@ -168,7 +168,7 @@ class Ledger {
         orderBy: { as_of_date: 'desc' },
       });
 	
-      if (!latest_snapshot || trx_date > latest_snapshot.as_of_date)
+      if (!latest_snapshot || transaction_date > latest_snapshot.as_of_date)
       	continue;
 
       const delta = line.cashflow_direction === 'INCREASE' 
@@ -176,7 +176,7 @@ class Ledger {
        	: -line.amount;
       
       await tx.accountBalanceSnapshot.updateMany({
-        where: { account_id: line.id, as_of_date: { gte: trx_date } },
+        where: { account_id: line.id, as_of_date: { gte: transaction_date } },
         data: { balance: { increment: delta } },
       });
     }

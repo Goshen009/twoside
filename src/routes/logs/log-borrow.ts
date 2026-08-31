@@ -17,7 +17,7 @@ async function handler(
   reply: FastifyReply
 ) {
   const user = await request.requireAuth();
-  const { description, trx_date, counterparty_id, destinations } = request.body;
+  const { description, transaction_date, counterparty_id, destinations } = request.body;
 
   const counterparty = await Ledger.checkCounterparty(this.prisma, user.id, counterparty_id);
 
@@ -36,7 +36,7 @@ async function handler(
     await Ledger.logTransaction(tx, {
       user_id: user.id,
       description,
-      trx_date: new Date(trx_date),
+      transaction_date: new Date(transaction_date),
       log_type: 'BORROW',
       lines: [
         ...destination_lines,

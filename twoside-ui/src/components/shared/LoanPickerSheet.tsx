@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
-import Format from "@/lib/format";
-import type { Loan } from "@/lib/types";
+import Format from "../../libs/format";
+import { type Loan } from "../../hooks/useLoans";
 
 type LoanPickerSheetProps = {
   is_open: boolean;

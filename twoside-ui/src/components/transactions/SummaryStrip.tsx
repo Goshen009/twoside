@@ -1,5 +1,5 @@
-import type { AccountSummary } from "@/lib/types";
-import Format from "@/lib/format";
+import { type AccountSummary } from "../../hooks/useAccountSummary";
+import Format from "../../libs/format";
 
 type SummaryStripProps = {
   summary: AccountSummary | null;

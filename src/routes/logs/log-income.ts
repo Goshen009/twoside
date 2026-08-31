@@ -16,7 +16,7 @@ async function handler(
   reply: FastifyReply
 ) {
 	const user = await request.requireAuth();
-	const { description, trx_date, destinations } = request.body;
+	const { description, transaction_date, destinations } = request.body;
 	
   const destination_lines = destinations.map((d) => {
     const account = Ledger.checkAccount(d.account_id, user.accounts);
@@ -33,7 +33,7 @@ async function handler(
   	await Ledger.logTransaction(tx, {
  			user_id: user.id,
    		description,
-    	trx_date: new Date(trx_date),
+    	transaction_date: new Date(transaction_date),
     	log_type: 'INCOME',
      	lines: [
     		...destination_lines,

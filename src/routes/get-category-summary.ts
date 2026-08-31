@@ -39,7 +39,7 @@ async function handler(
   const total = await this.prisma.journalEntry.aggregate({
     where: {
       category_id,
-      trx_date: { gte: start_date, lte: end_date },
+      transaction_date: { gte: start_date, lte: end_date },
       account: { user_id: user.id, type: 'EXPENSE' },
       ...(account_id && {
         transaction_group: {

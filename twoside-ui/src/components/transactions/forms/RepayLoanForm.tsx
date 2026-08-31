@@ -3,14 +3,14 @@ import { ArrowUpRight, ChevronRight } from "lucide-react";
 import DescriptionField from "./shared/DescriptionField";
 import DateField from "./shared/DateField";
 import AllocationsList from "./shared/AllocationsList";
-import PickerSheet, { type PickerItem } from "@/components/shared/PickerSheet";
-import LoanPickerSheet from "@/components/shared/LoanPickerSheet";
-import { useAllocations } from "@/hooks/useAllocations";
-import { useAccounts } from "@/hooks/accounts-context";
-import { useLoans } from "@/hooks/useLoans";
-import { useFormErrors } from "@/hooks/useFormErrors";
-import TransactionsApi from "@/lib/api/transactions";
-import Format from "@/lib/format";
+import LoanPickerSheet from "../../../components/shared/LoanPickerSheet";
+import PickerSheet, { type PickerItem } from "../../../components/shared/PickerSheet";
+import { useAllocations } from "../../../hooks/useAllocations";
+import { useAccounts } from "../../../hooks/useAccounts";
+import { useFormErrors } from "../../../hooks/useFormErrors";
+import { useLoans } from "../../../hooks/useLoans";
+import API from "../../../libs/api/api";
+import Format from "../../../libs/format";
 
 type RepayLoanFormProps = {
   on_success: () => void;
@@ -44,14 +44,14 @@ export default function RepayLoanForm({ on_success }: RepayLoanFormProps) {
     if (!loan_id) return;
     set_is_submitting(true);
     try {
-      await TransactionsApi.logRepayLoan({
+      await API.logRepayLoan({
         description,
-        trx_date: Format.toISODateTime(date),
+        transaction_date: Format.toISODateTime(date),
         loan_id,
         sources: allocations.map((a) => ({ account_id: a.account_id, amount: parseFloat(a.amount) || 0 })),
         bypass_warnings: false,
       });
-      await refetch_accounts();
+      refetch_accounts();
       on_success();
     } catch (err) {
       applyError(err);
