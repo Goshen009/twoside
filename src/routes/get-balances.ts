@@ -36,5 +36,9 @@ async function handler(
 // the amount field should show a comma
 // 
 // let's make transfer be blue instead of red.
+//
+// under the counterparty selector, if there's no person there
+// make it so that the space doesn't show and it's just the button to 
+// add new person that shows
 
 export const get_balances = { handler };
