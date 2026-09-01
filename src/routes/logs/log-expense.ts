@@ -11,7 +11,7 @@ const schema = z.object({
 	...TransactionSchemas.commonFields(),
 	category_id: z.uuid("category_id must be a valid UUID").nullable().default(null),
   sources: TransactionSchemas.accountAllocations("source"),
-  bypass_warnings: z.boolean().default(false),
+  bypass_warnings: TransactionSchemas.bypassWarnings(['INSUFFICIENT_BALANCE']),
 });
 
 async function handler(
@@ -32,13 +32,13 @@ async function handler(
     	if (account.type !== 'ASSET')
      		throw APIError.custom({ status: 400, message: "An expense can only be paid out of an asset account" });
 
-     	if (!bypass_warnings) {
+     	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
 	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(transaction_date));
 				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
-	     		throw APIError.custom({ status: 403, message: `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.` });
+   				throw APIError.warning("INSUFFICIENT_BALANCE", `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.`);
       }
       
-     	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
+     	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const, category_id };
    	})
   );
 	

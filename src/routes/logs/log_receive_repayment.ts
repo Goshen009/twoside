@@ -11,7 +11,7 @@ const schema = z.object({
 	...TransactionSchemas.commonFields(),
 	loan_id: z.uuid("loan_id is required and must be a valid UUID"),
   destinations: TransactionSchemas.accountAllocations("destination"),
-  bypass_warnings: z.boolean().default(false),
+  bypass_warnings: TransactionSchemas.bypassWarnings(['REPAYMENT_DATED_BEFORE']),
 });
 
 async function handler(
@@ -24,9 +24,9 @@ async function handler(
 
   const loan = await Ledger.checkLoan(this.prisma, user.id, loan_id, LoanDirection.GIVEN);
 
-  if (!bypass_warnings) {
+  if (!bypass_warnings.includes("REPAYMENT_DATED_BEFORE")) {
  		if (new Date(transaction_date) < loan.date_issued)
-    	throw APIError.custom({ status: 403, message: `This repayment is dated before the loan was issued (${loan.date_issued.toISOString().slice(0,10)}).` });
+   		throw APIError.warning("REPAYMENT_DATED_BEFORE", `This repayment is dated before the loan was issued (${loan.date_issued.toISOString().slice(0,10)}).`);
   }
 
   const total_amount = destinations.reduce((sum, d) => sum + d.amount, 0);

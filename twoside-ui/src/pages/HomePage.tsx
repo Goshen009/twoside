@@ -122,7 +122,6 @@ export default function HomeScreen() {
         <TransactionFormModal
           isOpen={!!active_modal_type}
           onClose={() => set_active_modal_type(null)}
-          accounts={accounts}
           initialType={active_modal_type}
         />
       )}

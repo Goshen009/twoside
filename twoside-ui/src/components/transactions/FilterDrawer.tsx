@@ -34,7 +34,7 @@ export default function FilterDrawer({
   const from_date_ref = useRef<HTMLInputElement>(null);
   const to_date_ref = useRef<HTMLInputElement>(null);
 
-  function openPicker(ref: React.RefObject<HTMLInputElement>) {
+  function openPicker(ref: React.RefObject<HTMLInputElement | null>) {
     if (!ref.current) return;
     if (typeof ref.current.showPicker === "function") ref.current.showPicker();
     else ref.current.click();

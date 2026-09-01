@@ -122,7 +122,7 @@ model JournalEntry {
 	account_id						String
 	account								Account @relation(fields: [account_id], references: [id])
 
-	category_id						String? // it's only meaningful when the account type is EXPENSE or INCOME
+	category_id						String? // it's only meaningful when the account type is EXPENSE (or maybe later INCOME)
 	category							Category? @relation(fields: [category_id], references: [id])
 
 	@@index([transaction_date(sort: Desc), posted_at(sort: Desc), id(sort: Desc)])

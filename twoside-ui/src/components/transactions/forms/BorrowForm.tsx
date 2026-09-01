@@ -44,13 +44,20 @@ export default function BorrowForm({ on_success }: BorrowFormProps) {
     name: c.is_active ? c.name : `${c.name} (inactive)`,
   }));
 
+  const [is_adding, set_is_adding] = useState(false);
+
   async function handleCreateCounterparty() {
     const name = window.prompt("Enter lender's name:");
     if (!name) return;
-    const created = await API.createCounterparty(name);
-    await refetch_counterparties();
-    set_counterparty_id(created.id);
-    set_active_picker(null);
+    set_is_adding(true);
+    try {
+      const created = await API.createCounterparty(name);
+      await refetch_counterparties();
+      set_counterparty_id(created.id);
+      set_active_picker(null);
+    } finally {
+      set_is_adding(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -136,6 +143,8 @@ export default function BorrowForm({ on_success }: BorrowFormProps) {
         show_add_option
         add_label="Add new counterparty"
         on_add_click={handleCreateCounterparty}
+        is_adding={is_adding}
+        empty_message="No people added yet — add one below"
       />
     </form>
   );

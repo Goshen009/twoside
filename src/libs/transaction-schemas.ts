@@ -1,11 +1,17 @@
 import { z } from "zod/v4";
 
+export type WarningCode = 'INSUFFICIENT_BALANCE' | 'REPAYMENT_DATED_BEFORE';
+
 class TransactionSchemas {
   static commonFields() {
     return {
       description: z.string("description is required and must be a string").max(100, "description must not be more than 100 characters"),
       transaction_date: z.iso.datetime("transaction_date is required and must be in the format 2020-01-01T00:00:00Z"),
     };
+  }
+
+  static bypassWarnings<const T extends readonly WarningCode[]>(allowed: T) {
+    return z.array(z.enum(allowed)).default([]);
   }
 
   static accountAllocations(field_label: string) {

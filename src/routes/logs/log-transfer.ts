@@ -12,7 +12,7 @@ const schema = z.object({
 	amount: z.number("amount is required and must be a number").positive("amount must be greater than 0").multipleOf(0.01),
 	from_account_id: z.uuid("from_account_id is required and must be a valid UUID"),
 	to_account_id: z.uuid("to_account_id is required and must be a valid UUID"),
-	bypass_warnings: z.boolean().default(false)
+	bypass_warnings: TransactionSchemas.bypassWarnings(['INSUFFICIENT_BALANCE']),
 }).refine(data => data.from_account_id !== data.to_account_id, {
 	error: "You cannot transfer money into the same account",
 	path: ['to_account_id']
@@ -30,10 +30,10 @@ async function handler(
   const from_account = Ledger.checkAccount(from_account_id, user.accounts);
   const to_account = Ledger.checkAccount(to_account_id, user.accounts);
 
-  if (!bypass_warnings) {
+  if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
    	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, from_account.id, from_account.type, new Date(transaction_date));
 		if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(amount))
-	  	throw APIError.custom({ status: 403, message: `${from_account.name} only has ${balance_in_account.toFixed(2)}, but ${amount.toFixed(2)} was requested.` });
+			throw APIError.warning("INSUFFICIENT_BALANCE", `${from_account.name} only has ${balance_in_account.toFixed(2)}, but ${amount.toFixed(2)} was requested.`);
   }
 
   // A transfer only moves money between accounts you hold. Anything touching

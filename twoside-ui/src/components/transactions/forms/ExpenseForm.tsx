@@ -11,6 +11,8 @@ import { useFormErrors } from "../../../hooks/useFormErrors";
 import API from "../../../libs/api/api";
 import Format from "../../../libs/format";
 
+import ErrorToast from "@/components/shared/errortoast";
+
 type ExpenseFormProps = {
   on_success: () => void;
 };
@@ -42,13 +44,20 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
     name: c.is_active ? c.name : `${c.name} (inactive)`,
   }));
 
+  const [is_adding, set_is_adding] = useState(false);
+
   async function handleCreateCategory() {
     const name = window.prompt("Enter new category name:");
     if (!name) return;
-    const created = await API.createCategory(name);
-    await refetch_categories();
-    set_category_id(created.id);
-    set_active_picker(null);
+    set_is_adding(true);
+    try {
+      const created = await API.createCategory(name);
+      await refetch_categories();
+      set_category_id(created.id);
+      set_active_picker(null);
+    } finally {
+      set_is_adding(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -74,6 +83,9 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 relative">
+    	{/* Toast rendered unconditionally as requested */}
+      <ErrorToast message="Amount exceeds available account balance with some lorem ispum text by the side of it if you're getting what i mean eh?" />
+      
       {banner_error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-2xl text-xs">{banner_error}</div>
       )}
@@ -143,6 +155,7 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
         show_add_option
         add_label="Create new category"
         on_add_click={handleCreateCategory}
+        is_adding={is_adding}
       />
     </form>
   );

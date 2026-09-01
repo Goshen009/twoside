@@ -6,6 +6,9 @@ import {
   Landmark,
   ArrowRightLeft,
   CreditCard,
+  Wallet,
+  Tag,
+  User
 } from "lucide-react";
 import Format from "../../libs/format";
 import { type JournalEntry, type LogType } from "../../hooks/useAccountTransactions";
@@ -20,11 +23,13 @@ const TYPE_STYLES: Record<LogType, { icon: typeof ArrowUpRight; bg: string; colo
   REPAY_LOAN: { icon: CreditCard, bg: "bg-rose-500/10 border-rose-500/20", color: "text-rose-400" },
 };
 
-function getDetail(entry: JournalEntry): string {
-  if (entry.category_name) return entry.category_name;
-  if (entry.related_account) return entry.related_account.name;
-  if (entry.related_counterparty) return entry.related_counterparty.name;
-  return "";
+type DetailInfo = { icon: typeof Tag; text: string };
+
+function getDetail(entry: JournalEntry): DetailInfo | null {
+  if (entry.category_name) return { icon: Tag, text: entry.category_name };
+  if (entry.related_account) return { icon: ArrowLeftRight, text: entry.related_account.name };
+  if (entry.related_counterparty) return { icon: User, text: entry.related_counterparty.name };
+  return null;
 }
 
 type TransactionRowProps = {
@@ -37,6 +42,7 @@ export default function TransactionRow({ entry, show_account_name }: Transaction
   const Icon = style.icon;
   const is_in = entry.side === "DEBIT"; // asset account: DEBIT = money in, CREDIT = money out
   const detail = getDetail(entry);
+  // const amount_color = entry.log_type === "TRANSFER" ? "text-sky-400" : is_in ? "text-emerald-400" : "text-rose-400";
 
   return (
     <div className="bg-surface/90 border border-white/5 rounded-2xl">
@@ -50,10 +56,10 @@ export default function TransactionRow({ entry, show_account_name }: Transaction
             <div className="flex items-center gap-2 text-[10px] text-muted font-sans">
               <span className="tracking-normal text-zinc-400 font-medium">{Format.formatDate(entry.transaction_date)}</span>
               {show_account_name && (
-                <>
-                  <span>•</span>
-                  <span className="text-muted/90 font-normal">{entry.account_name}</span>
-                </>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5 text-muted/90 font-normal">
+                	<Wallet className="w-2.5 h-2.5" />
+                 	{entry.account_name}
+                </span>
               )}
             </div>
           </div>
@@ -63,7 +69,10 @@ export default function TransactionRow({ entry, show_account_name }: Transaction
             {is_in ? "+" : "-"}₦{Format.formatMoney(entry.amount)}
           </div>
           {detail && (
-            <div className="text-[10px] text-muted/80 mt-0.5 font-normal tracking-tight">{detail}</div>
+            <div className="flex items-center justify-end gap-1 text-[10px] text-muted/80 mt-0.5 font-normal tracking-tight">
+              <detail.icon className="w-2.5 h-2.5" />
+              <span>{detail.text}</span>
+            </div>
           )}
         </div>
       </div>

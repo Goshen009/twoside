@@ -1,3 +1,5 @@
+import { WarningCode } from "#/libs/transaction-schemas.js";
+
 export class APIError {
 	static custom<T = Record<string, unknown>>(config: { status: number, message: string, extensions?: T }) {
 		return new ProblemDetail<T>(config);
@@ -22,6 +24,14 @@ export class APIError {
     return new ProblemDetail({
       status: 401,
       message: "Invalid or Missing Token",
+    });
+  }
+
+  static warning(code: WarningCode, message: string): ProblemDetail {
+    return new ProblemDetail({
+      status: 409,
+      message,
+      extensions: { type: "WARNING", code },
     });
   }
 

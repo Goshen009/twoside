@@ -12,7 +12,7 @@ const schema = z.object({
 	...TransactionSchemas.commonFields(),
 	loan_id: z.uuid("loan_id is required and must be a valid UUID"),
   sources: TransactionSchemas.accountAllocations("source"),
-  bypass_warnings: z.boolean().default(false),
+  bypass_warnings: TransactionSchemas.bypassWarnings(['INSUFFICIENT_BALANCE', 'REPAYMENT_DATED_BEFORE']),
 });
 
 async function handler(
@@ -25,9 +25,9 @@ async function handler(
 
   const loan = await Ledger.checkLoan(this.prisma, user.id, loan_id, LoanDirection.BORROWED);
 
-  if (!bypass_warnings) {
+  if (!bypass_warnings.includes("REPAYMENT_DATED_BEFORE")) {
  		if (new Date(transaction_date) < loan.date_issued)
-    	throw APIError.custom({ status: 403, message: `This repayment is dated before the loan was issued (${loan.date_issued.toISOString().slice(0,10)}).` });
+   		throw APIError.warning("REPAYMENT_DATED_BEFORE", `This repayment is dated before the loan was issued (${loan.date_issued.toISOString().slice(0,10)}).`);
   }
 
   const total_amount = sources.reduce((sum, s) => sum + s.amount, 0);
@@ -41,10 +41,10 @@ async function handler(
     	if (account.type !== 'ASSET')
      		throw APIError.custom({ status: 400, message: "Loans can only be repaid from asset accounts." });
 
-     	if (!bypass_warnings) {
+     	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
 	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(transaction_date));
 				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
-	     		throw APIError.custom({ status: 403, message: `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.` });
+					throw APIError.warning("INSUFFICIENT_BALANCE", `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.`);
       }
       
      	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };

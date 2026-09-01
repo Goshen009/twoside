@@ -18,12 +18,17 @@ type PickerSheetProps = {
   show_add_option?: boolean;
   add_label?: string;
   on_add_click?: () => void;
+  is_adding?: boolean;
+  adding_label?: string;
+  empty_message?: string;
 };
 
 export default function PickerSheet({
   is_open, title, items, selected_id, on_select, on_close,
   show_clear_option = false, on_clear,
   show_add_option = false, add_label = "Add new", on_add_click,
+  is_adding = false, adding_label = "Adding…",
+  empty_message = "Nothing here yet",
 }: PickerSheetProps) {
   return (
     <div
@@ -54,25 +59,29 @@ export default function PickerSheet({
               <span>None / Clear Selection</span>
             </button>
           )}
-          {items.map((item) => {
-            const is_selected = item.id === selected_id;
-            return (
-              <button
-              	type="button"
-                key={item.id}
-                onClick={() => { on_select(item.id); on_close(); }}
-                className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all text-left ${
-                  is_selected ? "bg-primary/10 border-primary/40 text-zinc-100" : "bg-black/20 border-white/5 text-zinc-300 hover:bg-white/5 hover:text-zinc-100"
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span className="text-xs font-semibold">{item.name}</span>
-                  {item.subtitle && <span className="text-[10px] text-muted font-mono">{item.subtitle}</span>}
-                </div>
-                {is_selected && <div className="w-2 h-2 rounded-full bg-primary" />}
-              </button>
-            );
-          })}
+          {items.length === 0 ? (
+            <div className="text-center py-6 text-[11px] text-muted/70">{empty_message}</div>
+          ) : (
+	          items.map((item) => {
+	            const is_selected = item.id === selected_id;
+	            return (
+	              <button
+	              	type="button"
+	                key={item.id}
+	                onClick={() => { on_select(item.id); on_close(); }}
+	                className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all text-left ${
+	                  is_selected ? "bg-primary/10 border-primary/40 text-zinc-100" : "bg-black/20 border-white/5 text-zinc-300 hover:bg-white/5 hover:text-zinc-100"
+	                }`}
+	              >
+	                <div className="flex flex-col">
+	                  <span className="text-xs font-semibold">{item.name}</span>
+	                  {item.subtitle && <span className="text-[10px] text-muted font-mono">{item.subtitle}</span>}
+	                </div>
+	                {is_selected && <div className="w-2 h-2 rounded-full bg-primary" />}
+	              </button>
+	            );
+	          })
+          )}
         </div>
 
         {show_add_option && (
@@ -80,10 +89,17 @@ export default function PickerSheet({
             <button
             	type="button"
               onClick={on_add_click}
-              className="w-full py-3 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 flex items-center justify-center gap-2 text-xs font-semibold transition-all"
+              disabled={is_adding}
+              className="w-full py-3 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2 text-xs font-semibold transition-all"
             >
-              <Plus className="w-4 h-4" />
-              <span>{add_label}</span>
+              {is_adding ? (
+                <span>{adding_label}</span>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  <span>{add_label}</span>
+                </>
+              )}
             </button>
           </div>
         )}
