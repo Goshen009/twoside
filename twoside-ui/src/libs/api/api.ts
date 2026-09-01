@@ -138,7 +138,7 @@ class API {
     transaction_date: string;
     category_id: string | null;
     sources: { account_id: string; amount: number }[];
-    bypass_warnings: boolean;
+    bypass_warnings: string[];
   }): Promise<void> {
     await APIClient.request("/log/expense", { method: "POST", body: payload });
   }
@@ -157,7 +157,7 @@ class API {
     from_account_id: string;
     to_account_id: string;
     amount: number;
-    bypass_warnings: boolean;
+    bypass_warnings: string[];
   }): Promise<void> {
     await APIClient.request("/log/transfer", { method: "POST", body: payload });
   }
@@ -167,7 +167,7 @@ class API {
     transaction_date: string;
     counterparty_id: string;
     sources: { account_id: string; amount: number }[];
-    bypass_warnings: boolean;
+    bypass_warnings: string[];
   }): Promise<void> {
     await APIClient.request("/log/loan", { method: "POST", body: payload });
   }
@@ -186,7 +186,7 @@ class API {
     transaction_date: string;
     loan_id: string;
     destinations: { account_id: string; amount: number }[];
-    bypass_warnings: boolean;
+    bypass_warnings: string[];
   }): Promise<void> {
     await APIClient.request("/log/borrow-returned", { method: "POST", body: payload });
   }
@@ -196,7 +196,7 @@ class API {
     transaction_date: string;
     loan_id: string;
     sources: { account_id: string; amount: number }[];
-    bypass_warnings: boolean;
+    bypass_warnings: string[];
   }): Promise<void> {
     await APIClient.request("/log/loan-repayed", { method: "POST", body: payload });
   }

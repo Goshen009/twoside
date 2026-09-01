@@ -4,10 +4,12 @@ import DateField from "./shared/DateField";
 import CounterpartyField from "./shared/CounterpartyField";
 import AllocationsList from "./shared/AllocationsList";
 import PickerSheet, { type PickerItem } from "../../../components/shared/PickerSheet";
+import WarningToast from "../../../components/shared/WarningToast";
 import { useAllocations } from "../../../hooks/useAllocations";
 import { useAccounts } from "../../../hooks/useAccounts";
 import { useCounterparties } from "../../../hooks/useCounterparties";
 import { useFormErrors } from "../../../hooks/useFormErrors";
+import { useWarningBypass } from "../../../hooks/useWarningBypass";
 import API from "../../../libs/api/api";
 import Format from "../../../libs/format";
 
@@ -19,6 +21,7 @@ export default function GiveLoanForm({ on_success }: GiveLoanFormProps) {
   const { accounts, refetch: refetch_accounts } = useAccounts();
   const { counterparties, refetch: refetch_counterparties } = useCounterparties();
   const { field_errors, banner_error, applyError, clear } = useFormErrors();
+  const { pending_warning, bypassed_codes, handleError, confirm, dismiss, reset } = useWarningBypass();
 
   const [description, set_description] = useState("");
   const [date, set_date] = useState(Format.todayDateStr());
@@ -66,24 +69,28 @@ export default function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     if (!counterparty_id) return;
     set_is_submitting(true);
     try {
+      const codes = pending_warning ? confirm() : bypassed_codes;
       await API.logGiveLoan({
         description,
         transaction_date: Format.toISODateTime(date),
         counterparty_id,
         sources: allocations.map((a) => ({ account_id: a.account_id, amount: parseFloat(a.amount) || 0 })),
-        bypass_warnings: false,
+        bypass_warnings: codes,
       });
       refetch_accounts();
+      reset();
       on_success();
     } catch (err) {
-      applyError(err);
+      if (!handleError(err)) applyError(err);
     } finally {
       set_is_submitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 relative">
+    <form onSubmit={handleSubmit} onChangeCapture={dismiss} className="space-y-4 relative">
+      {pending_warning && <WarningToast message={pending_warning.message} on_close={dismiss} />}
+
       {banner_error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-2xl text-xs">{banner_error}</div>
       )}
@@ -122,7 +129,7 @@ export default function GiveLoanForm({ on_success }: GiveLoanFormProps) {
         disabled={is_submitting}
         className="w-full py-3 rounded-xl bg-primary text-black font-semibold text-xs hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 mt-2 disabled:opacity-50"
       >
-        {is_submitting ? "Saving..." : "Save Loan"}
+        {is_submitting ? "Saving..." : pending_warning ? "Bypass & Save Loan" : "Save Loan"}
       </button>
 
       <PickerSheet

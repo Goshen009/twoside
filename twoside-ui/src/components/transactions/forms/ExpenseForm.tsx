@@ -8,10 +8,11 @@ import { useAllocations } from "../../../hooks/useAllocations";
 import { useAccounts } from "../../../hooks/useAccounts";
 import { useCategories } from "../../../hooks/useCategories";
 import { useFormErrors } from "../../../hooks/useFormErrors";
+import { useWarningBypass } from "../../../hooks/useWarningBypass";
 import API from "../../../libs/api/api";
 import Format from "../../../libs/format";
 
-import ErrorToast from "@/components/shared/errortoast";
+import WarningToast from "../../../components/shared/WarningToast";
 
 type ExpenseFormProps = {
   on_success: () => void;
@@ -21,6 +22,7 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
   const { accounts, refetch: refetch_accounts } = useAccounts();
   const { categories, refetch: refetch_categories } = useCategories();
   const { field_errors, banner_error, applyError, clear } = useFormErrors();
+  const { pending_warning, bypassed_codes, handleError, confirm, dismiss, reset } = useWarningBypass();
 
   const [description, set_description] = useState("");
   const [date, set_date] = useState(Format.todayDateStr());
@@ -65,27 +67,28 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
     clear();
     set_is_submitting(true);
     try {
+      const codes = pending_warning ? confirm() : bypassed_codes;
       await API.logExpense({
         description,
         transaction_date: Format.toISODateTime(date),
         category_id,
         sources: allocations.map((a) => ({ account_id: a.account_id, amount: parseFloat(a.amount) || 0 })),
-        bypass_warnings: false,
+        bypass_warnings: codes,
       });
       refetch_accounts();
+      reset();
       on_success();
     } catch (err) {
-      applyError(err);
+      if (!handleError(err)) applyError(err);
     } finally {
       set_is_submitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 relative">
-    	{/* Toast rendered unconditionally as requested */}
-      <ErrorToast message="Amount exceeds available account balance with some lorem ispum text by the side of it if you're getting what i mean eh?" />
-      
+    <form onSubmit={handleSubmit} onChangeCapture={dismiss} className="space-y-4 relative">
+      {pending_warning && <WarningToast message={pending_warning.message} on_close={dismiss} />}
+
       {banner_error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-2xl text-xs">{banner_error}</div>
       )}
@@ -131,7 +134,7 @@ export default function ExpenseForm({ on_success }: ExpenseFormProps) {
         disabled={is_submitting}
         className="w-full py-3 rounded-xl bg-primary text-black font-semibold text-xs hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 mt-2 disabled:opacity-50"
       >
-        {is_submitting ? "Saving..." : "Save Expense"}
+        {is_submitting ? "Saving..." : pending_warning ? "Bypass & Save Expense" : "Save Expense"}
       </button>
 
       <PickerSheet
