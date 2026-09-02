@@ -27,7 +27,7 @@ async function handler(
 
   if (!bypass_warnings.includes("REPAYMENT_DATED_BEFORE")) {
  		if (new Date(transaction_date) < loan.date_issued)
-   		throw APIError.warning("REPAYMENT_DATED_BEFORE", `This repayment is dated before the loan was issued (${loan.date_issued.toISOString().slice(0,10)}).`);
+   		throw APIError.warning("REPAYMENT_DATED_BEFORE", TransactionSchemas.repaymentDatedBeforeMessage(loan.date_issued));
   }
 
   const total_amount = sources.reduce((sum, s) => sum + s.amount, 0);
@@ -44,7 +44,7 @@ async function handler(
      	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
 	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(transaction_date));
 				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
-					throw APIError.warning("INSUFFICIENT_BALANCE", `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.`);
+					throw APIError.warning("INSUFFICIENT_BALANCE", TransactionSchemas.insufficientBalanceMessage(account.name, balance_in_account, s.amount));
       }
       
      	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };

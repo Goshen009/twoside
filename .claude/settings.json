@@ -1,0 +1,30 @@
+{
+  "disableBundledSkills": true,
+  "permissions": {
+    "deny": [
+      "NotebookEdit",
+      "NotebookRead",
+      "CronCreate",
+      "CronList",
+      "CronDelete",
+      "ScheduleWakeup",
+      "EnterWorktree",
+      "ExitWorktree",
+      "ListMcpResourcesTool",
+      "ReadMcpResourceTool",
+      "AskUserQuestion",
+      "PushNotification",
+      "Artifact",
+      "SendMessage",
+      "Workflow",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskGet",
+      "TaskOutput",
+      "TaskStop",
+      "WebFetch",
+      "ToolSearch"
+    ]
+  }
+}

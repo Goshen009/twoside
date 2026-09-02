@@ -3,6 +3,23 @@ import { z } from "zod/v4";
 export type WarningCode = 'INSUFFICIENT_BALANCE' | 'REPAYMENT_DATED_BEFORE';
 
 class TransactionSchemas {
+	static insufficientBalanceMessage(accountName: string, balanceInAccount: number, amountRequested: number): string {
+    const format = (amount: number): string =>
+      `₦${amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+	
+    return `${accountName} only has ${format(balanceInAccount)} but ${format(amountRequested)} was requested.`;
+  }
+
+  static repaymentDatedBeforeMessage(dateIssued: Date): string {
+    const formatted = dateIssued.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  
+    return `This repayment is dated before the loan was issued (${formatted}).`;
+  }
+	
   static commonFields() {
     return {
       description: z.string("description is required and must be a string").max(100, "description must not be more than 100 characters"),

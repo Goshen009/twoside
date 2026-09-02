@@ -26,7 +26,7 @@ async function handler(
 
   if (!bypass_warnings.includes("REPAYMENT_DATED_BEFORE")) {
  		if (new Date(transaction_date) < loan.date_issued)
-   		throw APIError.warning("REPAYMENT_DATED_BEFORE", `This repayment is dated before the loan was issued (${loan.date_issued.toISOString().slice(0,10)}).`);
+   		throw APIError.warning("REPAYMENT_DATED_BEFORE", TransactionSchemas.repaymentDatedBeforeMessage(loan.date_issued));
   }
 
   const total_amount = destinations.reduce((sum, d) => sum + d.amount, 0);

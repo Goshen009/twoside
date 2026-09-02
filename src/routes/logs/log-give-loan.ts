@@ -33,7 +33,7 @@ async function handler(
     	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
 	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(transaction_date));
 				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
-					throw APIError.warning("INSUFFICIENT_BALANCE", `${account.name} only has ${balance_in_account.toFixed(2)}, but ${s.amount.toFixed(2)} was requested.`);
+					throw APIError.warning("INSUFFICIENT_BALANCE", TransactionSchemas.insufficientBalanceMessage(account.name, balance_in_account, s.amount));
       }
       
      	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };

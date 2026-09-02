@@ -21,3 +21,8 @@ Done."
 
 Stop: "normal mode"
 <!-- caveman-end -->   
+
+Search in the .claude/skills directory for more skills.
+Do not look into the .docs directory for any reason.
+You are to work ONLY in the twoside-ui directory. You can read from the backend at the ./src folder but ONLY when it is very required for the work you are doing.
+If you need to read an endpoint, you go to .src/routes.ts, find the endpoint you need and look up the file it points to. Under no condition will you do an entire scan of the whole repo just to find one file.

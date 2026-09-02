@@ -33,7 +33,7 @@ async function handler(
   if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
    	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, from_account.id, from_account.type, new Date(transaction_date));
 		if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(amount))
-			throw APIError.warning("INSUFFICIENT_BALANCE", `${from_account.name} only has ${balance_in_account.toFixed(2)}, but ${amount.toFixed(2)} was requested.`);
+			throw APIError.warning("INSUFFICIENT_BALANCE", TransactionSchemas.insufficientBalanceMessage(from_account.name, balance_in_account, amount));
   }
 
   // A transfer only moves money between accounts you hold. Anything touching
