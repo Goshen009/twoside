@@ -7,22 +7,18 @@ import Password from "#/libs/password.js";
 import Tokens from "#/libs/tokens.js";
 
 const schema = z.object({
-	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
-	pin: z.string("pin is required").regex(/^\d{6}$/, "pin must be 6 digits"),
-	confirm_pin: z.string("confirm pin is required").regex(/^\d{6}$/, "confirm pin must be 6 digits"),
-}).refine(data => data.pin === data.confirm_pin, {
-	error: "Pins do not match",
-	path: ['confirm_pin']
-});
+	username: z.string("Username must be a string").trim().min(5, "Username must be at least 5 letters").max(100, "Username must not be more than 100 letters"),
+	password: z.string("Password is required").trim().min(6, "Password must be at least 6 letters").max(100, "Password must not be more than 100 letters"),
+})
 
 async function handler(
   this: FastifyInstance,
   request: FastifyRequest<{ Body: z.infer<typeof schema> }>,
   reply: FastifyReply
 ) {
-  const { username, pin } = request.body;
+  const { username, password: password_from_body } = request.body;
 
-  const password = await Password.hash(pin);
+  const password = await Password.hash(password_from_body);
 
   const balance_snapshots = {
   	create: [

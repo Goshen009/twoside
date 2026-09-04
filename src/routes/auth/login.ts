@@ -10,8 +10,8 @@ const BASE_LOCKOUT_MINUTES = 5;
 const MAX_LOCKOUT_MINUTES = 60 * 24;
 
 const schema = z.object({
-	username: z.string("username must be a string").min(5, "username must be at least 5 characters").max(100, "username must not be more than 100 characters"),
-	pin: z.string("pin is required").regex(/^\d{6}$/, "pin must be 6 digits"),
+	username: z.string("Username must be a string").min(5, "Username must be at least 5 characters").max(100, "Username must not be more than 100 characters"),
+	password: z.string("Password is required").trim().min(6, "Password must be at least 6 letters").max(100, "Password must not be more than 100 letters"),
 });
 
 async function handler(
@@ -19,7 +19,7 @@ async function handler(
   request: FastifyRequest<{ Body: z.infer<typeof schema> }>,
   reply: FastifyReply
 ) {
-  const { username, pin } = request.body;
+  const { username, password } = request.body;
 
   const login_attempts = await this.prisma.loginAttempts.findUnique({ where: { username } });
 
@@ -32,12 +32,12 @@ async function handler(
 			? `${hours_left} hour${hours_left === 1 ? '' : 's'} and ${minutes_left} minute${minutes_left === 1 ? '' : 's'}`
 		  : `${minutes_left} minute${minutes_left === 1 ? '' : 's'}`;
 
-		throw APIError.rateLimit(`Too many failed login attempts. Try again in ${time}.`);
+		throw APIError.rateLimit(`You've tried logging in a whole lot. Try again in ${time}.`);
   }
 
   const user = await this.prisma.user.findUnique({ where: { username } });
 
-  if (!user || !await Password.verify(user.password, pin)) {
+  if (!user || !await Password.verify(user.password, password)) {
   	const attempt = await this.prisma.loginAttempts.upsert({
  			where: { username },
    		create: { username, attempts: 1, locked_until: null },

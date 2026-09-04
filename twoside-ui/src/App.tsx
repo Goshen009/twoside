@@ -1,14 +1,19 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { TransactionsCacheProvider } from "./hooks/providers/TransactionsCacheProvider";
-import { AccountsProvider } from "./hooks/providers/AccountsProvider";
-import { AuthProvider } from "./hooks/providers/AuthProvider";
-import { useAuth } from "./hooks/useAuth";
+import type { ReactNode } from "react";
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { RegisterPage } from "@/pages/Register/RegisterPage";
+import { LoginPage } from "@/pages/Login/LoginPage";
+import { HomePage } from "@/pages/Home/HomePage";
 
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-
-function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
+function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { is_authenticated } = useAuth();
   if (is_authenticated) return <Navigate to="/" replace />;
   return <>{children}</>;
@@ -17,40 +22,45 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 function ProtectedLayout() {
   const { is_authenticated } = useAuth();
   if (!is_authenticated) return <Navigate to="/login" replace />;
+  return <Outlet />;
+}
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
   return (
-    <AccountsProvider>
-      <TransactionsCacheProvider>
-        <Outlet />
-      </TransactionsCacheProvider>
-    </AccountsProvider>
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/register"
+          element={
+            <PublicOnlyRoute>
+              <RegisterPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <LoginPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route element={<ProtectedLayout />}>
+          <Route path="/" element={<HomePage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
   );
 }
 
-export default function App() {
+export function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicOnlyRoute>
-                <LoginPage />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicOnlyRoute>
-                <RegisterPage />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route element={<ProtectedLayout />}>
-	         	<Route path="/" element={ <HomePage /> }/>
-          </Route>
-        </Routes>
+        <AnimatedRoutes />
       </AuthProvider>
     </BrowserRouter>
   );

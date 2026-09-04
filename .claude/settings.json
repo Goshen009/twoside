@@ -12,7 +12,6 @@
       "ExitWorktree",
       "ListMcpResourcesTool",
       "ReadMcpResourceTool",
-      "AskUserQuestion",
       "PushNotification",
       "Artifact",
       "SendMessage",
