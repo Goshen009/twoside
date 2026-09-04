@@ -9,9 +9,11 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { AppNavbar } from "@/components/layout/AppNavbar";
 import { RegisterPage } from "@/pages/Register/RegisterPage";
 import { LoginPage } from "@/pages/Login/LoginPage";
 import { HomePage } from "@/pages/Home/HomePage";
+import { LoansPage } from "@/pages/Loans/LoansPage";
 
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { is_authenticated } = useAuth();
@@ -22,7 +24,12 @@ function PublicOnlyRoute({ children }: { children: ReactNode }) {
 function ProtectedLayout() {
   const { is_authenticated } = useAuth();
   if (!is_authenticated) return <Navigate to="/login" replace />;
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <AppNavbar />
+    </>
+  );
 }
 
 function AnimatedRoutes() {
@@ -49,6 +56,7 @@ function AnimatedRoutes() {
         />
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/loans" element={<LoansPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
