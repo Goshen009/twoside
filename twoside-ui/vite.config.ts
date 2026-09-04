@@ -10,6 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: { enabled: true },
       manifest: {
         name: "Twoside",
         short_name: "Twoside",

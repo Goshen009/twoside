@@ -9,6 +9,8 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { AddTransactionFlowProvider } from "@/hooks/useAddTransactionFlow";
+import { AddTransactionFlow } from "@/components/transactions/AddTransactionFlow";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { RegisterPage } from "@/pages/Register/RegisterPage";
 import { LoginPage } from "@/pages/Login/LoginPage";
@@ -68,7 +70,10 @@ export function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AnimatedRoutes />
+        <AddTransactionFlowProvider>
+          <AddTransactionFlow />
+          <AnimatedRoutes />
+        </AddTransactionFlowProvider>
       </AuthProvider>
     </BrowserRouter>
   );

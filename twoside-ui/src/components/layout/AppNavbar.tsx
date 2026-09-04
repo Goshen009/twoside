@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { ArrowLeftRight, HandCoins, Home, LogOut, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAddTransactionFlow } from "@/hooks/useAddTransactionFlow";
 
 function navClassName(is_active: boolean): string {
   return `flex flex-col items-center gap-1 transition-colors ${
@@ -10,6 +11,7 @@ function navClassName(is_active: boolean): string {
 
 export function AppNavbar() {
   const { logout } = useAuth();
+  const { open } = useAddTransactionFlow();
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40">
@@ -34,6 +36,7 @@ export function AppNavbar() {
         <button
           type="button"
           aria-label="Add transaction"
+          onClick={open}
           className="-mt-5 flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border-4 border-background bg-primary text-background shadow-lg shadow-primary/30 transition-transform duration-150 hover:scale-105 active:scale-95"
         >
           <Plus className="h-6 w-6 stroke-[2.5]" />

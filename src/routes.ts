@@ -32,6 +32,7 @@ import { create_category } from './routes/create-category.js';
 import { create_counterparty } from './routes/create-counterparty.js';
 import { logout } from './routes/auth/logout.js';
 import { refresh } from './routes/auth/refresh.js';
+import { data } from './routes/data.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -114,6 +115,8 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.post("/auth/logout", logout);
   fastify.post("/auth/refresh", refresh);
   fastify.post("/auth/register", register_user);
+
+  fastify.get("/data", data);
 
   fastify.post("/log/expense", log_expense);
   fastify.post("/log/income", log_income);
