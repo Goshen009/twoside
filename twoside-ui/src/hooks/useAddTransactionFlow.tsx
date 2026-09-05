@@ -1,7 +1,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -36,13 +35,18 @@ export function AddTransactionFlowProvider({ children }: { children: ReactNode }
     null,
   );
 
-  useEffect(() => {
+  // Reset the flow when the session ends. Adjusting state during render (not in
+  // an effect) tracks the auth transition once and then stops — avoids the
+  // cascading-render anti-pattern of calling setState inside useEffect.
+  const [prev_authenticated, setPrevAuthenticated] = useState(is_authenticated);
+  if (prev_authenticated !== is_authenticated) {
+    setPrevAuthenticated(is_authenticated);
     if (!is_authenticated) {
       set_is_open(false);
       set_stage("type_select");
       set_transaction_type(null);
     }
-  }, [is_authenticated]);
+  }
 
   const value = useMemo<AddTransactionFlowContextValue>(
     () => ({

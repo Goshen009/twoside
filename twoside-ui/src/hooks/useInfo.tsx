@@ -40,7 +40,24 @@ export function InfoProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     is_authenticated_ref.current = is_authenticated;
+    // Bump on every auth transition (mount included): invalidates any in-flight
+    // request from a previous session so a stale completion can't repopulate the
+    // cache after the render-phase reset below has cleared it.
+    request_seq.current++;
   }, [is_authenticated]);
+
+  // React to session transitions during render instead of in an effect: on login
+  // mark the upcoming bootstrap fetch as in-flight; on logout drop the cache.
+  // Adjusting state during render (guarded by the prev-value comparison, so it
+  // runs once per transition) is the React-sanctioned alternative to calling
+  // setState inside useEffect.
+  const [prev_authenticated, setPrevAuthenticated] = useState(is_authenticated);
+  if (prev_authenticated !== is_authenticated) {
+    setPrevAuthenticated(is_authenticated);
+    setData(null);
+    setError(null);
+    setIsFetching(is_authenticated);
+  }
 
   // Bootstrap: fetch /info once per login session. The `request_seq` guard
   // drops the response if a newer request or a logout started while it was in
@@ -49,7 +66,6 @@ export function InfoProvider({ children }: { children: ReactNode }) {
     if (!is_authenticated) return;
 
     const seq = ++request_seq.current;
-    setIsFetching(true);
     InfoAPI.getInfo()
       .then((info) => {
         if (seq !== request_seq.current || !is_authenticated_ref.current) return;
@@ -62,16 +78,6 @@ export function InfoProvider({ children }: { children: ReactNode }) {
         setError(error_message(err));
         setIsFetching(false);
       });
-  }, [is_authenticated]);
-
-  // Clear on logout / session-expiry: bump `request_seq` to invalidate
-  // in-flight old-session responses, then drop the cache.
-  useEffect(() => {
-    if (is_authenticated) return;
-    request_seq.current++;
-    setData(null);
-    setError(null);
-    setIsFetching(false);
   }, [is_authenticated]);
 
   // Explicit refresh — call sites await this after a successful write. Always
