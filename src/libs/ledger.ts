@@ -19,17 +19,6 @@ class Ledger {
 		return account;
 	}
 
-	static async checkCategory(prisma: PrismaClient, user_id: string, category_id: string) {
-	  const category = await prisma.category.findFirst({
-	    where: { id: category_id, user_id },
-	  });
-	  if (!category)
-	    throw APIError.custom({ status: 400, message: "This category does not exist" });
-	  if (!category.is_active)
-	    throw APIError.custom({ status: 400, message: "This category is inactive" });
-		return category;
-	}
-
 	static async checkCounterparty(prisma: PrismaClient, user_id: string, counterparty_id: string) {
 	  const counterparty = await prisma.counterparty.findFirst({
 	    where: { id: counterparty_id, user_id },

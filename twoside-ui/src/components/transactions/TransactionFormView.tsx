@@ -1,8 +1,16 @@
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
+import { useAddTransactionFlow } from "@/hooks/useAddTransactionFlow";
+import { ExpenseForm } from "@/components/transactions/forms/ExpenseForm";
 import type { TransactionFormViewProps } from "@/types/types";
 
 export function TransactionFormView({ transaction_type }: TransactionFormViewProps) {
+  const { close } = useAddTransactionFlow();
   const meta = TRANSACTION_TYPE_META[transaction_type];
+
+  if (transaction_type === "expense") {
+    return <ExpenseForm on_success={close} />;
+  }
+
   const Icon = meta.icon;
 
   return (
@@ -14,8 +22,8 @@ export function TransactionFormView({ transaction_type }: TransactionFormViewPro
         <Icon className="h-6 w-6" />
       </span>
       <p className="max-w-[220px] text-xs leading-relaxed text-muted">
-        <span className="font-medium text-foreground">{meta.label}</span> form fields land
-        in a later bite.
+        <span className="font-medium text-foreground">{meta.label}</span> form fields
+        land in a later bite.
       </p>
     </div>
   );

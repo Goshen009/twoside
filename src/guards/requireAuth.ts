@@ -16,12 +16,6 @@ export default fp(async (fastify) => {
 				id: true,
 				username: true,
 				accounts: true,
-				categories: {
-					select: { id: true, name: true, is_active: true }
-				},
-				counterparties: {
-					select: { id: true, name: true, is_active: true }
-				}
 			},
 		})
 		
@@ -50,12 +44,6 @@ export type AuthenticatedUser = Prisma.UserGetPayload<{
 		id: true,
 		username: true,
 		accounts: true,
-		categories: {
-			select: { id: true, name: true, is_active: true }
-		},
-		counterparties: {
-			select: { id: true, name: true, is_active: true }
-		}
 	}
 }> & { 
 	system_accounts: SystemAccountMap

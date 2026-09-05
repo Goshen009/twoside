@@ -21,6 +21,7 @@ async function handler(
     category = await this.prisma.category.create({
       data: { 
        	name,
+        lowercase_name: "",
         user_id: user.id
       }
     });

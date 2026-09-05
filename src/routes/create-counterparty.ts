@@ -21,6 +21,7 @@ async function handler(
     counterparty = await this.prisma.counterparty.create({
       data: {
       	name,
+       	lowercase_name: " ",
         user_id: user.id
       }
     });

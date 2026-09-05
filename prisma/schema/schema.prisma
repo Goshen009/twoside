@@ -154,6 +154,7 @@ model Counterparty {
 
 	id										String @id @default(uuid())
 	name									String
+	lowercase_name				String
 	is_active							Boolean @default(true)
 	
 	loans									Loan[]
@@ -161,7 +162,7 @@ model Counterparty {
 	user_id								String
 	user									User @relation(fields: [user_id], references: [id])
 
-	@@unique([user_id, name])
+	@@unique([user_id, lowercase_name])
 }
 
 model LoanRepayment {
@@ -185,6 +186,7 @@ model Category {
 
 	id										String @id @default(uuid())
 	name									String
+	lowercase_name				String
 	is_active							Boolean @default(true)
 
 	journal_entries				JournalEntry[]
@@ -194,7 +196,7 @@ model Category {
 	user_id								String
 	user									User @relation(fields: [user_id], references: [id])
 
-	@@unique([user_id, name])
+	@@unique([user_id, lowercase_name])
 }
 
 model BudgetAllocation {

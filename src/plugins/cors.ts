@@ -3,28 +3,29 @@ import fp from "fastify-plugin";
 
 export default fp(async (fastify) => {
   fastify.register(cors, {
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'http://192.168.1.200:5173',
-        'http://100.103.127.67:3000',
-        'http://100.103.127.67:5173',
-        'http://100.99.208.67:5173'
-      ];
+    // origin: (origin, callback) => {
+    //   const allowedOrigins = [
+    //     'http://localhost:3000',
+    //     'http://localhost:5173',
+    //     'http://192.168.1.200:5173',
+    //     'http://100.103.127.67:3000',
+    //     'http://100.103.127.67:5173',
+    //     'http://100.99.208.67:5173'
+    //   ];
 
-      // Allow requests with no origin (like mobile apps or Postman)
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
+    //   // Allow requests with no origin (like mobile apps or Postman)
+    //   if (!origin) {
+    //     callback(null, true);
+    //     return;
+    //   }
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'), false);
-      }
-    },
+    //   if (allowedOrigins.includes(origin)) {
+    //     callback(null, true);
+    //   } else {
+    //     callback(new Error('Not allowed by CORS'), false);
+    //   }
+    // },
+    origin: true,
     credentials: true,
     exposedHeaders: ['Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
