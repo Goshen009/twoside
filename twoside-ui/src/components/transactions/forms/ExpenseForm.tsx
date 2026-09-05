@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Tag } from "lucide-react";
+import { AlertCircle, ChevronDown, Tag } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { useInfo } from "@/hooks/useInfo";
@@ -274,6 +274,7 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         label="Date & time"
         error={errors.transaction_date?.message}
         {...register("transaction_date")}
+        value={values.transaction_date ?? ""}
       />
 
       <div className="space-y-1.5">
@@ -283,13 +284,13 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         <button
           type="button"
           onClick={handle_category_click}
-          className="flex w-full cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-xs transition-colors hover:border-white/20"
+          className="flex w-full cursor-pointer items-center gap-2 rounded-xl border border-primary/20 bg-black/30 px-3.5 py-2.5 text-xs transition-colors hover:border-primary/40"
         >
           <Tag className="h-3.5 w-3.5 shrink-0 text-muted" />
           <span className={values.category_name ? "text-zinc-100" : "text-muted"}>
             {values.category_name ?? "Select category"}
           </span>
-          <span className="ml-auto text-[10px] text-muted/60">optional</span>
+          <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0 text-muted" />
         </button>
         {errors.category_name ? (
           <p className="text-[10px] text-red-400">

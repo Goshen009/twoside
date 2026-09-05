@@ -27,4 +27,22 @@ export class FormatUtils {
       local_value.length === 16 ? `${local_value}:00` : local_value;
     return new Date(normalized).toISOString();
   }
+
+  /** "YYYY-MM-DDTHH:mm" (device-local) → "September 5, 2026 10:49 AM". */
+  static formatDateTimeLabel(local_value: string): string {
+    const normalized =
+      local_value.length === 16 ? `${local_value}:00` : local_value;
+    const date = new Date(normalized);
+    if (Number.isNaN(date.getTime())) return "";
+    const date_part = date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+    const time_part = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    return `${date_part} ${time_part}`;
+  }
 }

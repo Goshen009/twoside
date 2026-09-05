@@ -61,7 +61,7 @@ export function AllocationsList(props: AllocationsListProps) {
                 <button
                   type="button"
                   onClick={() => on_account_click(index)}
-                  className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-left transition-colors hover:border-white/20"
+                  className="min-w-0 flex-1 rounded-xl border border-primary/20 bg-black/30 px-3 py-2 text-left transition-colors hover:border-primary/40"
                 >
                   <span
                     className={`block truncate text-xs ${
@@ -97,7 +97,7 @@ export function AllocationsList(props: AllocationsListProps) {
                     placeholder="0.00"
                     value={row.amount}
                     onChange={(event) => on_amount_change(index, event.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-black/30 py-2.5 pl-8 pr-3.5 font-mono text-xs text-zinc-100 placeholder:text-muted/50 transition-colors focus:border-primary/50 focus:outline-none"
+                    className="w-full rounded-xl border border-primary/20 bg-black/30 py-2.5 pl-8 pr-3.5 text-xs text-zinc-100 placeholder:text-muted/50 transition-colors focus:border-primary/60 focus:outline-none"
                   />
                 </div>
                 {amount_error ? (
@@ -122,7 +122,7 @@ export function AllocationsList(props: AllocationsListProps) {
           <p className="text-[10px] font-mono uppercase tracking-wider text-muted">
             {total_label}
           </p>
-          <p className="font-mono text-sm font-semibold text-foreground">
+          <p className="text-sm font-semibold text-foreground tabular-nums">
             {currency}
             {FormatUtils.formatMoney(total)}
           </p>

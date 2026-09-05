@@ -1,8 +1,8 @@
 import type { TextFieldProps } from "@/types/types";
 
 const INPUT_CLASSES =
-  "w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-xs " +
-  "text-zinc-100 placeholder:text-muted/50 transition-colors focus:border-primary/50 focus:outline-none";
+  "w-full rounded-xl border border-primary/20 bg-black/30 px-3.5 py-2.5 text-xs " +
+  "text-zinc-100 placeholder:text-muted/50 transition-colors focus:border-primary/60 focus:outline-none";
 
 export function DescriptionField(props: TextFieldProps) {
   const { label, error, ref, ...input_props } = props;
