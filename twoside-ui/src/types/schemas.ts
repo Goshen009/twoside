@@ -83,3 +83,81 @@ export const expenseFormSchema = z.object({
 });
 
 export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
+
+const income_destination_row_schema = z.object({
+  account_id: z.string().trim().min(1, "Select an account"),
+  amount: amount_string_schema,
+});
+
+export const incomeFormSchema = z.object({
+  description: z
+    .string()
+    .trim()
+    .min(1, "Description must not be empty")
+    .max(100, "Description must not be more than 100 letters"),
+  transaction_date: z
+    .string()
+    .trim()
+    .min(1, "Date and time are required")
+    .refine((value) => {
+      const normalized = value.length === 16 ? `${value}:00` : value;
+      return !Number.isNaN(new Date(normalized).getTime());
+    }, "Enter a valid date and time"),
+  destinations: z
+    .array(income_destination_row_schema)
+    .min(1, "At least one destination account is required")
+    .refine(
+      (rows) => {
+        const seen = new Set<string>();
+        for (const row of rows) {
+          if (!row.account_id) continue; // empty rows surface "Select an account", not this
+          if (seen.has(row.account_id)) return false;
+          seen.add(row.account_id);
+        }
+        return true;
+      },
+      "The same account cannot appear more than once",
+    ),
+});
+
+export type IncomeFormValues = z.infer<typeof incomeFormSchema>;
+
+export const transferFormSchema = z
+  .object({
+    description: z
+      .string()
+      .trim()
+      .min(1, "Description must not be empty")
+      .max(100, "Description must not be more than 100 letters"),
+    transaction_date: z
+      .string()
+      .trim()
+      .min(1, "Date and time are required")
+      .refine((value) => {
+        const normalized = value.length === 16 ? `${value}:00` : value;
+        return !Number.isNaN(new Date(normalized).getTime());
+      }, "Enter a valid date and time"),
+    amount: amount_string_schema,
+    from_account_id: z
+      .string()
+      .trim()
+      .min(1, "Select the account to transfer from"),
+    to_account_id: z.string().trim().min(1, "Select the account to transfer to"),
+  })
+  // The picker already clears the other side when its account is re-tapped, so
+  // equal accounts are unreachable through the UI — this mirrors the backend
+  // refine as a last-resort guard for any other path.
+  .refine(
+    (data) =>
+      !(
+        data.from_account_id &&
+        data.to_account_id &&
+        data.from_account_id === data.to_account_id
+      ),
+    {
+      message: "You cannot transfer money into the same account",
+      path: ["to_account_id"],
+    },
+  );
+
+export type TransferFormValues = z.infer<typeof transferFormSchema>;

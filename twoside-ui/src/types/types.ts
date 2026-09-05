@@ -58,6 +58,10 @@ export type TransactionFormViewProps = {
   transaction_type: TransactionType;
 };
 
+export type TypeSelectorSheetProps = {
+  on_select_type: (transaction_type: TransactionType) => void;
+};
+
 export type SheetProps = {
   open: boolean;
   on_close: () => void;
@@ -114,6 +118,22 @@ export type LogExpensePayload = {
   bypass_warnings: string[];
 };
 
+export type LogIncomeDestination = { account_id: string; amount: number };
+export type LogIncomePayload = {
+  description: string;
+  transaction_date: string; // UTC ISO datetime ending in "Z"
+  destinations: LogIncomeDestination[];
+};
+
+export type LogTransferPayload = {
+  description: string;
+  transaction_date: string; // UTC ISO datetime ending in "Z"
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  bypass_warnings: string[];
+};
+
 export type PickerItem = { id: string; name: string; subtitle?: string };
 
 export type PickerSheetProps = {
@@ -156,7 +176,7 @@ export type AllocationRowData = {
 };
 
 export type AllocationsListProps = {
-  label: string;
+  label?: string;
   helper_text?: string;
   add_label: string;
   total_label: string;
@@ -164,6 +184,7 @@ export type AllocationsListProps = {
   accounts: InfoAccount[];
   currency: string;
   accent_color?: string;
+  account_placeholder?: string;
   total: number;
   on_add: () => void;
   on_remove: (index: number) => void;
@@ -174,6 +195,14 @@ export type AllocationsListProps = {
 };
 
 export type ExpenseFormProps = {
+  on_success: () => void;
+};
+
+export type IncomeFormProps = {
+  on_success: () => void;
+};
+
+export type TransferFormProps = {
   on_success: () => void;
 };
 

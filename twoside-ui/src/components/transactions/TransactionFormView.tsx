@@ -1,6 +1,8 @@
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useAddTransactionFlow } from "@/hooks/useAddTransactionFlow";
 import { ExpenseForm } from "@/components/transactions/forms/ExpenseForm";
+import { IncomeForm } from "@/components/transactions/forms/IncomeForm";
+import { TransferForm } from "@/components/transactions/forms/TransferForm";
 import type { TransactionFormViewProps } from "@/types/types";
 
 export function TransactionFormView({ transaction_type }: TransactionFormViewProps) {
@@ -9,6 +11,14 @@ export function TransactionFormView({ transaction_type }: TransactionFormViewPro
 
   if (transaction_type === "expense") {
     return <ExpenseForm on_success={close} />;
+  }
+
+  if (transaction_type === "income") {
+    return <IncomeForm on_success={close} />;
+  }
+
+  if (transaction_type === "transfer") {
+    return <TransferForm on_success={close} />;
   }
 
   const Icon = meta.icon;

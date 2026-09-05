@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronRight, Plus, Trash2 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { FormatUtils } from "@/lib/FormatUtils";
 import type {
@@ -31,6 +31,7 @@ export function AllocationsList(props: AllocationsListProps) {
     accounts,
     currency,
     accent_color,
+    account_placeholder = "Select account",
     total,
     on_add,
     on_remove,
@@ -45,12 +46,14 @@ export function AllocationsList(props: AllocationsListProps) {
       className="space-y-2"
       style={{ "--alloc-accent": accent_color ?? DEFAULT_ACCENT } as CSSProperties}
     >
-      <div className="px-1">
-        <p className={OVERLINE_CLASSES}>{label}</p>
-        {helper_text ? (
-          <p className="mt-0.5 text-[11px] text-muted/60">{helper_text}</p>
-        ) : null}
-      </div>
+      {label || helper_text ? (
+        <div className="px-1">
+          {label ? <p className={OVERLINE_CLASSES}>{label}</p> : null}
+          {helper_text ? (
+            <p className="mt-0.5 text-[11px] text-muted/60">{helper_text}</p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className={CARD_CLASSES}>
         {root_error ? (
@@ -82,7 +85,7 @@ export function AllocationsList(props: AllocationsListProps) {
                             : "text-muted/60"
                         }`}
                       >
-                        {account ? account.name : "Select account"}
+                        {account ? account.name : account_placeholder}
                       </span>
                       {account ? (
                         <span className="block truncate text-[10px] text-muted/60">
@@ -91,7 +94,13 @@ export function AllocationsList(props: AllocationsListProps) {
                         </span>
                       ) : null}
                     </span>
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted/40" />
                   </button>
+
+                  <div
+                    aria-hidden
+                    className="mx-0.5 h-7 w-px shrink-0 bg-white/5"
+                  />
 
                   <label className="flex shrink-0 items-baseline gap-1 rounded-lg px-1 py-1 transition-colors focus-within:bg-white/[0.03]">
                     <span className="text-[10px] text-muted/70">
@@ -136,7 +145,7 @@ export function AllocationsList(props: AllocationsListProps) {
           <button
             type="button"
             onClick={on_add}
-            className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-(--alloc-accent) transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--alloc-accent)/30"
+            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-white/10 bg-transparent px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
           >
             <Plus className="h-3.5 w-3.5" />
             {add_label}

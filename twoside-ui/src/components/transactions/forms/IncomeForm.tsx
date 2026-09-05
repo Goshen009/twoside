@@ -2,30 +2,27 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ChevronDown, Tag } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
-import { useWarningBypass } from "@/hooks/useWarningBypass";
 import { FormatUtils } from "@/lib/FormatUtils";
-import { expenseFormSchema, type ExpenseFormValues } from "@/types/schemas";
+import { incomeFormSchema, type IncomeFormValues } from "@/types/schemas";
 import type { FieldPath } from "react-hook-form";
 import type {
   AllocationRowData,
-  ExpenseFormProps,
-  ExpensePickerTarget,
+  IncomeFormProps,
   PickerItem,
 } from "@/types/types";
 import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
 import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeField";
 import { AllocationsList } from "@/components/transactions/forms/shared/AllocationsList";
 import { PickerSheet } from "@/components/ui/PickerSheet";
-import { WarningToast } from "@/components/ui/WarningToast";
 
-type SourceRow = ExpenseFormValues["sources"][number];
+type DestinationRow = IncomeFormValues["destinations"][number];
 
-type SourcesErrors = {
+type DestinationsErrors = {
   message?: string;
   root?: { message?: string };
   [index: number]:
@@ -33,7 +30,7 @@ type SourcesErrors = {
     | undefined;
 };
 
-const BLANK_SOURCE: SourceRow = { account_id: "", amount: "" };
+const BLANK_DESTINATION: DestinationRow = { account_id: "", amount: "" };
 
 /** Enforce the amount schema's max of 2 decimal places while typing:
  *  keeps only digits + a single dot, truncates the fraction to 2. */
@@ -45,16 +42,8 @@ function sanitize_amount_input(raw: string): string {
   return `${integer}.${fraction}`;
 }
 
-export function ExpenseForm({ on_success }: ExpenseFormProps) {
+export function IncomeForm({ on_success }: IncomeFormProps) {
   const { data, refetch } = useInfo();
-  const {
-    pending_warning,
-    bypassed_codes,
-    handleError,
-    confirmWarning,
-    dismissWarning,
-    resetWarnings,
-  } = useWarningBypass();
 
   const {
     register,
@@ -65,35 +54,31 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
     clearErrors,
     setError,
     formState: { errors },
-  } = useForm<ExpenseFormValues>({
-    resolver: zodResolver(expenseFormSchema),
+  } = useForm<IncomeFormValues>({
+    resolver: zodResolver(incomeFormSchema),
     defaultValues: {
       description: "",
       transaction_date: FormatUtils.nowLocalValue(),
-      category_name: null,
-      sources: [{ ...BLANK_SOURCE }],
+      destinations: [{ ...BLANK_DESTINATION }],
     },
   });
 
   const [is_submitting, set_is_submitting] = useState(false);
   const [banner_error, set_banner_error] = useState<string | null>(null);
-  const [active_picker, set_active_picker] = useState<ExpensePickerTarget | null>(
-    null,
-  );
+  const [picker_row, set_picker_row] = useState<number | null>(null);
 
-  // Sources rows are value-managed (whole-array `setValue`, no per-row register),
-  // so materialize the array in RHF's store once on mount. Guarantees the schema
-  // resolver always sees `sources` present, even before the user edits a row.
-  const sources_seeded = useRef(false);
+  // Destinations rows are value-managed (whole-array `setValue`, no per-row
+  // register), so materialize the array in RHF's store once on mount.
+  // Guarantees the schema resolver always sees `destinations` present.
+  const destinations_seeded = useRef(false);
   useEffect(() => {
-    if (sources_seeded.current) return;
-    sources_seeded.current = true;
-    setValue("sources", [{ ...BLANK_SOURCE }], { shouldValidate: false });
+    if (destinations_seeded.current) return;
+    destinations_seeded.current = true;
+    setValue("destinations", [{ ...BLANK_DESTINATION }], {
+      shouldValidate: false,
+    });
   }, [setValue]);
 
-  // Reactively tracks the whole form; the sources array below is value-managed
-  // (kept in sync with `setValue` whole-array writes) so rows can be fully
-  // controlled by AllocationsList.
   const values = watch();
 
   if (!data) {
@@ -104,15 +89,19 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
     );
   }
 
-  const { currency, accounts, categories } = data;
+  const { currency, accounts } = data;
 
-  const source_rows: SourceRow[] =
-    values.sources && values.sources.length > 0 ? values.sources : [BLANK_SOURCE];
-  const rows: AllocationRowData[] = source_rows.map((source, index) => ({
-    key: String(index),
-    account_id: source.account_id ?? "",
-    amount: source.amount ?? "",
-  }));
+  const destination_rows: DestinationRow[] =
+    values.destinations && values.destinations.length > 0
+      ? values.destinations
+      : [BLANK_DESTINATION];
+  const rows: AllocationRowData[] = destination_rows.map(
+    (destination, index) => ({
+      key: String(index),
+      account_id: destination.account_id ?? "",
+      amount: destination.amount ?? "",
+    }),
+  );
 
   const total = rows.reduce((sum, row) => {
     const amount = Number(row.amount);
@@ -125,17 +114,8 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
     subtitle: `${currency}${FormatUtils.formatMoney(account.balance)}`,
   }));
 
-  const category_items: PickerItem[] = categories.map((category) => ({
-    id: category.name,
-    name: category.name,
-  }));
-
-  function dismiss_on_edit(): void {
-    if (pending_warning) dismissWarning();
-  }
-
-  function sources_error_message(): string | undefined {
-    const node = errors.sources as unknown as SourcesErrors | undefined;
+  function destinations_error_message(): string | undefined {
+    const node = errors.destinations as unknown as DestinationsErrors | undefined;
     return node?.root?.message ?? node?.message;
   }
 
@@ -143,7 +123,7 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
     index: number,
     key: "account_id" | "amount",
   ): string | undefined {
-    const node = errors.sources as unknown as SourcesErrors | undefined;
+    const node = errors.destinations as unknown as DestinationsErrors | undefined;
     const entry = node?.[index];
     return key === "account_id" ? entry?.account_id?.message : entry?.amount?.message;
   }
@@ -153,10 +133,13 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
       if (err.fields && err.fields.length > 0) {
         for (const field_error of err.fields) {
           const name = field_error.field.replaceAll("/", ".");
-          if (name === "sources") {
-            setError("sources", { type: "server", message: field_error.message });
+          if (name === "destinations") {
+            setError("destinations", {
+              type: "server",
+              message: field_error.message,
+            });
           } else {
-            setError(name as FieldPath<ExpenseFormValues>, {
+            setError(name as FieldPath<IncomeFormValues>, {
               type: "server",
               message: field_error.message,
             });
@@ -172,94 +155,71 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
     set_banner_error("Something went wrong. Please try again.");
   }
 
-  async function onSubmit(raw: ExpenseFormValues): Promise<void> {
+  async function onSubmit(raw: IncomeFormValues): Promise<void> {
     clearErrors();
     set_banner_error(null);
     set_is_submitting(true);
-    const codes = pending_warning ? confirmWarning() : bypassed_codes;
     try {
-      await TransactionsAPI.logExpense({
+      await TransactionsAPI.logIncome({
         description: raw.description,
         transaction_date: FormatUtils.toUtcIso(raw.transaction_date),
-        category_name: raw.category_name?.trim() || null,
-        sources: raw.sources.map((row) => ({
+        destinations: raw.destinations.map((row) => ({
           account_id: row.account_id,
           amount: Number(row.amount),
         })),
-        bypass_warnings: codes,
       });
       await refetch();
-      resetWarnings();
       reset();
       on_success();
     } catch (err) {
-      if (!handleError(err)) apply_server_errors(err);
+      apply_server_errors(err);
     } finally {
       set_is_submitting(false);
     }
   }
 
-  function set_sources(next: SourceRow[]): void {
-    setValue("sources", next, { shouldValidate: false });
+  function set_destinations(next: DestinationRow[]): void {
+    setValue("destinations", next, { shouldValidate: false });
   }
 
   function handle_account_click(index: number): void {
-    set_active_picker({ kind: "account", row_index: index });
-  }
-
-  function handle_category_click(): void {
-    set_active_picker({ kind: "category" });
+    set_picker_row(index);
   }
 
   function handle_account_select(id: string): void {
-    const target = active_picker;
-    if (target?.kind === "account") {
-      const index = target.row_index;
-      set_sources(
-        source_rows.map((row, i) => (i === index ? { ...row, account_id: id } : row)),
+    if (picker_row !== null) {
+      const index = picker_row;
+      set_destinations(
+        destination_rows.map((row, i) =>
+          i === index ? { ...row, account_id: id } : row,
+        ),
       );
     }
     clearErrors();
-    dismiss_on_edit();
-  }
-
-  function handle_category_select(name: string): void {
-    setValue("category_name", name);
-    clearErrors();
-    dismiss_on_edit();
-  }
-
-  function handle_category_none(): void {
-    setValue("category_name", null);
-    clearErrors();
-    dismiss_on_edit();
   }
 
   function handle_add_row(): void {
-    set_sources([...source_rows, { ...BLANK_SOURCE }]);
-    dismiss_on_edit();
+    set_destinations([...destination_rows, { ...BLANK_DESTINATION }]);
   }
 
   function handle_remove_row(index: number): void {
-    if (source_rows.length > 1) {
-      set_sources(source_rows.filter((_, i) => i !== index));
+    if (destination_rows.length > 1) {
+      set_destinations(destination_rows.filter((_, i) => i !== index));
     }
-    dismiss_on_edit();
   }
 
   function handle_amount_change(index: number, value: string): void {
     const sanitized = sanitize_amount_input(value);
-    set_sources(
-      source_rows.map((row, i) =>
+    set_destinations(
+      destination_rows.map((row, i) =>
         i === index ? { ...row, amount: sanitized } : row,
       ),
     );
     clearErrors();
-    dismiss_on_edit();
   }
 
   function close_picker(): void {
-    set_active_picker(null);
+    set_picker_row(null);
   }
 
   return (
@@ -267,7 +227,9 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
       onSubmit={handleSubmit(onSubmit)}
       noValidate
       className="space-y-5"
-      style={{ "--form-accent": TRANSACTION_TYPE_META.expense.accent } as CSSProperties}
+      style={{
+        "--form-accent": TRANSACTION_TYPE_META.income.accent,
+      } as CSSProperties}
     >
       {banner_error ? (
         <div className="flex items-center gap-2.5 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-xs text-red-400">
@@ -276,17 +238,10 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         </div>
       ) : null}
 
-      {pending_warning ? (
-        <WarningToast
-          message={pending_warning.message}
-          on_close={dismissWarning}
-        />
-      ) : null}
-
       <div className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
         <DescriptionField
           label="Description"
-          placeholder="What did you spend this on?"
+          placeholder="What is this income for?"
           error={errors.description?.message}
           {...register("description")}
         />
@@ -296,30 +251,6 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
           {...register("transaction_date")}
           value={values.transaction_date ?? ""}
         />
-
-        <div>
-          <button
-            type="button"
-            onClick={handle_category_click}
-            className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-white/[0.02] active:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--form-accent)/30"
-          >
-            <Tag className="h-3.5 w-3.5 shrink-0 text-muted" />
-            <span
-              className={`min-w-0 flex-1 truncate text-xs ${
-                values.category_name ? "text-zinc-100" : "text-muted/60"
-              }`}
-            >
-              {values.category_name ?? "Select category"}
-            </span>
-            <span className="shrink-0 text-[10px] text-muted/50">Optional</span>
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted/70" />
-          </button>
-          {errors.category_name ? (
-            <p className="px-4 pb-2.5 text-[11px] text-red-400">
-              {errors.category_name.message}
-            </p>
-          ) : null}
-        </div>
       </div>
 
       <AllocationsList
@@ -328,14 +259,13 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         rows={rows}
         accounts={accounts}
         currency={currency}
-        accent_color={TRANSACTION_TYPE_META.expense.accent}
-        account_placeholder="Select account to pay from"
+        account_placeholder="Select account to deposit to"
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
         on_account_click={handle_account_click}
         on_amount_change={handle_amount_change}
-        root_error={sources_error_message()}
+        root_error={destinations_error_message()}
         row_error={row_error}
       />
 
@@ -346,42 +276,23 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
       >
         {is_submitting ? (
           <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
-        ) : pending_warning ? (
-          "Bypass & Save Expense"
         ) : (
-          "Save Expense"
+          "Save Income"
         )}
       </button>
 
       <PickerSheet
-        open={active_picker?.kind === "account"}
+        open={picker_row !== null}
         title="Select account"
         items={account_items}
         selected_id={
-          active_picker?.kind === "account"
-            ? source_rows[active_picker.row_index]?.account_id ?? null
+          picker_row !== null
+            ? destination_rows[picker_row]?.account_id ?? null
             : null
         }
         on_select={handle_account_select}
         on_close={close_picker}
         empty_message="No accounts found"
-      />
-
-      <PickerSheet
-        open={active_picker?.kind === "category"}
-        title="Category"
-        items={category_items}
-        selected_id={values.category_name ?? null}
-        show_none
-        none_label="None / Clear"
-        on_none={handle_category_none}
-        show_create
-        create_label="Create new…"
-        create_placeholder="New category name"
-        on_create={handle_category_select}
-        on_select={handle_category_select}
-        on_close={close_picker}
-        empty_message="No categories yet"
       />
     </form>
   );

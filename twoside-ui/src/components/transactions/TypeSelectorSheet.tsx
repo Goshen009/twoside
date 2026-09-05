@@ -4,8 +4,7 @@ import {
   LOAN_TRANSACTION_TYPES,
   TRANSACTION_TYPE_META,
 } from "@/constants/transactions";
-import { useAddTransactionFlow } from "@/hooks/useAddTransactionFlow";
-import type { TransactionType } from "@/types/types";
+import type { TransactionType, TypeSelectorSheetProps } from "@/types/types";
 
 function render_type_row(transaction_type: TransactionType, on_select: (t: TransactionType) => void) {
   const meta = TRANSACTION_TYPE_META[transaction_type];
@@ -32,17 +31,15 @@ function render_type_row(transaction_type: TransactionType, on_select: (t: Trans
   );
 }
 
-export function TypeSelectorSheet() {
-  const { select_type } = useAddTransactionFlow();
-
+export function TypeSelectorSheet({ on_select_type }: TypeSelectorSheetProps) {
   return (
     <div>
-      <div className="space-y-1">{CORE_TRANSACTION_TYPES.map((t) => render_type_row(t, select_type))}</div>
+      <div className="space-y-1">{CORE_TRANSACTION_TYPES.map((t) => render_type_row(t, on_select_type))}</div>
       <div className="mt-5 space-y-1">
         <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted">
           Loans
         </p>
-        {LOAN_TRANSACTION_TYPES.map((t) => render_type_row(t, select_type))}
+        {LOAN_TRANSACTION_TYPES.map((t) => render_type_row(t, on_select_type))}
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ import Calc from "#/libs/calc.js";
 
 const schema = z.object({
 	...TransactionSchemas.commonFields(),
-	amount: z.number("amount is required and must be a number").positive("amount must be greater than 0").multipleOf(0.01),
+	amount: z.number("Amount must be a number").positive("Amount must be greater than 0").multipleOf(0.01, "Amount must be in 2dp"),
 	from_account_id: z.uuid("from_account_id is required and must be a valid UUID"),
 	to_account_id: z.uuid("to_account_id is required and must be a valid UUID"),
 	bypass_warnings: TransactionSchemas.bypassWarnings(['INSUFFICIENT_BALANCE']),
