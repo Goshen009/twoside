@@ -134,6 +134,23 @@ export type LogTransferPayload = {
   bypass_warnings: string[];
 };
 
+export type LogGiveLoanSource = { account_id: string; amount: number };
+export type LogGiveLoanPayload = {
+  description: string;
+  transaction_date: string; // UTC ISO datetime ending in "Z"
+  counterparty_name: string;
+  sources: LogGiveLoanSource[];
+  bypass_warnings: string[];
+};
+
+export type LogBorrowDestination = { account_id: string; amount: number };
+export type LogBorrowPayload = {
+  description: string;
+  transaction_date: string; // UTC ISO datetime ending in "Z"
+  counterparty_name: string;
+  destinations: LogBorrowDestination[];
+};
+
 export type PickerItem = { id: string; name: string; subtitle?: string };
 
 export type PickerSheetProps = {
@@ -169,6 +186,16 @@ export type TextFieldProps = {
 
 export type DateTimeFieldProps = TextFieldProps;
 
+/** A card row that opens a picker for a name (category, counterparty). */
+export type NameFieldProps = {
+  icon: LucideIcon;
+  value: string | null;
+  placeholder: string;
+  error?: string;
+  optional_label?: string;
+  on_click: () => void;
+};
+
 export type AllocationRowData = {
   key: string;
   account_id: string;
@@ -203,6 +230,14 @@ export type IncomeFormProps = {
 };
 
 export type TransferFormProps = {
+  on_success: () => void;
+};
+
+export type GiveLoanFormProps = {
+  on_success: () => void;
+};
+
+export type BorrowFormProps = {
   on_success: () => void;
 };
 

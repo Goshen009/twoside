@@ -5,11 +5,12 @@ import { z } from "zod/v4";
 import TransactionSchemas from "#/libs/transaction-schemas.js";
 import Balances from "#/libs/balances.js";
 import Ledger from "#/libs/ledger.js";
+import Domain from "#/libs/domain.js";
 import Calc from "#/libs/calc.js";
 
 const schema = z.object({
   ...TransactionSchemas.commonFields(),
-  counterparty_id: z.uuid("counterparty_id is required and must be a valid UUID"),
+  counterparty_name: z.string("Counterparty name must be a string").trim().min(1, "Counterparty name must not be empty").max(100, "Counterparty name must not be more than 100 letters"),
   sources: TransactionSchemas.accountAllocations("source"),
   bypass_warnings: TransactionSchemas.bypassWarnings(['INSUFFICIENT_BALANCE']),
 });
@@ -20,9 +21,7 @@ async function handler(
   reply: FastifyReply
 ) {
   const user = await request.requireAuth();
-  const { description, transaction_date, counterparty_id, sources, bypass_warnings } = request.body;
-
-  const counterparty = await Ledger.checkCounterparty(this.prisma, user.id, counterparty_id);
+  const { description, transaction_date, counterparty_name, sources, bypass_warnings } = request.body;
 
   const source_lines = await Promise.all(
  		sources.map(async (s) => {
@@ -44,6 +43,8 @@ async function handler(
   const receivables_account = user.system_accounts.RECEIVABLES!;
 
   await this.prisma.$transaction(async (tx) => {
+ 		const resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)
+  
     await Ledger.logTransaction(tx, {
       user_id: user.id,
       description,
@@ -53,7 +54,7 @@ async function handler(
         ...source_lines,
         { ...receivables_account, amount: total_amount, cashflow_direction: 'INCREASE' as const },
       ],
-      loan: { direction: 'GIVEN', counterparty_id: counterparty.id, amount: total_amount },
+      loan: { direction: 'GIVEN', counterparty_id: resolved_counterparty_id, amount: total_amount },
     });
   });
 

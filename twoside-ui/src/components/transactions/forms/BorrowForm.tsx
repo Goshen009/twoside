@@ -2,25 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, User } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
 import { FormatUtils } from "@/lib/FormatUtils";
-import { incomeFormSchema, type IncomeFormValues } from "@/types/schemas";
+import { borrowFormSchema, type BorrowFormValues } from "@/types/schemas";
 import type { FieldPath } from "react-hook-form";
 import type {
   AllocationRowData,
-  IncomeFormProps,
+  BorrowFormProps,
   PickerItem,
 } from "@/types/types";
-import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
-import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeField";
 import { AllocationsList } from "@/components/transactions/forms/shared/AllocationsList";
+import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeField";
+import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
+import { NameField } from "@/components/transactions/forms/shared/NameField";
 import { PickerSheet } from "@/components/ui/PickerSheet";
 
-type DestinationRow = IncomeFormValues["destinations"][number];
+type DestinationRow = BorrowFormValues["destinations"][number];
 
 type DestinationsErrors = {
   message?: string;
@@ -29,6 +30,10 @@ type DestinationsErrors = {
     | { account_id?: { message?: string }; amount?: { message?: string } }
     | undefined;
 };
+
+type BorrowPickerTarget =
+  | { kind: "account"; row_index: number }
+  | { kind: "counterparty" };
 
 const BLANK_DESTINATION: DestinationRow = { account_id: "", amount: "" };
 
@@ -42,7 +47,7 @@ function sanitize_amount_input(raw: string): string {
   return `${integer}.${fraction}`;
 }
 
-export function IncomeForm({ on_success }: IncomeFormProps) {
+export function BorrowForm({ on_success }: BorrowFormProps) {
   const { data, refetch } = useInfo();
 
   const {
@@ -54,18 +59,20 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     clearErrors,
     setError,
     formState: { errors },
-  } = useForm<IncomeFormValues>({
-    resolver: zodResolver(incomeFormSchema),
+  } = useForm<BorrowFormValues>({
+    resolver: zodResolver(borrowFormSchema),
     defaultValues: {
       description: "",
       transaction_date: FormatUtils.nowLocalValue(),
+      counterparty_name: "",
       destinations: [{ ...BLANK_DESTINATION }],
     },
   });
 
   const [is_submitting, set_is_submitting] = useState(false);
   const [banner_error, set_banner_error] = useState<string | null>(null);
-  const [picker_row, set_picker_row] = useState<number | null>(null);
+  const [active_picker, set_active_picker] =
+    useState<BorrowPickerTarget | null>(null);
 
   // Destinations rows are value-managed (whole-array `setValue`, no per-row
   // register), so materialize the array in RHF's store once on mount.
@@ -89,7 +96,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     );
   }
 
-  const { currency, accounts } = data;
+  const { currency, accounts, counterparties } = data;
 
   const destination_rows: DestinationRow[] =
     values.destinations && values.destinations.length > 0
@@ -112,6 +119,11 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     id: account.id,
     name: account.name,
     subtitle: `${currency}${FormatUtils.formatMoney(account.balance)}`,
+  }));
+
+  const counterparty_items: PickerItem[] = counterparties.map((counterparty) => ({
+    id: counterparty.name,
+    name: counterparty.name,
   }));
 
   /** Accounts a row can still pick: everything except accounts already assigned
@@ -150,7 +162,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
               message: field_error.message,
             });
           } else {
-            setError(name as FieldPath<IncomeFormValues>, {
+            setError(name as FieldPath<BorrowFormValues>, {
               type: "server",
               message: field_error.message,
             });
@@ -166,14 +178,15 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     set_banner_error("Something went wrong. Please try again.");
   }
 
-  async function onSubmit(raw: IncomeFormValues): Promise<void> {
+  async function onSubmit(raw: BorrowFormValues): Promise<void> {
     clearErrors();
     set_banner_error(null);
     set_is_submitting(true);
     try {
-      await TransactionsAPI.logIncome({
+      await TransactionsAPI.logBorrow({
         description: raw.description,
         transaction_date: FormatUtils.toUtcIso(raw.transaction_date),
+        counterparty_name: raw.counterparty_name,
         destinations: raw.destinations.map((row) => ({
           account_id: row.account_id,
           amount: Number(row.amount),
@@ -194,18 +207,28 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
   }
 
   function handle_account_click(index: number): void {
-    set_picker_row(index);
+    set_active_picker({ kind: "account", row_index: index });
+  }
+
+  function handle_counterparty_click(): void {
+    set_active_picker({ kind: "counterparty" });
   }
 
   function handle_account_select(id: string): void {
-    if (picker_row !== null) {
-      const index = picker_row;
+    const target = active_picker;
+    if (target?.kind === "account") {
+      const index = target.row_index;
       set_destinations(
         destination_rows.map((row, i) =>
           i === index ? { ...row, account_id: id } : row,
         ),
       );
     }
+    clearErrors();
+  }
+
+  function handle_counterparty_select(name: string): void {
+    setValue("counterparty_name", name);
     clearErrors();
   }
 
@@ -230,7 +253,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
   }
 
   function close_picker(): void {
-    set_picker_row(null);
+    set_active_picker(null);
   }
 
   return (
@@ -239,7 +262,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
       noValidate
       className="space-y-5"
       style={{
-        "--form-accent": TRANSACTION_TYPE_META.income.accent,
+        "--form-accent": TRANSACTION_TYPE_META.borrow.accent,
       } as CSSProperties}
     >
       {banner_error ? (
@@ -252,7 +275,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
       <div className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
         <DescriptionField
           label="Description"
-          placeholder="What is this income for?"
+          placeholder="Who did you borrow from and why?"
           error={errors.description?.message}
           {...register("description")}
         />
@@ -262,6 +285,14 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
           {...register("transaction_date")}
           value={values.transaction_date ?? ""}
         />
+
+        <NameField
+          icon={User}
+          value={values.counterparty_name || null}
+          placeholder="Who are you borrowing from?"
+          error={errors.counterparty_name?.message}
+          on_click={handle_counterparty_click}
+        />
       </div>
 
       <AllocationsList
@@ -270,8 +301,8 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
         rows={rows}
         accounts={accounts}
         currency={currency}
-        accent_color={TRANSACTION_TYPE_META.income.accent}
-        account_placeholder="Select account to deposit to"
+        accent_color={TRANSACTION_TYPE_META.borrow.accent}
+        account_placeholder="Select account to receive borrowed money"
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
@@ -289,22 +320,40 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
         {is_submitting ? (
           <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
         ) : (
-          "Record Income"
+          "Borrow Money"
         )}
       </button>
 
       <PickerSheet
-        open={picker_row !== null}
+        open={active_picker?.kind === "account"}
         title="Select account"
-        items={picker_row !== null ? account_items_for(picker_row) : account_items}
+        items={
+          active_picker?.kind === "account"
+            ? account_items_for(active_picker.row_index)
+            : account_items
+        }
         selected_id={
-          picker_row !== null
-            ? destination_rows[picker_row]?.account_id ?? null
+          active_picker?.kind === "account"
+            ? destination_rows[active_picker.row_index]?.account_id ?? null
             : null
         }
         on_select={handle_account_select}
         on_close={close_picker}
         empty_message="No accounts found"
+      />
+
+      <PickerSheet
+        open={active_picker?.kind === "counterparty"}
+        title="Who are you borrowing from?"
+        items={counterparty_items}
+        selected_id={values.counterparty_name || null}
+        show_create
+        create_label="Create new…"
+        create_placeholder="New counterparty name"
+        on_create={handle_counterparty_select}
+        on_select={handle_counterparty_select}
+        on_close={close_picker}
+        empty_message="No counterparties yet"
       />
     </form>
   );

@@ -323,9 +323,9 @@ export function TransferForm({ on_success }: TransferFormProps) {
         {is_submitting ? (
           <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
         ) : pending_warning ? (
-          "Bypass & Save Transfer"
+          "Bypass & Record Transfer"
         ) : (
-          "Save Transfer"
+          "Record Transfer"
         )}
       </button>
 

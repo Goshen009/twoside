@@ -14,14 +14,14 @@ export const TRANSACTION_TYPE_META: Record<TransactionType, TransactionTypeMeta>
     icon: Receipt,
     label: "Expense",
     description: "Spend from an account",
-    accent: "#f87171",
+    accent: "#ff6f61",
     group: "core",
   },
   income: {
     icon: TrendingUp,
     label: "Income",
     description: "Receive into an account",
-    accent: "#22c55e",
+    accent: "#4ade80",
     group: "core",
   },
   transfer: {

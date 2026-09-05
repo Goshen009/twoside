@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ChevronDown, Tag } from "lucide-react";
+import { AlertCircle, Tag } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
@@ -20,6 +20,7 @@ import type {
 import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
 import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeField";
 import { AllocationsList } from "@/components/transactions/forms/shared/AllocationsList";
+import { NameField } from "@/components/transactions/forms/shared/NameField";
 import { PickerSheet } from "@/components/ui/PickerSheet";
 import { WarningToast } from "@/components/ui/WarningToast";
 
@@ -129,6 +130,17 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
     id: category.name,
     name: category.name,
   }));
+
+  /** Accounts a row can still pick: everything except accounts already assigned
+   *  to OTHER rows. Hides duplicates instead of letting them trigger a
+   *  submit-time "same account" warning. */
+  function account_items_for(row_index: number): PickerItem[] {
+    const taken = new Set<string>();
+    rows.forEach((row, i) => {
+      if (i !== row_index && row.account_id) taken.add(row.account_id);
+    });
+    return account_items.filter((item) => !taken.has(item.id));
+  }
 
   function dismiss_on_edit(): void {
     if (pending_warning) dismissWarning();
@@ -297,29 +309,14 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
           value={values.transaction_date ?? ""}
         />
 
-        <div>
-          <button
-            type="button"
-            onClick={handle_category_click}
-            className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-white/[0.02] active:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--form-accent)/30"
-          >
-            <Tag className="h-3.5 w-3.5 shrink-0 text-muted" />
-            <span
-              className={`min-w-0 flex-1 truncate text-xs ${
-                values.category_name ? "text-zinc-100" : "text-muted/60"
-              }`}
-            >
-              {values.category_name ?? "Select category"}
-            </span>
-            <span className="shrink-0 text-[10px] text-muted/50">Optional</span>
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted/70" />
-          </button>
-          {errors.category_name ? (
-            <p className="px-4 pb-2.5 text-[11px] text-red-400">
-              {errors.category_name.message}
-            </p>
-          ) : null}
-        </div>
+        <NameField
+          icon={Tag}
+          value={values.category_name ?? null}
+          placeholder="Categorize this as…"
+          optional_label="Optional"
+          error={errors.category_name?.message}
+          on_click={handle_category_click}
+        />
       </div>
 
       <AllocationsList
@@ -347,16 +344,20 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         {is_submitting ? (
           <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
         ) : pending_warning ? (
-          "Bypass & Save Expense"
+          "Bypass & Record Expense"
         ) : (
-          "Save Expense"
+          "Record Expense"
         )}
       </button>
 
       <PickerSheet
         open={active_picker?.kind === "account"}
         title="Select account"
-        items={account_items}
+        items={
+          active_picker?.kind === "account"
+            ? account_items_for(active_picker.row_index)
+            : account_items
+        }
         selected_id={
           active_picker?.kind === "account"
             ? source_rows[active_picker.row_index]?.account_id ?? null

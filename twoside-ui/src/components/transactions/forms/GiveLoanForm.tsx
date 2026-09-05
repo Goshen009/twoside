@@ -2,27 +2,30 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, User } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
+import { useWarningBypass } from "@/hooks/useWarningBypass";
 import { FormatUtils } from "@/lib/FormatUtils";
-import { incomeFormSchema, type IncomeFormValues } from "@/types/schemas";
+import { giveLoanFormSchema, type GiveLoanFormValues } from "@/types/schemas";
 import type { FieldPath } from "react-hook-form";
 import type {
   AllocationRowData,
-  IncomeFormProps,
+  GiveLoanFormProps,
   PickerItem,
 } from "@/types/types";
-import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
-import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeField";
 import { AllocationsList } from "@/components/transactions/forms/shared/AllocationsList";
+import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeField";
+import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
+import { NameField } from "@/components/transactions/forms/shared/NameField";
 import { PickerSheet } from "@/components/ui/PickerSheet";
+import { WarningToast } from "@/components/ui/WarningToast";
 
-type DestinationRow = IncomeFormValues["destinations"][number];
+type SourceRow = GiveLoanFormValues["sources"][number];
 
-type DestinationsErrors = {
+type SourcesErrors = {
   message?: string;
   root?: { message?: string };
   [index: number]:
@@ -30,7 +33,11 @@ type DestinationsErrors = {
     | undefined;
 };
 
-const BLANK_DESTINATION: DestinationRow = { account_id: "", amount: "" };
+type GiveLoanPickerTarget =
+  | { kind: "account"; row_index: number }
+  | { kind: "counterparty" };
+
+const BLANK_SOURCE: SourceRow = { account_id: "", amount: "" };
 
 /** Enforce the amount schema's max of 2 decimal places while typing:
  *  keeps only digits + a single dot, truncates the fraction to 2. */
@@ -42,8 +49,16 @@ function sanitize_amount_input(raw: string): string {
   return `${integer}.${fraction}`;
 }
 
-export function IncomeForm({ on_success }: IncomeFormProps) {
+export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
   const { data, refetch } = useInfo();
+  const {
+    pending_warning,
+    bypassed_codes,
+    handleError,
+    confirmWarning,
+    dismissWarning,
+    resetWarnings,
+  } = useWarningBypass();
 
   const {
     register,
@@ -54,29 +69,29 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     clearErrors,
     setError,
     formState: { errors },
-  } = useForm<IncomeFormValues>({
-    resolver: zodResolver(incomeFormSchema),
+  } = useForm<GiveLoanFormValues>({
+    resolver: zodResolver(giveLoanFormSchema),
     defaultValues: {
       description: "",
       transaction_date: FormatUtils.nowLocalValue(),
-      destinations: [{ ...BLANK_DESTINATION }],
+      counterparty_name: "",
+      sources: [{ ...BLANK_SOURCE }],
     },
   });
 
   const [is_submitting, set_is_submitting] = useState(false);
   const [banner_error, set_banner_error] = useState<string | null>(null);
-  const [picker_row, set_picker_row] = useState<number | null>(null);
+  const [active_picker, set_active_picker] =
+    useState<GiveLoanPickerTarget | null>(null);
 
-  // Destinations rows are value-managed (whole-array `setValue`, no per-row
-  // register), so materialize the array in RHF's store once on mount.
-  // Guarantees the schema resolver always sees `destinations` present.
-  const destinations_seeded = useRef(false);
+  // Sources rows are value-managed (whole-array `setValue`, no per-row register),
+  // so materialize the array in RHF's store once on mount. Guarantees the schema
+  // resolver always sees `sources` present, even before the user edits a row.
+  const sources_seeded = useRef(false);
   useEffect(() => {
-    if (destinations_seeded.current) return;
-    destinations_seeded.current = true;
-    setValue("destinations", [{ ...BLANK_DESTINATION }], {
-      shouldValidate: false,
-    });
+    if (sources_seeded.current) return;
+    sources_seeded.current = true;
+    setValue("sources", [{ ...BLANK_SOURCE }], { shouldValidate: false });
   }, [setValue]);
 
   const values = watch();
@@ -89,19 +104,15 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     );
   }
 
-  const { currency, accounts } = data;
+  const { currency, accounts, counterparties } = data;
 
-  const destination_rows: DestinationRow[] =
-    values.destinations && values.destinations.length > 0
-      ? values.destinations
-      : [BLANK_DESTINATION];
-  const rows: AllocationRowData[] = destination_rows.map(
-    (destination, index) => ({
-      key: String(index),
-      account_id: destination.account_id ?? "",
-      amount: destination.amount ?? "",
-    }),
-  );
+  const source_rows: SourceRow[] =
+    values.sources && values.sources.length > 0 ? values.sources : [BLANK_SOURCE];
+  const rows: AllocationRowData[] = source_rows.map((source, index) => ({
+    key: String(index),
+    account_id: source.account_id ?? "",
+    amount: source.amount ?? "",
+  }));
 
   const total = rows.reduce((sum, row) => {
     const amount = Number(row.amount);
@@ -112,6 +123,11 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     id: account.id,
     name: account.name,
     subtitle: `${currency}${FormatUtils.formatMoney(account.balance)}`,
+  }));
+
+  const counterparty_items: PickerItem[] = counterparties.map((counterparty) => ({
+    id: counterparty.name,
+    name: counterparty.name,
   }));
 
   /** Accounts a row can still pick: everything except accounts already assigned
@@ -125,8 +141,12 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     return account_items.filter((item) => !taken.has(item.id));
   }
 
-  function destinations_error_message(): string | undefined {
-    const node = errors.destinations as unknown as DestinationsErrors | undefined;
+  function dismiss_on_edit(): void {
+    if (pending_warning) dismissWarning();
+  }
+
+  function sources_error_message(): string | undefined {
+    const node = errors.sources as unknown as SourcesErrors | undefined;
     return node?.root?.message ?? node?.message;
   }
 
@@ -134,7 +154,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     index: number,
     key: "account_id" | "amount",
   ): string | undefined {
-    const node = errors.destinations as unknown as DestinationsErrors | undefined;
+    const node = errors.sources as unknown as SourcesErrors | undefined;
     const entry = node?.[index];
     return key === "account_id" ? entry?.account_id?.message : entry?.amount?.message;
   }
@@ -144,13 +164,10 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
       if (err.fields && err.fields.length > 0) {
         for (const field_error of err.fields) {
           const name = field_error.field.replaceAll("/", ".");
-          if (name === "destinations") {
-            setError("destinations", {
-              type: "server",
-              message: field_error.message,
-            });
+          if (name === "sources") {
+            setError("sources", { type: "server", message: field_error.message });
           } else {
-            setError(name as FieldPath<IncomeFormValues>, {
+            setError(name as FieldPath<GiveLoanFormValues>, {
               type: "server",
               message: field_error.message,
             });
@@ -166,71 +183,88 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     set_banner_error("Something went wrong. Please try again.");
   }
 
-  async function onSubmit(raw: IncomeFormValues): Promise<void> {
+  async function onSubmit(raw: GiveLoanFormValues): Promise<void> {
     clearErrors();
     set_banner_error(null);
     set_is_submitting(true);
+    const codes = pending_warning ? confirmWarning() : bypassed_codes;
     try {
-      await TransactionsAPI.logIncome({
+      await TransactionsAPI.logGiveLoan({
         description: raw.description,
         transaction_date: FormatUtils.toUtcIso(raw.transaction_date),
-        destinations: raw.destinations.map((row) => ({
+        counterparty_name: raw.counterparty_name,
+        sources: raw.sources.map((row) => ({
           account_id: row.account_id,
           amount: Number(row.amount),
         })),
+        bypass_warnings: codes,
       });
       await refetch();
+      resetWarnings();
       reset();
       on_success();
     } catch (err) {
-      apply_server_errors(err);
+      if (!handleError(err)) apply_server_errors(err);
     } finally {
       set_is_submitting(false);
     }
   }
 
-  function set_destinations(next: DestinationRow[]): void {
-    setValue("destinations", next, { shouldValidate: false });
+  function set_sources(next: SourceRow[]): void {
+    setValue("sources", next, { shouldValidate: false });
   }
 
   function handle_account_click(index: number): void {
-    set_picker_row(index);
+    set_active_picker({ kind: "account", row_index: index });
+  }
+
+  function handle_counterparty_click(): void {
+    set_active_picker({ kind: "counterparty" });
   }
 
   function handle_account_select(id: string): void {
-    if (picker_row !== null) {
-      const index = picker_row;
-      set_destinations(
-        destination_rows.map((row, i) =>
-          i === index ? { ...row, account_id: id } : row,
-        ),
+    const target = active_picker;
+    if (target?.kind === "account") {
+      const index = target.row_index;
+      set_sources(
+        source_rows.map((row, i) => (i === index ? { ...row, account_id: id } : row)),
       );
     }
     clearErrors();
+    dismiss_on_edit();
+  }
+
+  function handle_counterparty_select(name: string): void {
+    setValue("counterparty_name", name);
+    clearErrors();
+    dismiss_on_edit();
   }
 
   function handle_add_row(): void {
-    set_destinations([...destination_rows, { ...BLANK_DESTINATION }]);
+    set_sources([...source_rows, { ...BLANK_SOURCE }]);
+    dismiss_on_edit();
   }
 
   function handle_remove_row(index: number): void {
-    if (destination_rows.length > 1) {
-      set_destinations(destination_rows.filter((_, i) => i !== index));
+    if (source_rows.length > 1) {
+      set_sources(source_rows.filter((_, i) => i !== index));
     }
+    dismiss_on_edit();
   }
 
   function handle_amount_change(index: number, value: string): void {
     const sanitized = sanitize_amount_input(value);
-    set_destinations(
-      destination_rows.map((row, i) =>
+    set_sources(
+      source_rows.map((row, i) =>
         i === index ? { ...row, amount: sanitized } : row,
       ),
     );
     clearErrors();
+    dismiss_on_edit();
   }
 
   function close_picker(): void {
-    set_picker_row(null);
+    set_active_picker(null);
   }
 
   return (
@@ -239,7 +273,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
       noValidate
       className="space-y-5"
       style={{
-        "--form-accent": TRANSACTION_TYPE_META.income.accent,
+        "--form-accent": TRANSACTION_TYPE_META.give_loan.accent,
       } as CSSProperties}
     >
       {banner_error ? (
@@ -249,10 +283,14 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
         </div>
       ) : null}
 
+      {pending_warning ? (
+        <WarningToast message={pending_warning.message} on_close={dismissWarning} />
+      ) : null}
+
       <div className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
         <DescriptionField
           label="Description"
-          placeholder="What is this income for?"
+          placeholder="Who did you lend to and why?"
           error={errors.description?.message}
           {...register("description")}
         />
@@ -262,6 +300,14 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
           {...register("transaction_date")}
           value={values.transaction_date ?? ""}
         />
+
+        <NameField
+          icon={User}
+          value={values.counterparty_name || null}
+          placeholder="Who are you lending to?"
+          error={errors.counterparty_name?.message}
+          on_click={handle_counterparty_click}
+        />
       </div>
 
       <AllocationsList
@@ -270,14 +316,14 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
         rows={rows}
         accounts={accounts}
         currency={currency}
-        accent_color={TRANSACTION_TYPE_META.income.accent}
-        account_placeholder="Select account to deposit to"
+        accent_color={TRANSACTION_TYPE_META.give_loan.accent}
+        account_placeholder="Select account to lend from"
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
         on_account_click={handle_account_click}
         on_amount_change={handle_amount_change}
-        root_error={destinations_error_message()}
+        root_error={sources_error_message()}
         row_error={row_error}
       />
 
@@ -288,23 +334,43 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
       >
         {is_submitting ? (
           <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+        ) : pending_warning ? (
+          "Bypass & Lend Money"
         ) : (
-          "Record Income"
+          "Lend Money"
         )}
       </button>
 
       <PickerSheet
-        open={picker_row !== null}
+        open={active_picker?.kind === "account"}
         title="Select account"
-        items={picker_row !== null ? account_items_for(picker_row) : account_items}
+        items={
+          active_picker?.kind === "account"
+            ? account_items_for(active_picker.row_index)
+            : account_items
+        }
         selected_id={
-          picker_row !== null
-            ? destination_rows[picker_row]?.account_id ?? null
+          active_picker?.kind === "account"
+            ? source_rows[active_picker.row_index]?.account_id ?? null
             : null
         }
         on_select={handle_account_select}
         on_close={close_picker}
         empty_message="No accounts found"
+      />
+
+      <PickerSheet
+        open={active_picker?.kind === "counterparty"}
+        title="Who are you lending to?"
+        items={counterparty_items}
+        selected_id={values.counterparty_name || null}
+        show_create
+        create_label="Create new…"
+        create_placeholder="New counterparty name"
+        on_create={handle_counterparty_select}
+        on_select={handle_counterparty_select}
+        on_close={close_picker}
+        empty_message="No counterparties yet"
       />
     </form>
   );

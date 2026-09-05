@@ -2,12 +2,13 @@ import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
 
-import Ledger from "#/libs/ledger.js";
 import TransactionSchemas from "#/libs/transaction-schemas.js";
+import Ledger from "#/libs/ledger.js";
+import Domain from "#/libs/domain.js";
 
 const schema = z.object({
   ...TransactionSchemas.commonFields(),
-  counterparty_id: z.uuid("counterparty_id is required and must be a valid UUID"),
+  counterparty_name: z.string("Counterparty name must be a string").trim().min(1, "Counterparty name must not be empty").max(100, "Counterparty name must not be more than 100 letters"),
   destinations: TransactionSchemas.accountAllocations("destination"),
 });
 
@@ -17,9 +18,7 @@ async function handler(
   reply: FastifyReply
 ) {
   const user = await request.requireAuth();
-  const { description, transaction_date, counterparty_id, destinations } = request.body;
-
-  const counterparty = await Ledger.checkCounterparty(this.prisma, user.id, counterparty_id);
+  const { description, transaction_date, counterparty_name, destinations } = request.body;
 
   const destination_lines = destinations.map((d) => {
     const account = Ledger.checkAccount(d.account_id, user.accounts);
@@ -33,7 +32,9 @@ async function handler(
   const payables_account = user.system_accounts.PAYABLES!;
 
   await this.prisma.$transaction(async (tx) => {
-    await Ledger.logTransaction(tx, {
+  	const resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)
+
+  	await Ledger.logTransaction(tx, {
       user_id: user.id,
       description,
       transaction_date: new Date(transaction_date),
@@ -42,7 +43,7 @@ async function handler(
         ...destination_lines,
         { ...payables_account, amount: total_amount, cashflow_direction: 'INCREASE' as const },
       ],
-      loan: { direction: 'BORROWED', counterparty_id: counterparty.id, amount: total_amount },
+      loan: { direction: 'BORROWED', counterparty_id: resolved_counterparty_id, amount: total_amount },
     });
   });
 
