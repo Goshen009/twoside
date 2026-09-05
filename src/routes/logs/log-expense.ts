@@ -23,7 +23,7 @@ async function handler(
 	const user = await request.requireAuth();
 
 	const { description, transaction_date, category_name, sources, bypass_warnings } = request.body;
-
+	
   const source_lines = await Promise.all(
  		sources.map(async (s) => {
  			const account = Ledger.checkAccount(s.account_id, user.accounts);
@@ -40,7 +40,7 @@ async function handler(
    	})
   );
 	
-  const total_amount = sources.reduce((sum, s) => sum + s.amount, 0);
+  const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
   const expense_account = user.system_accounts.EXPENSE!;
   
   await this.prisma.$transaction(async (tx) => {

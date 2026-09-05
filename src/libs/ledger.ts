@@ -18,17 +18,6 @@ class Ledger {
 			throw APIError.custom({ status: 403, message: `The '${account.name}' account is inactive` });
 		return account;
 	}
-
-	static async checkCounterparty(prisma: PrismaClient, user_id: string, counterparty_id: string) {
-	  const counterparty = await prisma.counterparty.findFirst({
-	    where: { id: counterparty_id, user_id },
-	  });
-	  if (!counterparty)
-	    throw APIError.custom({ status: 404, message: `The '${counterparty_id}' counterparty does not exist` });
-	  if (!counterparty.is_active)
-	    throw APIError.custom({ status: 403, message: `The '${counterparty.name}' counterparty is inactive` });
-	  return counterparty;
-	}
 	
 	static async checkLoan(prisma: PrismaClient, user_id: string, loan_id: string, expected_direction: LoanDirection) {
 	  const loan = await prisma.loan.findFirst({

@@ -39,7 +39,7 @@ async function handler(
    	})
   );
 
-  const total_amount = sources.reduce((sum, s) => sum + s.amount, 0);
+  const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
   const receivables_account = user.system_accounts.RECEIVABLES!;
 
   await this.prisma.$transaction(async (tx) => {

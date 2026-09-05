@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 import TransactionSchemas from "#/libs/transaction-schemas.js";
 import Ledger from "#/libs/ledger.js";
 import Domain from "#/libs/domain.js";
+import Calc from "#/libs/calc.js";
 
 const schema = z.object({
   ...TransactionSchemas.commonFields(),
@@ -28,7 +29,7 @@ async function handler(
     return { ...account, amount: d.amount, cashflow_direction: 'INCREASE' as const };
   });
 
-  const total_amount = destinations.reduce((sum, d) => sum + d.amount, 0);
+  const total_amount = Calc.toDecimalNumber(destinations.reduce((sum, d) => sum + Calc.toWholeNumber(d.amount), 0));
   const payables_account = user.system_accounts.PAYABLES!;
 
   await this.prisma.$transaction(async (tx) => {

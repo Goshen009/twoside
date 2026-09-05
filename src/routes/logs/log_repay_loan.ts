@@ -30,7 +30,7 @@ async function handler(
    		throw APIError.warning("REPAYMENT_DATED_BEFORE", TransactionSchemas.repaymentDatedBeforeMessage(loan.date_issued));
   }
 
-  const total_amount = sources.reduce((sum, s) => sum + s.amount, 0);
+  const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
   
   if (Calc.toWholeNumber(total_amount) > loan.remaining_cents)
     throw APIError.custom({ status: 400, message: `This payment exceeds what's left on this loan` });

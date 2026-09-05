@@ -30,16 +30,16 @@ async function handler(
   const from_account = Ledger.checkAccount(from_account_id, user.accounts);
   const to_account = Ledger.checkAccount(to_account_id, user.accounts);
 
+  // A transfer only moves money between accounts you hold. Anything touching
+  // income/expense/equity/liabilities must go through its own /log endpoint.
+  if (from_account.type !== 'ASSET' || to_account.type !== 'ASSET')
+  	throw APIError.custom({ status: 400, message: "Transfers are only allowed between asset accounts" });
+  
   if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
    	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, from_account.id, from_account.type, new Date(transaction_date));
 		if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(amount))
 			throw APIError.warning("INSUFFICIENT_BALANCE", TransactionSchemas.insufficientBalanceMessage(from_account.name, balance_in_account, amount));
   }
-
-  // A transfer only moves money between accounts you hold. Anything touching
-  // income/expense/equity/liabilities must go through its own /log endpoint.
-  if (from_account.type !== 'ASSET' || to_account.type !== 'ASSET')
-  	throw APIError.custom({ status: 400, message: "Transfers are only allowed between asset accounts" });
 
   await this.prisma.$transaction(async (tx) => {
   	await Ledger.logTransaction(tx, {
