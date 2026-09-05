@@ -3,25 +3,19 @@ import { FormatUtils } from "@/lib/FormatUtils";
 import type { DateTimeFieldProps } from "@/types/types";
 
 /**
- * datetime-local picker rendered as a pretty readout ("September 5, 2026 10:49 AM").
- * The real <input type="datetime-local"> sits transparent over the row so tapping it
- * opens the native picker; the value is formatted for display from the input's value.
+ * datetime-local picker rendered as a quiet row ("September 5, 2026 10:49 AM").
+ * The real <input type="datetime-local"> sits transparent over the whole row so
+ * tapping anywhere opens the native picker; the value is formatted for display.
  */
 export function DateTimeField(props: DateTimeFieldProps) {
-  const { label, error, ref, ...input_props } = props;
+  const { error, ref, ...input_props } = props;
   const raw_value =
     typeof input_props.value === "string" ? input_props.value : "";
   const display = raw_value ? FormatUtils.formatDateTimeLabel(raw_value) : "";
 
   return (
-    <div className="space-y-1.5">
-      {label ? (
-        <label className="block text-[10px] font-mono uppercase tracking-wider text-muted">
-          {label}
-        </label>
-      ) : null}
-      <div className="relative flex items-center rounded-xl border border-primary/20 bg-black/30 transition-colors focus-within:border-primary/50">
-        <Calendar className="pointer-events-none absolute left-3.5 h-4 w-4 shrink-0 text-muted" />
+    <div className="px-4 py-3 transition-colors hover:bg-white/[0.02] active:bg-white/[0.04]">
+      <div className="relative flex min-w-0 cursor-pointer items-center gap-2">
         <input
           {...input_props}
           ref={ref}
@@ -42,15 +36,16 @@ export function DateTimeField(props: DateTimeFieldProps) {
           }}
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0 focus:outline-none [color-scheme:dark]"
         />
+        <Calendar className="pointer-events-none h-3.5 w-3.5 shrink-0 text-muted" />
         <span
-          className={`pointer-events-none w-full truncate py-2.5 pl-10 pr-3.5 text-xs ${
+          className={`min-w-0 flex-1 truncate text-xs ${
             display ? "text-zinc-100" : "text-muted/60"
           }`}
         >
           {display || "Set date & time"}
         </span>
       </div>
-      {error ? <p className="text-[10px] text-red-400">{error}</p> : null}
+      {error ? <p className="mt-0.5 text-[11px] text-red-400">{error}</p> : null}
     </div>
   );
 }

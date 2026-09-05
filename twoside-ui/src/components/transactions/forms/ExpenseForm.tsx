@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, ChevronDown, Tag } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
+import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
 import { useWarningBypass } from "@/hooks/useWarningBypass";
 import { FormatUtils } from "@/lib/FormatUtils";
@@ -32,6 +34,16 @@ type SourcesErrors = {
 };
 
 const BLANK_SOURCE: SourceRow = { account_id: "", amount: "" };
+
+/** Enforce the amount schema's max of 2 decimal places while typing:
+ *  keeps only digits + a single dot, truncates the fraction to 2. */
+function sanitize_amount_input(raw: string): string {
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const [integer, ...rest] = cleaned.split(".");
+  if (rest.length === 0) return cleaned;
+  const fraction = rest.join("").slice(0, 2);
+  return `${integer}.${fraction}`;
+}
 
 export function ExpenseForm({ on_success }: ExpenseFormProps) {
   const { data, refetch } = useInfo();
@@ -236,8 +248,11 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
   }
 
   function handle_amount_change(index: number, value: string): void {
+    const sanitized = sanitize_amount_input(value);
     set_sources(
-      source_rows.map((row, i) => (i === index ? { ...row, amount: value } : row)),
+      source_rows.map((row, i) =>
+        i === index ? { ...row, amount: sanitized } : row,
+      ),
     );
     clearErrors();
     dismiss_on_edit();
@@ -248,7 +263,12 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className="space-y-5"
+      style={{ "--form-accent": TRANSACTION_TYPE_META.expense.accent } as CSSProperties}
+    >
       {banner_error ? (
         <div className="flex items-center gap-2.5 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-xs text-red-400">
           <AlertCircle className="h-4 w-4 shrink-0" />
@@ -263,49 +283,54 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         />
       ) : null}
 
-      <DescriptionField
-        label="Description"
-        placeholder="What did you spend this on?"
-        error={errors.description?.message}
-        {...register("description")}
-      />
+      <div className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
+        <DescriptionField
+          label="Description"
+          placeholder="What did you spend this on?"
+          error={errors.description?.message}
+          {...register("description")}
+        />
 
-      <DateTimeField
-        label="Date & time"
-        error={errors.transaction_date?.message}
-        {...register("transaction_date")}
-        value={values.transaction_date ?? ""}
-      />
+        <DateTimeField
+          error={errors.transaction_date?.message}
+          {...register("transaction_date")}
+          value={values.transaction_date ?? ""}
+        />
 
-      <div className="space-y-1.5">
-        <p className="text-[10px] font-mono uppercase tracking-wider text-muted">
-          Category
-        </p>
-        <button
-          type="button"
-          onClick={handle_category_click}
-          className="flex w-full cursor-pointer items-center gap-2 rounded-xl border border-primary/20 bg-black/30 px-3.5 py-2.5 text-xs transition-colors hover:border-primary/40"
-        >
-          <Tag className="h-3.5 w-3.5 shrink-0 text-muted" />
-          <span className={values.category_name ? "text-zinc-100" : "text-muted"}>
-            {values.category_name ?? "Select category"}
-          </span>
-          <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0 text-muted" />
-        </button>
-        {errors.category_name ? (
-          <p className="text-[10px] text-red-400">
-            {errors.category_name.message}
-          </p>
-        ) : null}
+        <div>
+          <button
+            type="button"
+            onClick={handle_category_click}
+            className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-white/[0.02] active:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-(--form-accent)/30"
+          >
+            <Tag className="h-3.5 w-3.5 shrink-0 text-muted" />
+            <span
+              className={`min-w-0 flex-1 truncate text-xs ${
+                values.category_name ? "text-zinc-100" : "text-muted/60"
+              }`}
+            >
+              {values.category_name ?? "Select category"}
+            </span>
+            <span className="shrink-0 text-[10px] text-muted/50">Optional</span>
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted/70" />
+          </button>
+          {errors.category_name ? (
+            <p className="px-4 pb-2.5 text-[11px] text-red-400">
+              {errors.category_name.message}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <AllocationsList
-        label="From"
+        label="Source accounts"
+        helper_text=""
         add_label="Add account"
         total_label="Total"
         rows={rows}
         accounts={accounts}
         currency={currency}
+        accent_color={TRANSACTION_TYPE_META.expense.accent}
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
@@ -318,7 +343,7 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
       <button
         type="submit"
         disabled={is_submitting}
-        className="w-full cursor-pointer rounded-xl bg-primary py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full cursor-pointer rounded-2xl bg-(--form-accent) py-3 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {is_submitting ? (
           <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />

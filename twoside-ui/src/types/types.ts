@@ -157,11 +157,13 @@ export type AllocationRowData = {
 
 export type AllocationsListProps = {
   label: string;
+  helper_text?: string;
   add_label: string;
   total_label: string;
   rows: AllocationRowData[];
   accounts: InfoAccount[];
   currency: string;
+  accent_color?: string;
   total: number;
   on_add: () => void;
   on_remove: (index: number) => void;

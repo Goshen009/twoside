@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import type { CSSProperties } from "react";
 import { FormatUtils } from "@/lib/FormatUtils";
 import type {
   AllocationRowData,
@@ -6,14 +7,16 @@ import type {
   InfoAccount,
 } from "@/types/types";
 
-function account_label(
-  account_id: string,
-  accounts: InfoAccount[],
-  currency: string,
-): string {
-  const account = accounts.find((a) => a.id === account_id);
-  if (!account) return "Select account";
-  return `${account.name} (${currency}${FormatUtils.formatMoney(account.balance)})`;
+const CARD_CLASSES =
+  "overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]";
+const OVERLINE_CLASSES =
+  "text-[10px] font-semibold uppercase tracking-wider text-muted";
+// Fall back to the app-wide primary (green) so callers that don't theme the
+// list (e.g. future income, which shares the primary accent) pass nothing.
+const DEFAULT_ACCENT = "var(--color-primary)";
+
+function account_for(accounts: InfoAccount[], account_id: string) {
+  return accounts.find((account) => account.id === account_id);
 }
 
 /** Presentational dynamic source rows. Fully controlled by the parent form
@@ -21,11 +24,13 @@ function account_label(
 export function AllocationsList(props: AllocationsListProps) {
   const {
     label,
+    helper_text,
     add_label,
     total_label,
     rows,
     accounts,
     currency,
+    accent_color,
     total,
     on_add,
     on_remove,
@@ -36,98 +41,115 @@ export function AllocationsList(props: AllocationsListProps) {
   } = props;
 
   return (
-    <div className="space-y-1.5">
-      <p className="text-[10px] font-mono uppercase tracking-wider text-muted">
-        {label}
-      </p>
+    <section
+      className="space-y-2"
+      style={{ "--alloc-accent": accent_color ?? DEFAULT_ACCENT } as CSSProperties}
+    >
+      <div className="px-1">
+        <p className={OVERLINE_CLASSES}>{label}</p>
+        {helper_text ? (
+          <p className="mt-0.5 text-[11px] text-muted/60">{helper_text}</p>
+        ) : null}
+      </div>
 
-      {root_error ? (
-        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1.5 text-[10px] text-red-400">
-          {root_error}
-        </p>
-      ) : null}
+      <div className={CARD_CLASSES}>
+        {root_error ? (
+          <p className="border-b border-white/5 bg-red-500/5 px-4 py-2 text-[11px] text-red-400">
+            {root_error}
+          </p>
+        ) : null}
 
-      <div className="space-y-2">
-        {rows.map((row: AllocationRowData, index: number) => {
-          const account_error = row_error?.(index, "account_id");
-          const amount_error = row_error?.(index, "amount");
+        <div className="divide-y divide-white/5">
+          {rows.map((row: AllocationRowData, index: number) => {
+            const account = account_for(accounts, row.account_id);
+            const account_error = row_error?.(index, "account_id");
+            const amount_error = row_error?.(index, "amount");
+            const row_message = account_error ?? amount_error;
 
-          return (
-            <div
-              key={row.key}
-              className="space-y-2 rounded-2xl border border-white/5 bg-black/20 p-2.5"
-            >
-              <div className="flex items-start gap-2">
-                <button
-                  type="button"
-                  onClick={() => on_account_click(index)}
-                  className="min-w-0 flex-1 rounded-xl border border-primary/20 bg-black/30 px-3 py-2 text-left transition-colors hover:border-primary/40"
-                >
-                  <span
-                    className={`block truncate text-xs ${
-                      row.account_id ? "text-zinc-100" : "text-muted"
-                    }`}
+            return (
+              <div key={row.key} className="px-4 py-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => on_account_click(index)}
+                    className="flex min-w-0 flex-1 cursor-pointer items-center rounded-lg py-0.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-(--alloc-accent)/30"
                   >
-                    {account_label(row.account_id, accounts, currency)}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => on_remove(index)}
-                  disabled={rows.length <= 1}
-                  aria-label="Remove account"
-                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-white/10 text-muted transition-colors hover:border-red-500/30 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={`block truncate text-xs ${
+                          account
+                            ? "font-medium text-zinc-100"
+                            : "text-muted/60"
+                        }`}
+                      >
+                        {account ? account.name : "Select account"}
+                      </span>
+                      {account ? (
+                        <span className="block truncate text-[10px] text-muted/60">
+                          Balance {currency}
+                          {FormatUtils.formatMoney(account.balance)}
+                        </span>
+                      ) : null}
+                    </span>
+                  </button>
 
-              {account_error ? (
-                <p className="text-[10px] text-red-400">{account_error}</p>
-              ) : null}
+                  <label className="flex shrink-0 items-baseline gap-1 rounded-lg px-1 py-1 transition-colors focus-within:bg-white/[0.03]">
+                    <span className="text-[10px] text-muted/70">
+                      {currency}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      aria-label="Amount"
+                      value={row.amount}
+                      onChange={(event) =>
+                        on_amount_change(index, event.target.value)
+                      }
+                      className="w-20 border-b border-transparent bg-transparent pb-0.5 text-right text-xs font-semibold tabular-nums text-zinc-100 placeholder:text-muted/40 transition-colors focus:border-(--alloc-accent)/50 focus:outline-none"
+                    />
+                  </label>
 
-              <div className="space-y-1.5">
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-muted">
-                    {currency}
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="0.00"
-                    value={row.amount}
-                    onChange={(event) => on_amount_change(index, event.target.value)}
-                    className="w-full rounded-xl border border-primary/20 bg-black/30 py-2.5 pl-8 pr-3.5 text-xs text-zinc-100 placeholder:text-muted/50 transition-colors focus:border-primary/60 focus:outline-none"
-                  />
+                  {rows.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => on_remove(index)}
+                      aria-label="Remove account"
+                      className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted/50 transition-colors hover:bg-white/[0.03] hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--alloc-accent)/30"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
                 </div>
-                {amount_error ? (
-                  <p className="text-[10px] text-red-400">{amount_error}</p>
+
+                {row_message ? (
+                  <p className="mt-0.5 pl-1 text-[11px] text-red-400">
+                    {row_message}
+                  </p>
                 ) : null}
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      <div className="flex items-center justify-between gap-2 pt-1">
-        <button
-          type="button"
-          onClick={on_add}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          {add_label}
-        </button>
-        <div className="text-right">
-          <p className="text-[10px] font-mono uppercase tracking-wider text-muted">
-            {total_label}
-          </p>
-          <p className="text-sm font-semibold text-foreground tabular-nums">
-            {currency}
-            {FormatUtils.formatMoney(total)}
-          </p>
+        <div className="flex items-center justify-between gap-2 border-t border-white/5 px-4 py-2.5">
+          <button
+            type="button"
+            onClick={on_add}
+            className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-(--alloc-accent) transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--alloc-accent)/30"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {add_label}
+          </button>
+          <div className="text-right">
+            <p className={`${OVERLINE_CLASSES}`}>{total_label}</p>
+            <p className="text-[12px] font-semibold tabular-nums leading-tight text-zinc-100">
+              {currency}
+              {FormatUtils.formatMoney(total)}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
