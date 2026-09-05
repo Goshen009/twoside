@@ -4,6 +4,8 @@ import { BorrowForm } from "@/components/transactions/forms/BorrowForm";
 import { ExpenseForm } from "@/components/transactions/forms/ExpenseForm";
 import { GiveLoanForm } from "@/components/transactions/forms/GiveLoanForm";
 import { IncomeForm } from "@/components/transactions/forms/IncomeForm";
+import { ReceiveRepaymentForm } from "@/components/transactions/forms/ReceiveRepaymentForm";
+import { RepayLoanForm } from "@/components/transactions/forms/RepayLoanForm";
 import { TransferForm } from "@/components/transactions/forms/TransferForm";
 import type { TransactionFormViewProps } from "@/types/types";
 
@@ -29,6 +31,14 @@ export function TransactionFormView({ transaction_type }: TransactionFormViewPro
 
   if (transaction_type === "borrow") {
     return <BorrowForm on_success={close} />;
+  }
+
+  if (transaction_type === "repay_loan") {
+    return <RepayLoanForm on_success={close} />;
+  }
+
+  if (transaction_type === "receive_repayment") {
+    return <ReceiveRepaymentForm on_success={close} />;
   }
 
   const Icon = meta.icon;

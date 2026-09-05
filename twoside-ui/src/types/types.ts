@@ -151,12 +151,33 @@ export type LogBorrowPayload = {
   destinations: LogBorrowDestination[];
 };
 
+export type LogRepayLoanSource = { account_id: string; amount: number };
+export type LogRepayLoanPayload = {
+  description: string;
+  transaction_date: string; // UTC ISO datetime ending in "Z"
+  loan_id: string;
+  sources: LogRepayLoanSource[];
+  bypass_warnings: string[];
+};
+
+export type LogReceiveRepaymentDestination = { account_id: string; amount: number };
+export type LogReceiveRepaymentPayload = {
+  description: string;
+  transaction_date: string; // UTC ISO datetime ending in "Z"
+  loan_id: string;
+  destinations: LogReceiveRepaymentDestination[];
+  bypass_warnings: string[];
+};
+
 export type PickerItem = { id: string; name: string; subtitle?: string };
 
 export type PickerSheetProps = {
   open: boolean;
   title: string;
   items: PickerItem[];
+  /** Tint for the selected state, radio dot and create action. Since the sheet
+   *  portals to <body>, callers pass their form accent explicitly. */
+  accent_color?: string;
   selected_id?: string | null;
   on_select: (id: string) => void;
   on_close: () => void;
@@ -194,6 +215,29 @@ export type NameFieldProps = {
   error?: string;
   optional_label?: string;
   on_click: () => void;
+};
+
+/** A card row that opens the loan picker. Shows the counterparty plus the
+ *  loan's outstanding balance once one is chosen. */
+export type LoanFieldProps = {
+  icon: LucideIcon;
+  loan: InfoLoan | null;
+  currency: string;
+  placeholder: string;
+  error?: string;
+  on_click: () => void;
+};
+
+export type LoanPickerSheetProps = {
+  open: boolean;
+  title: string;
+  loans: InfoLoan[];
+  currency: string;
+  accent_color: string;
+  selected_id?: string | null;
+  on_select: (loan_id: string) => void;
+  on_close: () => void;
+  empty_message?: string;
 };
 
 export type AllocationRowData = {
@@ -238,6 +282,14 @@ export type GiveLoanFormProps = {
 };
 
 export type BorrowFormProps = {
+  on_success: () => void;
+};
+
+export type RepayLoanFormProps = {
+  on_success: () => void;
+};
+
+export type ReceiveRepaymentFormProps = {
   on_success: () => void;
 };
 

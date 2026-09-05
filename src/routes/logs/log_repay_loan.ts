@@ -10,7 +10,7 @@ import Calc from "#/libs/calc.js";
 
 const schema = z.object({
 	...TransactionSchemas.commonFields(),
-	loan_id: z.uuid("loan_id is required and must be a valid UUID"),
+	loan_id: z.uuid("Loan ID is required and must be a valid UUID"),
   sources: TransactionSchemas.accountAllocations("source"),
   bypass_warnings: TransactionSchemas.bypassWarnings(['INSUFFICIENT_BALANCE', 'REPAYMENT_DATED_BEFORE']),
 });

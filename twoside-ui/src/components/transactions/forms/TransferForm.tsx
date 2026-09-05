@@ -332,6 +332,7 @@ export function TransferForm({ on_success }: TransferFormProps) {
       <PickerSheet
         open={active_picker === "from"}
         title="Transfer from"
+        accent_color={TRANSACTION_TYPE_META.transfer.accent}
         items={account_items}
         selected_id={active_picker === "from" ? from_account_id || null : null}
         on_select={(id) => choose_account("from", id)}
@@ -342,6 +343,7 @@ export function TransferForm({ on_success }: TransferFormProps) {
       <PickerSheet
         open={active_picker === "to"}
         title="Transfer to"
+        accent_color={TRANSACTION_TYPE_META.transfer.accent}
         items={account_items}
         selected_id={active_picker === "to" ? to_account_id || null : null}
         on_select={(id) => choose_account("to", id)}

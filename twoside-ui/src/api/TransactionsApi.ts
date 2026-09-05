@@ -4,6 +4,8 @@ import type {
   LogExpensePayload,
   LogGiveLoanPayload,
   LogIncomePayload,
+  LogReceiveRepaymentPayload,
+  LogRepayLoanPayload,
   LogTransferPayload,
 } from "@/types/types";
 
@@ -38,6 +40,22 @@ export class TransactionsAPI {
 
   static async logBorrow(payload: LogBorrowPayload): Promise<void> {
     await APIClient.request<{ message: string }>("/log/borrow", {
+      method: "POST",
+      body: payload,
+    });
+  }
+
+  static async logRepayLoan(payload: LogRepayLoanPayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/loan-repayed", {
+      method: "POST",
+      body: payload,
+    });
+  }
+
+  static async logReceiveRepayment(
+    payload: LogReceiveRepaymentPayload,
+  ): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/borrow-returned", {
       method: "POST",
       body: payload,
     });

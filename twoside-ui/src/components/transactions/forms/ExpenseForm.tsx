@@ -326,7 +326,7 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         accounts={accounts}
         currency={currency}
         accent_color={TRANSACTION_TYPE_META.expense.accent}
-        account_placeholder="Select account to pay from"
+        account_placeholder="Select account to spend from"
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
@@ -352,7 +352,8 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
 
       <PickerSheet
         open={active_picker?.kind === "account"}
-        title="Select account"
+        title="Select account to spend from"
+        accent_color={TRANSACTION_TYPE_META.expense.accent}
         items={
           active_picker?.kind === "account"
             ? account_items_for(active_picker.row_index)
@@ -370,7 +371,8 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
 
       <PickerSheet
         open={active_picker?.kind === "category"}
-        title="Category"
+        title="Categorize this as…"
+        accent_color={TRANSACTION_TYPE_META.expense.accent}
         items={category_items}
         selected_id={values.category_name ?? null}
         show_none

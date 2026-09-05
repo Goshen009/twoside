@@ -271,7 +271,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
         accounts={accounts}
         currency={currency}
         accent_color={TRANSACTION_TYPE_META.income.accent}
-        account_placeholder="Select account to deposit to"
+        account_placeholder="Select account to receive into"
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
@@ -295,7 +295,8 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
 
       <PickerSheet
         open={picker_row !== null}
-        title="Select account"
+        title="Select account to receive into"
+        accent_color={TRANSACTION_TYPE_META.income.accent}
         items={picker_row !== null ? account_items_for(picker_row) : account_items}
         selected_id={
           picker_row !== null

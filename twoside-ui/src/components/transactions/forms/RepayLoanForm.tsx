@@ -2,28 +2,30 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, User } from "lucide-react";
+import { AlertCircle, BanknoteArrowUp } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
 import { useWarningBypass } from "@/hooks/useWarningBypass";
 import { FormatUtils } from "@/lib/FormatUtils";
-import { giveLoanFormSchema, type GiveLoanFormValues } from "@/types/schemas";
+import { repayLoanFormSchema, type RepayLoanFormValues } from "@/types/schemas";
 import type { FieldPath } from "react-hook-form";
 import type {
   AllocationRowData,
-  GiveLoanFormProps,
+  InfoLoan,
   PickerItem,
+  RepayLoanFormProps,
 } from "@/types/types";
 import { AllocationsList } from "@/components/transactions/forms/shared/AllocationsList";
 import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeField";
 import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
-import { NameField } from "@/components/transactions/forms/shared/NameField";
+import { LoanField } from "@/components/transactions/forms/shared/LoanField";
+import { LoanPickerSheet } from "@/components/ui/LoanPickerSheet";
 import { PickerSheet } from "@/components/ui/PickerSheet";
 import { WarningToast } from "@/components/ui/WarningToast";
 
-type SourceRow = GiveLoanFormValues["sources"][number];
+type SourceRow = RepayLoanFormValues["sources"][number];
 
 type SourcesErrors = {
   message?: string;
@@ -33,9 +35,9 @@ type SourcesErrors = {
     | undefined;
 };
 
-type GiveLoanPickerTarget =
-  | { kind: "account"; row_index: number }
-  | { kind: "counterparty" };
+type RepayLoanPickerTarget =
+  | { kind: "loan" }
+  | { kind: "account"; row_index: number };
 
 const BLANK_SOURCE: SourceRow = { account_id: "", amount: "" };
 
@@ -49,7 +51,7 @@ function sanitize_amount_input(raw: string): string {
   return `${integer}.${fraction}`;
 }
 
-export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
+export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
   const { data, refetch } = useInfo();
   const {
     pending_warning,
@@ -69,12 +71,12 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     clearErrors,
     setError,
     formState: { errors },
-  } = useForm<GiveLoanFormValues>({
-    resolver: zodResolver(giveLoanFormSchema),
+  } = useForm<RepayLoanFormValues>({
+    resolver: zodResolver(repayLoanFormSchema),
     defaultValues: {
       description: "",
       transaction_date: FormatUtils.nowLocalValue(),
-      counterparty_name: "",
+      loan_id: "",
       sources: [{ ...BLANK_SOURCE }],
     },
   });
@@ -82,7 +84,7 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
   const [is_submitting, set_is_submitting] = useState(false);
   const [banner_error, set_banner_error] = useState<string | null>(null);
   const [active_picker, set_active_picker] =
-    useState<GiveLoanPickerTarget | null>(null);
+    useState<RepayLoanPickerTarget | null>(null);
 
   // Sources rows are value-managed (whole-array `setValue`, no per-row register),
   // so materialize the array in RHF's store once on mount. Guarantees the schema
@@ -104,7 +106,13 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     );
   }
 
-  const { currency, accounts, counterparties } = data;
+  const { currency, accounts, open_loans } = data;
+
+  const loans: InfoLoan[] = open_loans.filter(
+    (loan) => loan.direction === "BORROWED",
+  );
+  const loan_id = values.loan_id ?? "";
+  const selected_loan = loans.find((loan) => loan.id === loan_id) ?? null;
 
   const source_rows: SourceRow[] =
     values.sources && values.sources.length > 0 ? values.sources : [BLANK_SOURCE];
@@ -123,11 +131,6 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     id: account.id,
     name: account.name,
     subtitle: `${currency}${FormatUtils.formatMoney(account.balance)}`,
-  }));
-
-  const counterparty_items: PickerItem[] = counterparties.map((counterparty) => ({
-    id: counterparty.name,
-    name: counterparty.name,
   }));
 
   /** Accounts a row can still pick: everything except accounts already assigned
@@ -167,7 +170,7 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
           if (name === "sources") {
             setError("sources", { type: "server", message: field_error.message });
           } else {
-            setError(name as FieldPath<GiveLoanFormValues>, {
+            setError(name as FieldPath<RepayLoanFormValues>, {
               type: "server",
               message: field_error.message,
             });
@@ -183,16 +186,31 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     set_banner_error("Something went wrong. Please try again.");
   }
 
-  async function onSubmit(raw: GiveLoanFormValues): Promise<void> {
+  async function onSubmit(raw: RepayLoanFormValues): Promise<void> {
     clearErrors();
     set_banner_error(null);
+
+    const total_amount = raw.sources.reduce(
+      (sum, row) => sum + Number(row.amount),
+      0,
+    );
+    const loan = loans.find((l) => l.id === raw.loan_id);
+    if (loan && total_amount > loan.amount - loan.total_repaid) {
+      // The backend rejects this too; catching it here avoids a round trip.
+      setError("sources", {
+        type: "client",
+        message: "This repayment is more than what's left on this loan",
+      });
+      return;
+    }
+
     set_is_submitting(true);
     const codes = pending_warning ? confirmWarning() : bypassed_codes;
     try {
-      await TransactionsAPI.logGiveLoan({
+      await TransactionsAPI.logRepayLoan({
         description: raw.description,
         transaction_date: FormatUtils.toUtcIso(raw.transaction_date),
-        counterparty_name: raw.counterparty_name,
+        loan_id: raw.loan_id,
         sources: raw.sources.map((row) => ({
           account_id: row.account_id,
           amount: Number(row.amount),
@@ -214,12 +232,18 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     setValue("sources", next, { shouldValidate: false });
   }
 
+  function handle_loan_click(): void {
+    set_active_picker({ kind: "loan" });
+  }
+
   function handle_account_click(index: number): void {
     set_active_picker({ kind: "account", row_index: index });
   }
 
-  function handle_counterparty_click(): void {
-    set_active_picker({ kind: "counterparty" });
+  function handle_loan_select(id: string): void {
+    setValue("loan_id", id);
+    clearErrors();
+    dismiss_on_edit();
   }
 
   function handle_account_select(id: string): void {
@@ -230,12 +254,6 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
         source_rows.map((row, i) => (i === index ? { ...row, account_id: id } : row)),
       );
     }
-    clearErrors();
-    dismiss_on_edit();
-  }
-
-  function handle_counterparty_select(name: string): void {
-    setValue("counterparty_name", name);
     clearErrors();
     dismiss_on_edit();
   }
@@ -273,7 +291,7 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
       noValidate
       className="space-y-5"
       style={{
-        "--form-accent": TRANSACTION_TYPE_META.give_loan.accent,
+        "--form-accent": TRANSACTION_TYPE_META.repay_loan.accent,
       } as CSSProperties}
     >
       {banner_error ? (
@@ -290,7 +308,7 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
       <div className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
         <DescriptionField
           label="Description"
-          placeholder="Who did you lend to and why?"
+          placeholder="What is this repayment for?"
           error={errors.description?.message}
           {...register("description")}
         />
@@ -301,12 +319,13 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
           value={values.transaction_date ?? ""}
         />
 
-        <NameField
-          icon={User}
-          value={values.counterparty_name || null}
-          placeholder="Who are you lending to?"
-          error={errors.counterparty_name?.message}
-          on_click={handle_counterparty_click}
+        <LoanField
+          icon={BanknoteArrowUp}
+          loan={selected_loan}
+          currency={currency}
+          placeholder="Which loan are you repaying?"
+          error={errors.loan_id?.message}
+          on_click={handle_loan_click}
         />
       </div>
 
@@ -316,8 +335,8 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
         rows={rows}
         accounts={accounts}
         currency={currency}
-        accent_color={TRANSACTION_TYPE_META.give_loan.accent}
-        account_placeholder="Select account to lend from"
+        accent_color={TRANSACTION_TYPE_META.repay_loan.accent}
+        account_placeholder="Select account to repay from"
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
@@ -335,16 +354,28 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
         {is_submitting ? (
           <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
         ) : pending_warning ? (
-          "Bypass & Lend Money"
+          "Bypass & Repay Loan"
         ) : (
-          "Lend Money"
+          "Repay Loan"
         )}
       </button>
 
+      <LoanPickerSheet
+        open={active_picker?.kind === "loan"}
+        title="Which loan are you repaying?"
+        loans={loans}
+        currency={currency}
+        accent_color={TRANSACTION_TYPE_META.repay_loan.accent}
+        selected_id={active_picker?.kind === "loan" ? loan_id || null : null}
+        on_select={handle_loan_select}
+        on_close={close_picker}
+        empty_message="No borrowed loans to repay"
+      />
+
       <PickerSheet
         open={active_picker?.kind === "account"}
-        title="Select account to lend from"
-        accent_color={TRANSACTION_TYPE_META.give_loan.accent}
+        title="Select account to repay from"
+        accent_color={TRANSACTION_TYPE_META.repay_loan.accent}
         items={
           active_picker?.kind === "account"
             ? account_items_for(active_picker.row_index)
@@ -358,21 +389,6 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
         on_select={handle_account_select}
         on_close={close_picker}
         empty_message="No accounts found"
-      />
-
-      <PickerSheet
-        open={active_picker?.kind === "counterparty"}
-        title="Who are you lending to?"
-        accent_color={TRANSACTION_TYPE_META.give_loan.accent}
-        items={counterparty_items}
-        selected_id={values.counterparty_name || null}
-        show_create
-        create_label="Create new…"
-        create_placeholder="New counterparty name"
-        on_create={handle_counterparty_select}
-        on_select={handle_counterparty_select}
-        on_close={close_picker}
-        empty_message="No counterparties yet"
       />
     </form>
   );

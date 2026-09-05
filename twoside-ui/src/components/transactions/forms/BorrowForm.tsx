@@ -302,7 +302,7 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
         accounts={accounts}
         currency={currency}
         accent_color={TRANSACTION_TYPE_META.borrow.accent}
-        account_placeholder="Select account to receive borrowed money"
+        account_placeholder="Select account to receive into"
         total={total}
         on_add={handle_add_row}
         on_remove={handle_remove_row}
@@ -326,7 +326,8 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
 
       <PickerSheet
         open={active_picker?.kind === "account"}
-        title="Select account"
+        title="Select account to receive into"
+        accent_color={TRANSACTION_TYPE_META.borrow.accent}
         items={
           active_picker?.kind === "account"
             ? account_items_for(active_picker.row_index)
@@ -345,6 +346,7 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
       <PickerSheet
         open={active_picker?.kind === "counterparty"}
         title="Who are you borrowing from?"
+        accent_color={TRANSACTION_TYPE_META.borrow.accent}
         items={counterparty_items}
         selected_id={values.counterparty_name || null}
         show_create

@@ -9,7 +9,7 @@ import TransactionSchemas from "#/libs/transaction-schemas.js";
 
 const schema = z.object({
 	...TransactionSchemas.commonFields(),
-	loan_id: z.uuid("loan_id is required and must be a valid UUID"),
+	loan_id: z.uuid("Loan ID is required and must be a valid UUID"),
   destinations: TransactionSchemas.accountAllocations("destination"),
   bypass_warnings: TransactionSchemas.bypassWarnings(['REPAYMENT_DATED_BEFORE']),
 });

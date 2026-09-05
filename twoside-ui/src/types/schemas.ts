@@ -247,3 +247,83 @@ export const borrowFormSchema = z.object({
 });
 
 export type BorrowFormValues = z.infer<typeof borrowFormSchema>;
+
+const repay_loan_source_row_schema = z.object({
+  account_id: z.string().trim().min(1, "Select an account"),
+  amount: amount_string_schema,
+});
+
+export const repayLoanFormSchema = z.object({
+  description: z
+    .string()
+    .trim()
+    .min(1, "Description must not be empty")
+    .max(100, "Description must not be more than 100 letters"),
+  transaction_date: z
+    .string()
+    .trim()
+    .min(1, "Date and time are required")
+    .refine((value) => {
+      const normalized = value.length === 16 ? `${value}:00` : value;
+      return !Number.isNaN(new Date(normalized).getTime());
+    }, "Enter a valid date and time"),
+  loan_id: z.string().trim().min(1, "Select the loan to repay"),
+  sources: z
+    .array(repay_loan_source_row_schema)
+    .min(1, "At least one source account is required")
+    .refine(
+      (rows) => {
+        const seen = new Set<string>();
+        for (const row of rows) {
+          if (!row.account_id) continue; // empty rows surface "Select an account", not this
+          if (seen.has(row.account_id)) return false;
+          seen.add(row.account_id);
+        }
+        return true;
+      },
+      "The same account cannot appear more than once",
+    ),
+});
+
+export type RepayLoanFormValues = z.infer<typeof repayLoanFormSchema>;
+
+const receive_repayment_destination_row_schema = z.object({
+  account_id: z.string().trim().min(1, "Select an account"),
+  amount: amount_string_schema,
+});
+
+export const receiveRepaymentFormSchema = z.object({
+  description: z
+    .string()
+    .trim()
+    .min(1, "Description must not be empty")
+    .max(100, "Description must not be more than 100 letters"),
+  transaction_date: z
+    .string()
+    .trim()
+    .min(1, "Date and time are required")
+    .refine((value) => {
+      const normalized = value.length === 16 ? `${value}:00` : value;
+      return !Number.isNaN(new Date(normalized).getTime());
+    }, "Enter a valid date and time"),
+  loan_id: z.string().trim().min(1, "Select the loan to collect"),
+  destinations: z
+    .array(receive_repayment_destination_row_schema)
+    .min(1, "At least one destination account is required")
+    .refine(
+      (rows) => {
+        const seen = new Set<string>();
+        for (const row of rows) {
+          if (!row.account_id) continue; // empty rows surface "Select an account", not this
+          if (seen.has(row.account_id)) return false;
+          seen.add(row.account_id);
+        }
+        return true;
+      },
+      "The same account cannot appear more than once",
+    ),
+});
+
+export type ReceiveRepaymentFormValues = z.infer<
+  typeof receiveRepaymentFormSchema
+>;

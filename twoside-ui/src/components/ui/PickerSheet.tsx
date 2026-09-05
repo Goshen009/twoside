@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { Plus, Search } from "lucide-react";
 import { Sheet } from "@/components/ui/Sheet";
 import type { PickerSheetProps } from "@/types/types";
 
 /**
  * Reusable searchable single-select picker. Rendered as a Sheet (bottom-sheet
- * chrome lives once in Sheet.tsx) layered above whatever opened it.
+ * chrome lives once in Sheet.tsx) layered above whatever opened it. The accent
+ * (radio dot, selected ring, create action) matches the form's accent when the
+ * caller passes one — otherwise it falls back to the theme primary.
  */
 export function PickerSheet(props: PickerSheetProps) {
   const {
@@ -24,6 +27,7 @@ export function PickerSheet(props: PickerSheetProps) {
     on_create,
     search_placeholder = "Search",
     empty_message = "No options",
+    accent_color = "var(--color-primary)",
   } = props;
 
   const [query, setQuery] = useState("");
@@ -63,7 +67,10 @@ export function PickerSheet(props: PickerSheetProps) {
 
   return (
     <Sheet open={open} on_close={on_close} title={title}>
-      <div className="flex flex-col gap-2">
+      <div
+        className="flex flex-col gap-2"
+        style={{ "--form-accent": accent_color } as CSSProperties}
+      >
         {creating ? (
           <div className="space-y-2 py-1">
             <input
@@ -75,7 +82,7 @@ export function PickerSheet(props: PickerSheetProps) {
                 if (event.key === "Enter") confirmCreate();
               }}
               placeholder={create_placeholder}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-xs text-zinc-100 placeholder:text-muted/50 focus:border-primary/50 focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-xs text-zinc-100 placeholder:text-muted/50 focus:border-(--form-accent)/50 focus:outline-none"
             />
             <div className="flex gap-2">
               <button
@@ -89,7 +96,7 @@ export function PickerSheet(props: PickerSheetProps) {
                 type="button"
                 disabled={!new_name.trim()}
                 onClick={confirmCreate}
-                className="flex-1 cursor-pointer rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-40"
+                className="flex-1 cursor-pointer rounded-xl bg-(--form-accent) px-3 py-2 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-40"
               >
                 Create
               </button>
@@ -105,7 +112,7 @@ export function PickerSheet(props: PickerSheetProps) {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder={search_placeholder}
-                  className="w-full rounded-xl border border-white/10 bg-black/30 py-2 pl-8 pr-3 text-xs text-zinc-100 placeholder:text-muted/50 focus:border-primary/50 focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-black/30 py-2 pl-8 pr-3 text-xs text-zinc-100 placeholder:text-muted/50 focus:border-(--form-accent)/50 focus:outline-none"
                 />
               </div>
             ) : null}
@@ -117,7 +124,7 @@ export function PickerSheet(props: PickerSheetProps) {
                   onClick={chooseNone}
                   className={`flex w-full cursor-pointer items-center justify-between rounded-xl border px-3 py-2.5 text-left transition-colors ${
                     selected_id == null
-                      ? "border-primary/40 bg-primary/10"
+                      ? "border-(--form-accent)/40 bg-(--form-accent)/10"
                       : "border-white/5 bg-black/20 hover:bg-white/5"
                   }`}
                 >
@@ -129,7 +136,7 @@ export function PickerSheet(props: PickerSheetProps) {
                     {none_label}
                   </span>
                   {selected_id == null ? (
-                    <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-(--form-accent)" />
                   ) : null}
                 </button>
               ) : null}
@@ -143,7 +150,7 @@ export function PickerSheet(props: PickerSheetProps) {
                     onClick={() => choose(item.id)}
                     className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors ${
                       is_selected
-                        ? "border-primary/40 bg-primary/10"
+                        ? "border-(--form-accent)/40 bg-(--form-accent)/10"
                         : "border-white/5 bg-black/20 hover:bg-white/5"
                     }`}
                   >
@@ -162,7 +169,7 @@ export function PickerSheet(props: PickerSheetProps) {
                       ) : null}
                     </span>
                     {is_selected ? (
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-(--form-accent)" />
                     ) : null}
                   </button>
                 );
@@ -172,7 +179,7 @@ export function PickerSheet(props: PickerSheetProps) {
                 <button
                   type="button"
                   onClick={() => setCreating(true)}
-                  className="flex w-full cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/10 px-3 py-2.5 text-left text-xs text-primary transition-colors hover:bg-primary/5"
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/10 px-3 py-2.5 text-left text-xs text-(--form-accent) transition-colors hover:bg-(--form-accent)/5"
                 >
                   <Plus className="h-3.5 w-3.5 shrink-0" />
                   {create_label}

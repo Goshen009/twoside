@@ -1,10 +1,10 @@
 import {
   ArrowLeftRight,
-  Banknote,
-  Download,
+  BanknoteArrowDown,
+  BanknoteArrowUp,
   HandCoins,
+  Handshake,
   Receipt,
-  Send,
   TrendingUp,
 } from "lucide-react";
 import type { TransactionType, TransactionTypeMeta } from "@/types/types";
@@ -14,7 +14,7 @@ export const TRANSACTION_TYPE_META: Record<TransactionType, TransactionTypeMeta>
     icon: Receipt,
     label: "Expense",
     description: "Spend from an account",
-    accent: "#ff6f61",
+    accent: "#fb7185",
     group: "core",
   },
   income: {
@@ -39,21 +39,21 @@ export const TRANSACTION_TYPE_META: Record<TransactionType, TransactionTypeMeta>
     group: "loans",
   },
   borrow: {
-    icon: Banknote,
+    icon: Handshake,
     label: "Borrow",
     description: "Take money from someone",
     accent: "#a78bfa",
     group: "loans",
   },
   repay_loan: {
-    icon: Send,
+    icon: BanknoteArrowUp,
     label: "Repay Loan",
     description: "Pay back money you borrowed",
     accent: "#fb923c",
     group: "loans",
   },
   receive_repayment: {
-    icon: Download,
+    icon: BanknoteArrowDown,
     label: "Receive Repayment",
     description: "Collect money you lent",
     accent: "#34d399",
