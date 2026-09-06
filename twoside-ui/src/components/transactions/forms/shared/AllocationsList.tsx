@@ -19,38 +19,51 @@ function account_for(accounts: InfoAccount[], account_id: string) {
   return accounts.find((account) => account.id === account_id);
 }
 
-/** One compact money field in a row's Amount/Charge pair. Right-aligned so the
- *  digits line up across every row no matter how long the account names are. */
-function MoneyCell({
-  label,
+/** A borderless, right-aligned money input on a bottom hairline that lights up
+ *  in the accent on focus. `leading` is a tiny prefix (the currency for the
+ *  primary amount). Pass `dim` for the secondary charge figure so it renders
+ *  faint (accent "+", muted digits) and reads as a fee note, not a rival
+ *  column to the Amount. */
+function MoneyInput({
+  leading,
   value,
-  currency,
-  error,
+  aria_label,
   on_change,
+  dim = false,
+  width = "w-full",
 }: {
-  label: string;
+  leading: string;
   value: string;
-  currency: string;
-  error?: string;
+  aria_label: string;
   on_change: (value: string) => void;
+  dim?: boolean;
+  width?: string;
 }) {
   return (
-    <div className="w-full min-w-0">
-      <p className={OVERLINE_CLASSES}>{label}</p>
-      <label className="mt-0.5 flex cursor-text items-baseline gap-1 rounded-lg px-1 py-0.5 transition-colors focus-within:bg-white/[0.03]">
-        <span className="text-[10px] text-muted/70">{currency}</span>
-        <input
-          type="text"
-          inputMode="decimal"
-          placeholder="0"
-          aria-label={label}
-          value={value}
-          onChange={(event) => on_change(event.target.value)}
-          className="w-full border-b border-transparent bg-transparent pb-0.5 text-right text-xs font-semibold tabular-nums text-zinc-100 placeholder:text-muted/40 transition-colors focus:border-(--alloc-accent)/50 focus:outline-none"
-        />
-      </label>
-      {error ? <p className="px-1 text-[11px] text-red-400">{error}</p> : null}
-    </div>
+    <label className="flex cursor-text items-baseline gap-1 rounded-lg px-1 py-0.5 transition-colors focus-within:bg-white/[0.03]">
+      <span
+        className={
+          dim
+            ? "text-[10px] font-semibold text-(--alloc-accent)/80"
+            : "text-[10px] text-muted/70"
+        }
+      >
+        {leading}
+      </span>
+      <input
+        type="text"
+        inputMode="decimal"
+        placeholder={dim ? "" : "0"}
+        aria-label={aria_label}
+        value={value}
+        onChange={(event) => on_change(event.target.value)}
+        className={`${width} border-b border-transparent bg-transparent pb-0.5 text-right tabular-nums transition-colors focus:border-(--alloc-accent)/50 focus:outline-none ${
+          dim
+            ? "text-[10px] font-normal text-muted placeholder:text-muted/30"
+            : "text-xs font-semibold text-zinc-100 placeholder:text-muted/40"
+        }`}
+      />
+    </label>
   );
 }
 
@@ -163,39 +176,46 @@ export function AllocationsList(props: AllocationsListProps) {
                   </p>
                 ) : null}
 
-                {/* Amount (fills) + hairline + Charge (narrow): the pair reads
-                    as one unit, a quiet divider separates the columns, and
-                    every row's digits right-align on the same two columns. */}
-                <div className="mt-2.5 flex items-stretch gap-3">
-                  <div className="min-w-0 flex-1">
-                    <MoneyCell
-                      label="Amount"
-                      currency={currency}
+                {/* Money line: the Amount is the sole bright field; an optional
+                    charge rides faintly to its right (+prefix) so it reads as a
+                    fee note rather than a competing column. Errors fall below. */}
+                <div className="mt-2.5 flex items-baseline gap-3">
+                  <div className="flex min-w-0 flex-1 items-baseline justify-end">
+                    <MoneyInput
+                      leading={currency}
                       value={row.amount}
-                      error={amount_error}
+                      aria_label="Amount"
                       on_change={(value) => on_amount_change(index, value)}
                     />
                   </div>
-                  <div
-                    aria-hidden
-                    className="w-px shrink-0 self-stretch bg-white/5"
-                  />
-                  <div className="w-24 shrink-0">
-                    <MoneyCell
-                      label="Charge"
-                      currency={currency}
+                  <div className="shrink-0">
+                    <MoneyInput
+                      leading="+"
                       value={row.charge}
-                      error={charge_error}
+                      aria_label="Charge"
                       on_change={(value) => on_charge_change(index, value)}
+                      dim
+                      width="w-16"
                     />
                   </div>
                 </div>
+
+                {amount_error ? (
+                  <p className="mt-1 pl-1 text-[11px] text-red-400">
+                    {amount_error}
+                  </p>
+                ) : null}
+                {charge_error ? (
+                  <p className="mt-1 pl-1 text-[11px] text-red-400">
+                    {charge_error}
+                  </p>
+                ) : null}
               </div>
             );
           })}
         </div>
 
-        <div className="flex items-center justify-between gap-2 border-t border-white/5 px-4 py-2.5">
+        <div className="flex items-center justify-between gap-2 border-t border-white/5 px-4 py-3">
           <button
             type="button"
             onClick={on_add}
@@ -204,24 +224,19 @@ export function AllocationsList(props: AllocationsListProps) {
             <Plus className="h-3.5 w-3.5" />
             {add_label}
           </button>
+          {/* One figure: the real all-in money. Charges are folded in, so the
+              caption switches to the polarity label (Total paid / Net received)
+              only once a charge is actually present. */}
           <div className="text-right">
-            <p className={`${OVERLINE_CLASSES}`}>{total_label}</p>
-            <p className="text-[12px] font-semibold tabular-nums leading-tight text-zinc-100">
-              {currency}
-              {FormatUtils.formatMoney(total)}
+            <p className={OVERLINE_CLASSES}>
+              {has_charges ? combined_label : total_label}
             </p>
-            {has_charges ? (
-              <>
-                <p className="mt-1 text-[10px] leading-tight text-muted/60">
-                  Charges {currency}
-                  {FormatUtils.formatMoney(charge_total)}
-                </p>
-                <p className="text-[11px] font-semibold leading-tight tabular-nums text-muted">
-                  {combined_label} {currency}
-                  {FormatUtils.formatMoney(combined)}
-                </p>
-              </>
-            ) : null}
+            <p className="mt-0.5 text-sm font-semibold tabular-nums leading-tight text-zinc-100">
+              <span className="mr-0.5 text-[10px] font-normal text-muted/70">
+                {currency}
+              </span>
+              {FormatUtils.formatMoney(combined)}
+            </p>
           </div>
         </div>
       </div>
