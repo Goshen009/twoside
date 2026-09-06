@@ -91,9 +91,8 @@ export type InfoLoan = {
 };
 
 export type InfoData = {
-  locale: string; // BCP-47 tag, e.g. "en-NG"
-  currency: string; // ISO 4217 code, e.g. "NGN"
-  IANA: string; // "Africa/Lagos"
+  currency_symbol: string; // "₦"
+  iana_timezone: string; // "Africa/Lagos"
   accounts: InfoAccount[];
   categories: InfoCategory[];
   counterparties: InfoCounterparty[];

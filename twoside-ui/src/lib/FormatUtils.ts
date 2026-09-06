@@ -1,17 +1,5 @@
 export class FormatUtils {
-  /** ISO 4217 code → currency symbol for the locale (e.g. "NGN"+en-NG → "₦").
-   *  Falls back to the raw code if Intl has no symbol for the pair. */
-  static currencySymbol(locale: string, currency: string): string {
-    const parts = new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-    }).formatToParts(0);
-    return parts.find((part) => part.type === "currency")?.value ?? currency;
-  }
-
-  /** Grouped number, always 2dp, NO currency prefix (symbol rendered separately
-   *  via `currencySymbol`). All supported locales (en-NG/GH/GB/AU/US) group as
-   *  en-NG does (comma thousands, dot fraction), so this holds for the set. */
+  /** en-NG grouping, always 2dp, NO currency prefix (prefix rendered separately). */
   static formatMoney(amount: number): string {
     return amount.toLocaleString("en-NG", {
       minimumFractionDigits: 2,

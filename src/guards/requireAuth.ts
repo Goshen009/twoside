@@ -16,9 +16,8 @@ export default fp(async (fastify) => {
 				id: true,
 				username: true,
 				accounts: true,
-      	locale: true,
-				currency: true,
     		iana_timezone: true,
+				currency_symbol: true,
 			},
 		})
 		
@@ -47,9 +46,8 @@ export type AuthenticatedUser = Prisma.UserGetPayload<{
 		id: true,
 		username: true,
 		accounts: true,
-		locale: true,
-		currency: true,
     iana_timezone: true,
+		currency_symbol: true,
 	}
 }> & { 
 	system_accounts: SystemAccountMap

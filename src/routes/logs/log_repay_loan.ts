@@ -38,7 +38,7 @@ async function handler(
   	const loan = await Ledger.checkLoan(tx, user.id, loan_id, LoanDirection.BORROWED, total_amount, new Date(transaction_date), bypass_warnings);
     
   	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
-  		await Ledger.checkSufficientBalance(tx, source_lines, new Date(transaction_date), user.currency, user.locale);
+  		await Ledger.checkSufficientBalance(tx, source_lines, new Date(transaction_date), user.currency_symbol);
   	}
    
     await Ledger.logTransaction(tx, {

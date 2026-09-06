@@ -94,8 +94,7 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
     );
   }
 
-  const { currency: currency_code, locale, accounts, counterparties } = data;
-  const currency = FormatUtils.currencySymbol(locale, currency_code);
+  const { currency_symbol: currency, accounts, counterparties } = data;
 
   const destination_rows: DestinationRow[] =
     values.destinations && values.destinations.length > 0

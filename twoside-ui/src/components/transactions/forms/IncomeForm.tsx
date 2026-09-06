@@ -87,8 +87,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
     );
   }
 
-  const { currency: currency_code, locale, accounts } = data;
-  const currency = FormatUtils.currencySymbol(locale, currency_code);
+  const { currency_symbol: currency, accounts } = data;
 
   const destination_rows: DestinationRow[] =
     values.destinations && values.destinations.length > 0

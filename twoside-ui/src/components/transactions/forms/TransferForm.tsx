@@ -120,8 +120,7 @@ export function TransferForm({ on_success }: TransferFormProps) {
     );
   }
 
-  const { currency: currency_code, locale, accounts } = data;
-  const currency = FormatUtils.currencySymbol(locale, currency_code);
+  const { currency_symbol: currency, accounts } = data;
   const from_account_id = values.from_account_id ?? "";
   const to_account_id = values.to_account_id ?? "";
   const from_account = accounts.find(

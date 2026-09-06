@@ -99,8 +99,7 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
     );
   }
 
-  const { currency: currency_code, locale, accounts, categories } = data;
-  const currency = FormatUtils.currencySymbol(locale, currency_code);
+  const { currency_symbol: currency, accounts, categories } = data;
 
   const source_rows: SourceRow[] =
     values.sources && values.sources.length > 0 ? values.sources : [BLANK_SOURCE];

@@ -100,8 +100,7 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
     );
   }
 
-  const { currency: currency_code, locale, accounts, open_loans } = data;
-  const currency = FormatUtils.currencySymbol(locale, currency_code);
+  const { currency_symbol: currency, accounts, open_loans } = data;
 
   const loans: InfoLoan[] = open_loans.filter(
     (loan) => loan.direction === "BORROWED",

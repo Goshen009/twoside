@@ -58,10 +58,9 @@ class Ledger {
 	  tx: PrismaClient | Prisma.TransactionClient,
 	  lines: { id: string; name: string; type: AccountType; amount: number }[],
 	  target_date: Date,
-		currency: string,
-		locale: string
+		currency_symbol: string,
 	) {
-		const format = (amount: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(amount);
+		const format = (amount: number) => `${currency_symbol}${amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 	
 	  const balances = await Balances.getBalancesAtDate(tx, lines, target_date);
 	  lines.forEach(l => {

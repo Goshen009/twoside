@@ -39,9 +39,8 @@ async function handler(
 	]);
 
   return reply.code(200).send({
-  	locale: user.locale,
-  	currency: user.currency,
-   	IANA: user.iana_timezone,
+  	currency_symbol: user.currency_symbol,
+   	iana_timezone: user.iana_timezone,
     accounts: accounts.map(a => ({
     	id: a.id,
      	name: a.name,

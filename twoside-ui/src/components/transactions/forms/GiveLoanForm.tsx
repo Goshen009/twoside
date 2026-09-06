@@ -98,8 +98,7 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     );
   }
 
-  const { currency: currency_code, locale, accounts, counterparties } = data;
-  const currency = FormatUtils.currencySymbol(locale, currency_code);
+  const { currency_symbol: currency, accounts, counterparties } = data;
 
   const source_rows: SourceRow[] =
     values.sources && values.sources.length > 0 ? values.sources : [BLANK_SOURCE];
