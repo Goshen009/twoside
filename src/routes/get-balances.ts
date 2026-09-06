@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
-import Balances from "#/libs/balances.js";
+// import Balances from "#/libs/balances.js";
 import Calc from "#/libs/calc.js";
 
 async function handler(
@@ -11,13 +11,14 @@ async function handler(
 
   const asset_accounts = user.accounts.filter((a) => a.type === 'ASSET' && a.system_role === null);
 
-  const now = new Date();
+  // const now = new Date();
 
   const balances = await Promise.all(
     asset_accounts.map(async (account) => ({
       account_id: account.id,
       name: account.name,
-      balance: await Balances.getBalanceAtDate(this.prisma, account.id, account.type, now),
+      balance: 0,
+      // balance: await Balances.getBalanceAtDate(this.prisma, account.id, account.type, now),
     }))
   );
 

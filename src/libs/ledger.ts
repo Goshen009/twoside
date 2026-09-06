@@ -3,6 +3,7 @@ import { APIError } from "#/errors/APIError.js";
 import { Prisma } from "#/prisma/client.js";
 
 import Calc from "./calc.js";
+import Balances from "./balances.js";
 
 type CashflowDirection = 'INCREASE' | 'DECREASE';
 
@@ -19,8 +20,16 @@ class Ledger {
 		return account;
 	}
 	
-	static async checkLoan(prisma: PrismaClient, user_id: string, loan_id: string, expected_direction: LoanDirection) {
-	  const loan = await prisma.loan.findFirst({
+	static async checkLoan(
+		tx: PrismaClient | Prisma.TransactionClient,
+		user_id: string,
+		loan_id: string,
+		expected_direction: LoanDirection,
+		total_amount: number,
+		transaction_date: Date,
+		bypass_warnings: string[]
+	) {
+	  const loan = await tx.loan.findFirst({
 	    where: { id: loan_id, transaction_group: { user_id } },
 	    include: { repayments: true, counterparty: true },
 	  });
@@ -33,8 +42,36 @@ class Ledger {
 		
 	  const total_repaid = loan.repayments.reduce((sum, r) => sum + Calc.toWholeNumber(Number(r.amount)), 0);
 	  const remaining = Calc.toWholeNumber(Number(loan.amount)) - total_repaid;
+
+		if (Calc.toWholeNumber(total_amount) > remaining)
+    	throw APIError.custom({ status: 400, message: `This payment exceeds what's left on this loan` });
+
+		if (!bypass_warnings.includes("REPAYMENT_DATED_BEFORE") && transaction_date < loan.date_issued) {
+	    const formatted = loan.date_issued.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+	    throw APIError.warning("REPAYMENT_DATED_BEFORE", `This repayment is dated before the loan was issued (${formatted}).`);
+	  }
 		
 	  return { ...loan, remaining_cents: remaining };
+	}
+
+	static async checkSufficientBalance(
+	  tx: PrismaClient | Prisma.TransactionClient,
+	  lines: { id: string; name: string; type: AccountType; amount: number }[],
+	  target_date: Date,
+		currency: string,
+		locale: string
+	) {
+		const format = (amount: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(amount);
+	
+	  const balances = await Balances.getBalancesAtDate(tx, lines, target_date);
+	  lines.forEach(l => {
+	    const balance_in_account = balances[l.id];
+	    if (balance_in_account === undefined)
+	      throw APIError.custom({ status: 500, message: `Could not resolve balance for account ${l.name}` });
+		
+	    if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(l.amount))
+	      throw APIError.warning("INSUFFICIENT_BALANCE", `${l.name} only has ${format(balance_in_account)} but ${format(l.amount)} was requested.`);
+	  });
 	}
 
 	static resolveAccountingSide(type: AccountType, cashflow_direction: CashflowDirection): AccountingSide {

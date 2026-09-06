@@ -32,6 +32,9 @@ async function handler(
  			data: {
   			username,
    			password,
+      	locale: 'en-NG', // hardcoded for now,
+       	currency: 'NGN', // hardcoded for now,
+        iana_timezone: 'Africa/Lagos', // hardcoded for now
      		accounts: {
      			create: [
 	       		{ name: 'Cash', type: 'ASSET', system_role: null, balance_snapshots },

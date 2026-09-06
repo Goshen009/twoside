@@ -3,7 +3,6 @@ import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
 
 import TransactionSchemas from "#/libs/transaction-schemas.js";
-import Balances from "#/libs/balances.js";
 import Ledger from "#/libs/ledger.js";
 import Domain from "#/libs/domain.js";
 import Calc from "#/libs/calc.js";
@@ -23,26 +22,22 @@ async function handler(
   const user = await request.requireAuth();
   const { description, transaction_date, counterparty_name, sources, bypass_warnings } = request.body;
 
-  const source_lines = await Promise.all(
- 		sources.map(async (s) => {
- 			const account = Ledger.checkAccount(s.account_id, user.accounts);
-    	if (account.type !== 'ASSET')
-     		throw APIError.custom({ status: 400, message: "Loans can only be given from asset accounts" });
-
-    	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
-	     	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, account.id, account.type, new Date(transaction_date));
-				if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(s.amount))
-					throw APIError.warning("INSUFFICIENT_BALANCE", TransactionSchemas.insufficientBalanceMessage(account.name, balance_in_account, s.amount));
-      }
-      
-     	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
-   	})
-  );
+  const source_lines = sources.map(s => {
+  	const account = Ledger.checkAccount(s.account_id, user.accounts);
+  	if (account.type !== 'ASSET')
+   		throw APIError.custom({ status: 400, message: "Loans can only be given from asset accounts" });
+   
+   	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
+  });
 
   const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
   const receivables_account = user.system_accounts.RECEIVABLES!;
 
   await this.prisma.$transaction(async (tx) => {
+  	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
+   		await Ledger.checkSufficientBalance(tx, source_lines, new Date(transaction_date), user.currency, user.locale);
+   	}
+  
  		const resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)
   
     await Ledger.logTransaction(tx, {

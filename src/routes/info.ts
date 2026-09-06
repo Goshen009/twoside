@@ -16,8 +16,8 @@ async function handler(
 	  this.prisma.user.findUnique({
 	    where: { id: user.id },
 	    select: {
-	      categories: { where: { is_active: true }, select: { id: true, name: true } },
-	      counterparties: { where: { is_active: true }, select: { id: true, name: true } },
+	      categories: { where: { is_active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } },
+				counterparties: { where: { is_active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } },
 	    },
 	  }),
 	  this.prisma.loan.findMany({
@@ -38,16 +38,14 @@ async function handler(
 		Balances.getBalancesAtDate(this.prisma, accounts, new Date())
 	]);
 
-	// this new date over here might just be wrong though.
-	// but then I want it to be 
-
   return reply.code(200).send({
-  	currency: "₦",  // hard-coded for now
-   	IANA: "Africa/Lagos", // also hardcoded for now
+  	locale: user.locale,
+  	currency: user.currency,
+   	IANA: user.iana_timezone,
     accounts: accounts.map(a => ({
     	id: a.id,
      	name: a.name,
-      balance: balances.get(a.id)!, //hard-coded
+      balance: balances[a.id],
     })),
     categories: user_data?.categories ?? [],
     counterparties: user_data?.counterparties ?? [],

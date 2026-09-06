@@ -111,7 +111,8 @@ export function ReceiveRepaymentForm({
     );
   }
 
-  const { currency, accounts, open_loans } = data;
+  const { currency: currency_code, locale, accounts, open_loans } = data;
+  const currency = FormatUtils.currencySymbol(locale, currency_code);
 
   const loans: InfoLoan[] = open_loans.filter(
     (loan) => loan.direction === "GIVEN",

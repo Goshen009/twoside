@@ -3,9 +3,7 @@ import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
 
 import TransactionSchemas from "#/libs/transaction-schemas.js";
-import Balances from "#/libs/balances.js";
 import Ledger from "#/libs/ledger.js";
-import Calc from "#/libs/calc.js";
 
 const schema = z.object({
 	...TransactionSchemas.commonFields(),
@@ -30,18 +28,14 @@ async function handler(
   const from_account = Ledger.checkAccount(from_account_id, user.accounts);
   const to_account = Ledger.checkAccount(to_account_id, user.accounts);
 
-  // A transfer only moves money between accounts you hold. Anything touching
-  // income/expense/equity/liabilities must go through its own /log endpoint.
   if (from_account.type !== 'ASSET' || to_account.type !== 'ASSET')
   	throw APIError.custom({ status: 400, message: "Transfers are only allowed between asset accounts" });
-  
-  if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
-   	const balance_in_account = await Balances.getBalanceAtDate(this.prisma, from_account.id, from_account.type, new Date(transaction_date));
-		if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(amount))
-			throw APIError.warning("INSUFFICIENT_BALANCE", TransactionSchemas.insufficientBalanceMessage(from_account.name, balance_in_account, amount));
-  }
 
   await this.prisma.$transaction(async (tx) => {
+ 		if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
+  		await Ledger.checkSufficientBalance(tx, [{...from_account, amount}], new Date(transaction_date), user.currency, user.locale);
+  	}
+   
   	await Ledger.logTransaction(tx, {
  			user_id: user.id,
    		description,

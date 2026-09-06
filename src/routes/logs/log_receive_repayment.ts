@@ -22,18 +22,8 @@ async function handler(
   const user = await request.requireAuth();
   const { description, transaction_date, loan_id, destinations, bypass_warnings } = request.body;
 
-  const loan = await Ledger.checkLoan(this.prisma, user.id, loan_id, LoanDirection.GIVEN);
-
-  if (!bypass_warnings.includes("REPAYMENT_DATED_BEFORE")) {
- 		if (new Date(transaction_date) < loan.date_issued)
-   		throw APIError.warning("REPAYMENT_DATED_BEFORE", TransactionSchemas.repaymentDatedBeforeMessage(loan.date_issued));
-  }
-
   const total_amount = Calc.toDecimalNumber(destinations.reduce((sum, d) => sum + Calc.toWholeNumber(d.amount), 0));
   
-  if (Calc.toWholeNumber(total_amount) > loan.remaining_cents)
-    throw APIError.custom({ status: 400, message: `This payment exceeds what's left on this loan` });
-
   const destination_lines = destinations.map((d) => {
     const account = Ledger.checkAccount(d.account_id, user.accounts);
     if (account.type !== 'ASSET')
@@ -45,6 +35,8 @@ async function handler(
   const receivables_account = user.system_accounts.RECEIVABLES!;
 
   await this.prisma.$transaction(async (tx) => {
+  	const loan = await Ledger.checkLoan(tx, user.id, loan_id, LoanDirection.GIVEN, total_amount, new Date(transaction_date), bypass_warnings);
+   
     await Ledger.logTransaction(tx, {
       user_id: user.id,
       description,

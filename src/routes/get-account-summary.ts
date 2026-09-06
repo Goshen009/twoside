@@ -18,7 +18,7 @@ async function handler(
 ) {
   const user = await request.requireAuth();
   const { account_id, start_date, end_date } = request.query;
-  const just_before_start = new Date(start_date.getTime() - 1);
+  // const just_before_start = new Date(start_date.getTime() - 1);
 
   let accounts: { id: string; name: string; type: Prisma.AccountGetPayload<{}>['type'] }[];
 
@@ -59,8 +59,10 @@ async function handler(
 
   await Promise.all(accounts.map(async (account) => {
     const [acc_opening, acc_closing] = await Promise.all([
-      Balances.getBalanceAtDate(this.prisma, account.id, account.type, just_before_start),
-      Balances.getBalanceAtDate(this.prisma, account.id, account.type, end_date),
+    	0,
+     	0
+      // Balances.getBalanceAtDate(this.prisma, account.id, account.type, just_before_start),
+      // Balances.getBalanceAtDate(this.prisma, account.id, account.type, end_date),
     ]);
     opening_balance += acc_opening;
     closing_balance += acc_closing;
