@@ -41,9 +41,22 @@ const amount_string_schema = z
   )
   .refine((value) => Number(value) > 0, "Amount must be greater than 0");
 
+const charge_string_schema = z
+  .string()
+  .trim()
+  .refine(
+    (value) => value === "" || /^(0|[1-9]\d*)(\.\d{1,2})?$/.test(value),
+    "Enter a valid charge (max 2 decimal places)",
+  )
+  .refine(
+    (value) => value === "" || Number(value) > 0,
+    "Charge must be greater than 0",
+  );
+
 const expense_source_row_schema = z.object({
   account_id: z.string().trim().min(1, "Select an account"),
   amount: amount_string_schema,
+  charge: charge_string_schema,
 });
 
 export const expenseFormSchema = z.object({
@@ -87,6 +100,7 @@ export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
 const income_destination_row_schema = z.object({
   account_id: z.string().trim().min(1, "Select an account"),
   amount: amount_string_schema,
+  charge: charge_string_schema,
 });
 
 export const incomeFormSchema = z.object({
@@ -138,6 +152,7 @@ export const transferFormSchema = z
         return !Number.isNaN(new Date(normalized).getTime());
       }, "Enter a valid date and time"),
     amount: amount_string_schema,
+    charge: charge_string_schema,
     from_account_id: z
       .string()
       .trim()
@@ -165,6 +180,7 @@ export type TransferFormValues = z.infer<typeof transferFormSchema>;
 const give_loan_source_row_schema = z.object({
   account_id: z.string().trim().min(1, "Select an account"),
   amount: amount_string_schema,
+  charge: charge_string_schema,
 });
 
 export const giveLoanFormSchema = z.object({
@@ -208,6 +224,7 @@ export type GiveLoanFormValues = z.infer<typeof giveLoanFormSchema>;
 const borrow_destination_row_schema = z.object({
   account_id: z.string().trim().min(1, "Select an account"),
   amount: amount_string_schema,
+  charge: charge_string_schema,
 });
 
 export const borrowFormSchema = z.object({
@@ -251,6 +268,7 @@ export type BorrowFormValues = z.infer<typeof borrowFormSchema>;
 const repay_loan_source_row_schema = z.object({
   account_id: z.string().trim().min(1, "Select an account"),
   amount: amount_string_schema,
+  charge: charge_string_schema,
 });
 
 export const repayLoanFormSchema = z.object({
@@ -290,6 +308,7 @@ export type RepayLoanFormValues = z.infer<typeof repayLoanFormSchema>;
 const receive_repayment_destination_row_schema = z.object({
   account_id: z.string().trim().min(1, "Select an account"),
   amount: amount_string_schema,
+  charge: charge_string_schema,
 });
 
 export const receiveRepaymentFormSchema = z.object({

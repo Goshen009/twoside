@@ -7,6 +7,15 @@ export class FormatUtils {
     });
   }
 
+  /** Keeps only digits + a single dot, truncates the fraction to 2 (amount/charge inputs). */
+  static sanitizeAmountInput(raw: string): string {
+    const cleaned = raw.replace(/[^\d.]/g, "");
+    const [integer, ...rest] = cleaned.split(".");
+    if (rest.length === 0) return cleaned;
+    const fraction = rest.join("").slice(0, 2);
+    return `${integer}.${fraction}`;
+  }
+
   /** Value for an <input type="datetime-local"> showing "now" in the device-local clock. */
   static nowLocalValue(): string {
     const now = new Date();

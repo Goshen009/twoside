@@ -22,16 +22,6 @@ type TransferPickerSide = "from" | "to";
 const CARD_CLASSES =
   "overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]";
 
-/** Enforce the amount schema's max of 2 decimal places while typing:
- *  keeps only digits + a single dot, truncates the fraction to 2. */
-function sanitize_amount_input(raw: string): string {
-  const cleaned = raw.replace(/[^\d.]/g, "");
-  const [integer, ...rest] = cleaned.split(".");
-  if (rest.length === 0) return cleaned;
-  const fraction = rest.join("").slice(0, 2);
-  return `${integer}.${fraction}`;
-}
-
 type AccountSideRowProps = {
   side_label: "From" | "To";
   account: InfoAccount | undefined;
@@ -108,6 +98,7 @@ export function TransferForm({ on_success }: TransferFormProps) {
       description: "",
       transaction_date: FormatUtils.nowLocalValue(),
       amount: "",
+      charge: "",
       from_account_id: "",
       to_account_id: "",
     },
@@ -221,9 +212,16 @@ export function TransferForm({ on_success }: TransferFormProps) {
     dismiss_on_edit();
   }
 
-  function handle_amount_change(value: string): void {
-    const sanitized = sanitize_amount_input(value);
+  function handleAmountChange(value: string): void {
+    const sanitized = FormatUtils.sanitizeAmountInput(value);
     setValue("amount", sanitized, { shouldValidate: false });
+    clearErrors();
+    dismiss_on_edit();
+  }
+
+  function handleChargeChange(value: string): void {
+    const sanitized = FormatUtils.sanitizeAmountInput(value);
+    setValue("charge", sanitized, { shouldValidate: false });
     clearErrors();
     dismiss_on_edit();
   }
@@ -302,7 +300,7 @@ export function TransferForm({ on_success }: TransferFormProps) {
                 placeholder="0"
                 aria-label="Amount"
                 value={values.amount ?? ""}
-                onChange={(event) => handle_amount_change(event.target.value)}
+                onChange={(event) => handleAmountChange(event.target.value)}
                 className="w-24 border-b border-transparent bg-transparent pb-0.5 text-right text-xs font-semibold tabular-nums text-zinc-100 placeholder:text-muted/40 transition-colors focus:border-(--form-accent)/50 focus:outline-none"
               />
             </label>
@@ -310,6 +308,31 @@ export function TransferForm({ on_success }: TransferFormProps) {
           {errors.amount ? (
             <p className="mt-0.5 pl-1 text-[11px] text-red-400">
               {errors.amount.message}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="border-t border-white/5 px-4 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
+              Charge
+            </p>
+            <label className="flex shrink-0 items-baseline gap-1 rounded-lg px-1 py-1 transition-colors focus-within:bg-white/[0.03]">
+              <span className="text-[10px] text-muted/70">{currency}</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="0"
+                aria-label="Charge"
+                value={values.charge ?? ""}
+                onChange={(event) => handleChargeChange(event.target.value)}
+                className="w-24 border-b border-transparent bg-transparent pb-0.5 text-right text-xs font-semibold tabular-nums text-zinc-100 placeholder:text-muted/40 transition-colors focus:border-(--form-accent)/50 focus:outline-none"
+              />
+            </label>
+          </div>
+          {errors.charge ? (
+            <p className="mt-0.5 pl-1 text-[11px] text-red-400">
+              {errors.charge.message}
             </p>
           ) : null}
         </div>

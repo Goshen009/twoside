@@ -244,6 +244,7 @@ export type AllocationRowData = {
   key: string;
   account_id: string;
   amount: string;
+  charge: string;
 };
 
 export type AllocationsListProps = {
@@ -261,8 +262,14 @@ export type AllocationsListProps = {
   on_remove: (index: number) => void;
   on_account_click: (index: number) => void;
   on_amount_change: (index: number, value: string) => void;
+  on_charge_change: (index: number, value: string) => void;
+  charge_effect?: "add" | "subtract";
+  combined_label?: string;
   root_error?: string;
-  row_error?: (index: number, key: "account_id" | "amount") => string | undefined;
+  row_error?: (
+    index: number,
+    key: "account_id" | "amount" | "charge",
+  ) => string | undefined;
 };
 
 export type ExpenseFormProps = {

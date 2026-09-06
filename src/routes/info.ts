@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 
 import Calc from "#/libs/calc.js";
+import Balances from "#/libs/balances.js";
 
 async function handler(
   this: FastifyInstance,
@@ -11,7 +12,7 @@ async function handler(
 
 	const accounts = user.accounts.filter(a => a.system_role === null && a.is_active);
 
-	const [user_data, open_loans] = await Promise.all([
+	const [user_data, open_loans, balances] = await Promise.all([
 	  this.prisma.user.findUnique({
 	    where: { id: user.id },
 	    select: {
@@ -33,8 +34,12 @@ async function handler(
 	      counterparty: { select: { id: true, name: true } },
 	      repayments: { select: { amount: true } }
 	    }
-	  })
+	  }),
+		Balances.getBalancesAtDate(this.prisma, accounts, new Date())
 	]);
+
+	// this new date over here might just be wrong though.
+	// but then I want it to be 
 
   return reply.code(200).send({
   	currency: "₦",  // hard-coded for now
@@ -42,7 +47,7 @@ async function handler(
     accounts: accounts.map(a => ({
     	id: a.id,
      	name: a.name,
-      balance: 100, //hard-coded
+      balance: balances.get(a.id)!, //hard-coded
     })),
     categories: user_data?.categories ?? [],
     counterparties: user_data?.counterparties ?? [],

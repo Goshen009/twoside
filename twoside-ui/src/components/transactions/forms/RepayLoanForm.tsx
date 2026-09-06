@@ -31,7 +31,11 @@ type SourcesErrors = {
   message?: string;
   root?: { message?: string };
   [index: number]:
-    | { account_id?: { message?: string }; amount?: { message?: string } }
+    | {
+        account_id?: { message?: string };
+        amount?: { message?: string };
+        charge?: { message?: string };
+      }
     | undefined;
 };
 
@@ -39,17 +43,7 @@ type RepayLoanPickerTarget =
   | { kind: "loan" }
   | { kind: "account"; row_index: number };
 
-const BLANK_SOURCE: SourceRow = { account_id: "", amount: "" };
-
-/** Enforce the amount schema's max of 2 decimal places while typing:
- *  keeps only digits + a single dot, truncates the fraction to 2. */
-function sanitize_amount_input(raw: string): string {
-  const cleaned = raw.replace(/[^\d.]/g, "");
-  const [integer, ...rest] = cleaned.split(".");
-  if (rest.length === 0) return cleaned;
-  const fraction = rest.join("").slice(0, 2);
-  return `${integer}.${fraction}`;
-}
+const BLANK_SOURCE: SourceRow = { account_id: "", amount: "", charge: "" };
 
 export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
   const { data, refetch } = useInfo();
@@ -120,6 +114,7 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
     key: String(index),
     account_id: source.account_id ?? "",
     amount: source.amount ?? "",
+    charge: source.charge ?? "",
   }));
 
   const total = rows.reduce((sum, row) => {
@@ -153,13 +148,15 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
     return node?.root?.message ?? node?.message;
   }
 
-  function row_error(
+  function rowError(
     index: number,
-    key: "account_id" | "amount",
+    key: "account_id" | "amount" | "charge",
   ): string | undefined {
     const node = errors.sources as unknown as SourcesErrors | undefined;
     const entry = node?.[index];
-    return key === "account_id" ? entry?.account_id?.message : entry?.amount?.message;
+    if (key === "account_id") return entry?.account_id?.message;
+    if (key === "amount") return entry?.amount?.message;
+    return entry?.charge?.message;
   }
 
   function apply_server_errors(err: unknown): void {
@@ -228,7 +225,7 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
     }
   }
 
-  function set_sources(next: SourceRow[]): void {
+  function setSources(next: SourceRow[]): void {
     setValue("sources", next, { shouldValidate: false });
   }
 
@@ -250,7 +247,7 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
     const target = active_picker;
     if (target?.kind === "account") {
       const index = target.row_index;
-      set_sources(
+      setSources(
         source_rows.map((row, i) => (i === index ? { ...row, account_id: id } : row)),
       );
     }
@@ -259,22 +256,33 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
   }
 
   function handle_add_row(): void {
-    set_sources([...source_rows, { ...BLANK_SOURCE }]);
+    setSources([...source_rows, { ...BLANK_SOURCE }]);
     dismiss_on_edit();
   }
 
   function handle_remove_row(index: number): void {
     if (source_rows.length > 1) {
-      set_sources(source_rows.filter((_, i) => i !== index));
+      setSources(source_rows.filter((_, i) => i !== index));
     }
     dismiss_on_edit();
   }
 
-  function handle_amount_change(index: number, value: string): void {
-    const sanitized = sanitize_amount_input(value);
-    set_sources(
+  function handleAmountChange(index: number, value: string): void {
+    const sanitized = FormatUtils.sanitizeAmountInput(value);
+    setSources(
       source_rows.map((row, i) =>
         i === index ? { ...row, amount: sanitized } : row,
+      ),
+    );
+    clearErrors();
+    dismiss_on_edit();
+  }
+
+  function handleChargeChange(index: number, value: string): void {
+    const sanitized = FormatUtils.sanitizeAmountInput(value);
+    setSources(
+      source_rows.map((row, i) =>
+        i === index ? { ...row, charge: sanitized } : row,
       ),
     );
     clearErrors();
@@ -341,9 +349,12 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
         on_add={handle_add_row}
         on_remove={handle_remove_row}
         on_account_click={handle_account_click}
-        on_amount_change={handle_amount_change}
+        on_amount_change={handleAmountChange}
+        on_charge_change={handleChargeChange}
+        charge_effect="add"
+        combined_label="Total paid"
         root_error={sources_error_message()}
-        row_error={row_error}
+        row_error={rowError}
       />
 
       <button

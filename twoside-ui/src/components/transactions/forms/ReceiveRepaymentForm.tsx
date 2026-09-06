@@ -34,7 +34,11 @@ type DestinationsErrors = {
   message?: string;
   root?: { message?: string };
   [index: number]:
-    | { account_id?: { message?: string }; amount?: { message?: string } }
+    | {
+        account_id?: { message?: string };
+        amount?: { message?: string };
+        charge?: { message?: string };
+      }
     | undefined;
 };
 
@@ -42,17 +46,11 @@ type ReceiveRepaymentPickerTarget =
   | { kind: "loan" }
   | { kind: "account"; row_index: number };
 
-const BLANK_DESTINATION: DestinationRow = { account_id: "", amount: "" };
-
-/** Enforce the amount schema's max of 2 decimal places while typing:
- *  keeps only digits + a single dot, truncates the fraction to 2. */
-function sanitize_amount_input(raw: string): string {
-  const cleaned = raw.replace(/[^\d.]/g, "");
-  const [integer, ...rest] = cleaned.split(".");
-  if (rest.length === 0) return cleaned;
-  const fraction = rest.join("").slice(0, 2);
-  return `${integer}.${fraction}`;
-}
+const BLANK_DESTINATION: DestinationRow = {
+  account_id: "",
+  amount: "",
+  charge: "",
+};
 
 export function ReceiveRepaymentForm({
   on_success,
@@ -130,6 +128,7 @@ export function ReceiveRepaymentForm({
       key: String(index),
       account_id: destination.account_id ?? "",
       amount: destination.amount ?? "",
+      charge: destination.charge ?? "",
     }),
   );
 
@@ -164,13 +163,15 @@ export function ReceiveRepaymentForm({
     return node?.root?.message ?? node?.message;
   }
 
-  function row_error(
+  function rowError(
     index: number,
-    key: "account_id" | "amount",
+    key: "account_id" | "amount" | "charge",
   ): string | undefined {
     const node = errors.destinations as unknown as DestinationsErrors | undefined;
     const entry = node?.[index];
-    return key === "account_id" ? entry?.account_id?.message : entry?.amount?.message;
+    if (key === "account_id") return entry?.account_id?.message;
+    if (key === "amount") return entry?.amount?.message;
+    return entry?.charge?.message;
   }
 
   function apply_server_errors(err: unknown): void {
@@ -242,7 +243,7 @@ export function ReceiveRepaymentForm({
     }
   }
 
-  function set_destinations(next: DestinationRow[]): void {
+  function setDestinations(next: DestinationRow[]): void {
     setValue("destinations", next, { shouldValidate: false });
   }
 
@@ -264,7 +265,7 @@ export function ReceiveRepaymentForm({
     const target = active_picker;
     if (target?.kind === "account") {
       const index = target.row_index;
-      set_destinations(
+      setDestinations(
         destination_rows.map((row, i) =>
           i === index ? { ...row, account_id: id } : row,
         ),
@@ -275,22 +276,33 @@ export function ReceiveRepaymentForm({
   }
 
   function handle_add_row(): void {
-    set_destinations([...destination_rows, { ...BLANK_DESTINATION }]);
+    setDestinations([...destination_rows, { ...BLANK_DESTINATION }]);
     dismiss_on_edit();
   }
 
   function handle_remove_row(index: number): void {
     if (destination_rows.length > 1) {
-      set_destinations(destination_rows.filter((_, i) => i !== index));
+      setDestinations(destination_rows.filter((_, i) => i !== index));
     }
     dismiss_on_edit();
   }
 
-  function handle_amount_change(index: number, value: string): void {
-    const sanitized = sanitize_amount_input(value);
-    set_destinations(
+  function handleAmountChange(index: number, value: string): void {
+    const sanitized = FormatUtils.sanitizeAmountInput(value);
+    setDestinations(
       destination_rows.map((row, i) =>
         i === index ? { ...row, amount: sanitized } : row,
+      ),
+    );
+    clearErrors();
+    dismiss_on_edit();
+  }
+
+  function handleChargeChange(index: number, value: string): void {
+    const sanitized = FormatUtils.sanitizeAmountInput(value);
+    setDestinations(
+      destination_rows.map((row, i) =>
+        i === index ? { ...row, charge: sanitized } : row,
       ),
     );
     clearErrors();
@@ -357,9 +369,12 @@ export function ReceiveRepaymentForm({
         on_add={handle_add_row}
         on_remove={handle_remove_row}
         on_account_click={handle_account_click}
-        on_amount_change={handle_amount_change}
+        on_amount_change={handleAmountChange}
+        on_charge_change={handleChargeChange}
+        charge_effect="subtract"
+        combined_label="Net received"
         root_error={destinations_error_message()}
-        row_error={row_error}
+        row_error={rowError}
       />
 
       <button
