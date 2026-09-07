@@ -27,11 +27,14 @@ async function handler(
   	if (account.type !== 'ASSET')
    		throw APIError.custom({ status: 400, message: "Loans can only be given from asset accounts" });
    
-   	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
+   	return { ...account, total_amount: Calc.toDecimalNumber(Calc.toWholeNumber(s.amount ) + Calc.toWholeNumber(s.charge)), charge_amount: s.charge || null, cashflow_direction: 'DECREASE' as const };
   });
 
   const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
+  const total_charges = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.charge), 0));
+  
   const receivables_account = user.system_accounts.RECEIVABLES!;
+  const expense_account = user.system_accounts.EXPENSE!;
 
   await this.prisma.$transaction(async (tx) => {
   	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
@@ -39,7 +42,17 @@ async function handler(
    	}
   
  		const resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)
-  
+
+  	const charge_line = total_charges > 0
+	   	? [{
+	  			...expense_account,
+	        total_amount: total_charges,
+	        charge_amount: null,
+	        cashflow_direction: 'INCREASE' as const,
+	        category_id: user.charge_category.id
+	    	}]
+	    : [];
+   
     await Ledger.logTransaction(tx, {
       user_id: user.id,
       description,
@@ -47,7 +60,8 @@ async function handler(
       log_type: 'GIVE_LOAN',
       lines: [
         ...source_lines,
-        { ...receivables_account, amount: total_amount, cashflow_direction: 'INCREASE' as const },
+        ...charge_line,
+        { ...receivables_account, total_amount, charge_amount: null, cashflow_direction: 'INCREASE' as const },
       ],
       loan: { direction: 'GIVEN', counterparty_id: resolved_counterparty_id, amount: total_amount },
     });

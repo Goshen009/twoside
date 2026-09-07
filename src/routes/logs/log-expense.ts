@@ -28,10 +28,12 @@ async function handler(
   	if (account.type !== 'ASSET')
    		throw APIError.custom({ status: 400, message: "An expense can only be paid out of an asset account" });
    
-   	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
+   	return { ...account, total_amount: Calc.toDecimalNumber(Calc.toWholeNumber(s.amount ) + Calc.toWholeNumber(s.charge)), charge_amount: s.charge || null, cashflow_direction: 'DECREASE' as const };
   });
 	
   const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
+  const total_charges = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.charge), 0));
+  
   const expense_account = user.system_accounts.EXPENSE!;
   
   await this.prisma.$transaction(async (tx) => {
@@ -42,6 +44,16 @@ async function handler(
   	const resolved_category_id = category_name 
    		? await Domain.enableOrCreateCategory(tx, user.id, category_name)
      	: null;
+
+   	const charge_line = total_charges > 0
+    	? [{
+   				...expense_account,
+          total_amount: total_charges,
+          charge_amount: null,
+          cashflow_direction: 'INCREASE' as const,
+          category_id: user.charge_category.id
+     		}]
+     	: [];
   
   	await Ledger.logTransaction(tx, {
  			user_id: user.id,
@@ -50,7 +62,8 @@ async function handler(
     	log_type: 'EXPENSE',
      	lines: [
     		...source_lines.map(l => ({ ...l, category_id: resolved_category_id })),
-     		{ ...expense_account, amount: total_amount, cashflow_direction: 'INCREASE' as const, category_id: resolved_category_id }
+      	...charge_line,
+     		{ ...expense_account, total_amount: total_amount, charge_amount: null, cashflow_direction: 'INCREASE' as const, category_id: resolved_category_id }
       ]
    	})
   });

@@ -1,4 +1,4 @@
-import { Account, Prisma, SystemAccountRole } from '#/prisma/client.js';
+import { Account, Category, Prisma, SystemAccountRole } from '#/prisma/client.js';
 import { APIError } from '#/errors/APIError.js';
 
 import fp from 'fastify-plugin';
@@ -18,6 +18,7 @@ export default fp(async (fastify) => {
 				accounts: true,
     		iana_timezone: true,
 				currency_symbol: true,
+				categories: { where: { is_charge: true } }
 			},
 		})
 		
@@ -30,10 +31,15 @@ export default fp(async (fastify) => {
 		}, {});
 
 		if (!system_accounts.RECEIVABLES || !system_accounts.PAYABLES || !system_accounts.INCOME || !system_accounts.EXPENSE)
-      throw APIError.custom({ status: 400, message: "User is missing required system accounts" });
+      throw APIError.custom({ status: 409, message: "User is missing required system accounts" });
 
+		const charge_category = user.categories.find(c => c.is_charge);
+		if (!charge_category)
+			throw APIError.custom({ status: 409, message: "User is missing required charge category" });
+		
 		const authenticated_user: AuthenticatedUser = {
 		  ...user,
+			charge_category,
 		  system_accounts
 		};
 	
@@ -48,8 +54,10 @@ export type AuthenticatedUser = Prisma.UserGetPayload<{
 		accounts: true,
     iana_timezone: true,
 		currency_symbol: true,
+		categories: { where: { is_charge: true } },
 	}
-}> & { 
+}> & {
+	charge_category: Category,
 	system_accounts: SystemAccountMap
 };
 

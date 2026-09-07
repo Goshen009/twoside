@@ -16,7 +16,7 @@ async function handler(
 	  this.prisma.user.findUnique({
 	    where: { id: user.id },
 	    select: {
-	      categories: { where: { is_active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } },
+	      categories: { where: { is_active: true, is_charge: false }, orderBy: { name: 'asc' }, select: { id: true, name: true } },
 				counterparties: { where: { is_active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } },
 	    },
 	  }),

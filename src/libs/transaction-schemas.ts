@@ -19,6 +19,7 @@ class TransactionSchemas {
     	z.object({
         account_id: z.uuid(`${field_label}_id is required and must be a valid UUID`),
         amount: z.number("Amount must be a number").positive("Amount must be greater than 0").multipleOf(0.01, "Amount must be in 2dp"),
+        charge: z.number("Charge must be a number").nonnegative("Charge cannot be negative").multipleOf(0.01, "Charge must be in 2dp").default(0),
       })
     )
     .min(1, `At least one ${field_label} account is required`)

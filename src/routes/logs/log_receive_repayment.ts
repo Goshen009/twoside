@@ -22,20 +22,33 @@ async function handler(
   const user = await request.requireAuth();
   const { description, transaction_date, loan_id, destinations, bypass_warnings } = request.body;
 
-  const total_amount = Calc.toDecimalNumber(destinations.reduce((sum, d) => sum + Calc.toWholeNumber(d.amount), 0));
-  
   const destination_lines = destinations.map((d) => {
     const account = Ledger.checkAccount(d.account_id, user.accounts);
     if (account.type !== 'ASSET')
       throw APIError.custom({ status: 400, message: `Repayments can only be received into asset accounts` });
 
-    return { ...account, amount: d.amount, cashflow_direction: 'INCREASE' as const };
+    const net_amount = Calc.toDecimalNumber(Calc.toWholeNumber(d.amount) - Calc.toWholeNumber(d.charge));
+    return { ...account, total_amount: net_amount, charge_amount: d.charge || null, cashflow_direction: 'INCREASE' as const };
   });
 
+  const total_amount = Calc.toDecimalNumber(destinations.reduce((sum, d) => sum + Calc.toWholeNumber(d.amount), 0));
+  const total_charges = Calc.toDecimalNumber(destinations.reduce((sum, d) => sum + Calc.toWholeNumber(d.charge), 0));
+
   const receivables_account = user.system_accounts.RECEIVABLES!;
+  const expense_account = user.system_accounts.EXPENSE!;
 
   await this.prisma.$transaction(async (tx) => {
   	const loan = await Ledger.checkLoan(tx, user.id, loan_id, LoanDirection.GIVEN, total_amount, new Date(transaction_date), bypass_warnings);
+
+   	const charge_line = total_charges > 0
+      ? [{
+          ...expense_account,
+          total_amount: total_charges,
+          charge_amount: null,
+          cashflow_direction: 'INCREASE' as const,
+          category_id: user.charge_category.id,
+        }]
+      : [];
    
     await Ledger.logTransaction(tx, {
       user_id: user.id,
@@ -44,7 +57,8 @@ async function handler(
       log_type: 'RECEIVE_REPAYMENT',
       lines: [
         ...destination_lines,
-        { ...receivables_account, amount: total_amount, cashflow_direction: 'DECREASE' as const },
+        ...charge_line,
+        { ...receivables_account, total_amount, charge_amount: null, cashflow_direction: 'DECREASE' as const },
       ],
       repayments: [{ loan_id: loan.id, amount: total_amount }],
     });

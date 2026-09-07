@@ -24,13 +24,27 @@ async function handler(
     if (account.type !== 'ASSET')
       throw APIError.custom({ status: 400, message: "Income can only be received into an asset account" });
 
-    return { ...account, amount: d.amount, cashflow_direction: 'INCREASE' as const };
+    const net_amount = Calc.toDecimalNumber(Calc.toWholeNumber(d.amount) - Calc.toWholeNumber(d.charge));
+    return { ...account, total_amount: net_amount, charge_amount: d.charge || null, cashflow_direction: 'INCREASE' as const };
   });
 	
   const total_amount = Calc.toDecimalNumber(destinations.reduce((sum, d) => sum + Calc.toWholeNumber(d.amount), 0));
+  const total_charges = Calc.toDecimalNumber(destinations.reduce((sum, d) => sum + Calc.toWholeNumber(d.charge), 0));
+
   const income_account = user.system_accounts.INCOME!;
+  const expense_account = user.system_accounts.EXPENSE!;
 
   await this.prisma.$transaction(async (tx) => {
+ 		const charge_line = total_charges > 0
+      ? [{
+        	...expense_account,
+         	total_amount: total_charges,
+          charge_amount: null,
+          cashflow_direction: 'INCREASE' as const,
+          category_id: user.charge_category.id,
+        }]
+      : [];
+  
   	await Ledger.logTransaction(tx, {
  			user_id: user.id,
    		description,
@@ -38,7 +52,8 @@ async function handler(
     	log_type: 'INCOME',
      	lines: [
     		...destination_lines,
-     		{ ...income_account, amount: total_amount, cashflow_direction: 'INCREASE' as const }
+    		...charge_line,
+      	{ ...income_account, total_amount, charge_amount: null, cashflow_direction: 'INCREASE' as const }
       ]
    	})
   });

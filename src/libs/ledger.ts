@@ -56,7 +56,7 @@ class Ledger {
 
 	static async checkSufficientBalance(
 	  tx: PrismaClient | Prisma.TransactionClient,
-	  lines: { id: string; name: string; type: AccountType; amount: number }[],
+	  lines: { id: string; name: string; type: AccountType; total_amount: number }[],
 	  target_date: Date,
 		currency_symbol: string,
 	) {
@@ -68,8 +68,8 @@ class Ledger {
 	    if (balance_in_account === undefined)
 	      throw APIError.custom({ status: 500, message: `Could not resolve balance for account ${l.name}` });
 		
-	    if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(l.amount))
-	      throw APIError.warning("INSUFFICIENT_BALANCE", `${l.name} only has ${format(balance_in_account)} but ${format(l.amount)} was requested.`);
+	    if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(l.total_amount))
+	      throw APIError.warning("INSUFFICIENT_BALANCE", `${l.name} only has ${format(balance_in_account)} but ${format(l.total_amount)} was requested.`);
 	  });
 	}
 
@@ -90,16 +90,16 @@ class Ledger {
 	  }
 	}
 
-	static trialBalance<T extends { type: AccountType, cashflow_direction: CashflowDirection, amount: number }>(
+	static trialBalance<T extends { type: AccountType, cashflow_direction: CashflowDirection, total_amount: number }>(
 		accounts: T[]
 	): boolean {
 		const total_debits = accounts
 			.filter(a => this.resolveAccountingSide(a.type, a.cashflow_direction) === AccountingSide.DEBIT)
-			.reduce((sum, l) => sum + Calc.toWholeNumber(l.amount), 0);
+			.reduce((sum, l) => sum + Calc.toWholeNumber(l.total_amount), 0);
 
 		const total_credits = accounts
 			.filter(a => this.resolveAccountingSide(a.type, a.cashflow_direction) === AccountingSide.CREDIT)
-			.reduce((sum, l) => sum + Calc.toWholeNumber(l.amount), 0);
+			.reduce((sum, l) => sum + Calc.toWholeNumber(l.total_amount), 0);
 
 		if (total_debits != total_credits)
 			throw APIError.custom({ status: 400, message: 'The accounts are not balanced!' });
@@ -107,7 +107,7 @@ class Ledger {
 		return true;
 	}
 
-	static async logTransaction<T extends { id: string, type: AccountType, cashflow_direction: CashflowDirection, amount: number, category_id?: string | null }>(
+	static async logTransaction<T extends { id: string, type: AccountType, cashflow_direction: CashflowDirection, total_amount: number, charge_amount: number | null, category_id?: string | null }>(
     tx: Prisma.TransactionClient,
     params: {
       user_id: string,
@@ -129,7 +129,8 @@ class Ledger {
          		log_type: params.log_type,
             transaction_date: params.transaction_date,
             description: params.description,
-            amount: l.amount,
+            amount: l.total_amount,
+            charge_amount: l.charge_amount,
             side: this.resolveAccountingSide(l.type, l.cashflow_direction),
             account_id: l.id,
             category_id: l.category_id ?? null,
@@ -167,7 +168,7 @@ class Ledger {
     return group;
 	}
 
-	static async rebuildAccountSnapshots<T extends { id: string; amount: number; cashflow_direction: CashflowDirection }>(
+	static async rebuildAccountSnapshots<T extends { id: string; total_amount: number; cashflow_direction: CashflowDirection }>(
     tx: Prisma.TransactionClient,
     transaction_date: Date,
     lines: T[]
@@ -186,8 +187,8 @@ class Ledger {
       	continue;
 
       const delta = line.cashflow_direction === 'INCREASE' 
-      	? line.amount
-       	: -line.amount;
+      	? line.total_amount
+      	: -line.total_amount;
       
       await tx.accountBalanceSnapshot.updateMany({
         where: { account_id: line.id, as_of_date: { gte: transaction_date } },

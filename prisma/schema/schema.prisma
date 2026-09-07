@@ -113,6 +113,7 @@ model JournalEntry {
 	log_type							LogType
 	side									AccountingSide
 	amount								Decimal @db.Decimal(12, 2)
+	charge_amount 				Decimal? @db.Decimal(12, 2)
 	description						String
 	
 	transaction_date			DateTime @db.Timestamptz(6) // the date the transaction actually happened
@@ -190,6 +191,7 @@ model Category {
 	name									String
 	lowercase_name				String
 	is_active							Boolean @default(true)
+	is_charge       			Boolean @default(false)
 
 	journal_entries				JournalEntry[]
 	budget_snapshots			BudgetSnapshot[]

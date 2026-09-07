@@ -34,6 +34,11 @@ async function handler(
    			password,
        	currency_symbol: '₦', // hardcoded for now,
         iana_timezone: 'Africa/Lagos', // hardcoded for now
+        categories: {
+        	create: [
+         		{ name: "Charges", lowercase_name: "charges", is_charge: true }
+         	]
+        },
      		accounts: {
      			create: [
 	       		{ name: 'Cash', type: 'ASSET', system_role: null, balance_snapshots },

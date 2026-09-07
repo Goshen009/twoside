@@ -22,17 +22,19 @@ async function handler(
   const user = await request.requireAuth();
   const { description, transaction_date, loan_id, sources, bypass_warnings } = request.body;
 
-  const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
-  
   const source_lines = sources.map(s => {
   	const account = Ledger.checkAccount(s.account_id, user.accounts);
   	if (account.type !== 'ASSET')
    		throw APIError.custom({ status: 400, message: "Loans can only be repaid from asset accounts." });
    
-   	return { ...account, amount: s.amount, cashflow_direction: 'DECREASE' as const };
+   	return { ...account, total_amount: Calc.toDecimalNumber(Calc.toWholeNumber(s.amount ) + Calc.toWholeNumber(s.charge)), charge_amount: s.charge || null, cashflow_direction: 'DECREASE' as const };
   });
 
+  const total_amount = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.amount), 0));
+  const total_charges = Calc.toDecimalNumber(sources.reduce((sum, s) => sum + Calc.toWholeNumber(s.charge), 0));
+  
   const payables_account = user.system_accounts.PAYABLES!;
+  const expense_account = user.system_accounts.EXPENSE!;
 
   await this.prisma.$transaction(async (tx) => {
   	const loan = await Ledger.checkLoan(tx, user.id, loan_id, LoanDirection.BORROWED, total_amount, new Date(transaction_date), bypass_warnings);
@@ -40,6 +42,16 @@ async function handler(
   	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
   		await Ledger.checkSufficientBalance(tx, source_lines, new Date(transaction_date), user.currency_symbol);
   	}
+
+   	const charge_line = total_charges > 0
+	   	? [{
+	  			...expense_account,
+	        total_amount: total_charges,
+	        charge_amount: null,
+	        cashflow_direction: 'INCREASE' as const,
+	        category_id: user.charge_category.id
+	    	}]
+	    : [];
    
     await Ledger.logTransaction(tx, {
       user_id: user.id,
@@ -48,7 +60,8 @@ async function handler(
       log_type: 'REPAY_LOAN',
       lines: [
         ...source_lines,
-        { ...payables_account, amount: total_amount, cashflow_direction: 'DECREASE' as const },
+        ...charge_line,
+        { ...payables_account, total_amount, charge_amount: null, cashflow_direction: 'DECREASE' as const },
       ],
       repayments: [{ loan_id: loan.id, amount: total_amount }],
     });
