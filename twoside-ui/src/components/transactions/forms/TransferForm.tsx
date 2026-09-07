@@ -170,6 +170,7 @@ export function TransferForm({ on_success }: TransferFormProps) {
         from_account_id: raw.from_account_id,
         to_account_id: raw.to_account_id,
         amount: Number(raw.amount),
+        charge: Number(raw.charge) || 0,
         bypass_warnings: codes,
       });
       await refetch();

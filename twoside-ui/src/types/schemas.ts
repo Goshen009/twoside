@@ -49,8 +49,8 @@ const charge_string_schema = z
     "Enter a valid charge (max 2 decimal places)",
   )
   .refine(
-    (value) => value === "" || Number(value) > 0,
-    "Charge must be greater than 0",
+    (value) => value === "" || Number(value) >= 0,
+    "Charge must not be negative",
   );
 
 const expense_source_row_schema = z.object({

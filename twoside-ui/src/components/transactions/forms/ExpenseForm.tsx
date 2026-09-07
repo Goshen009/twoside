@@ -194,6 +194,7 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         sources: raw.sources.map((row) => ({
           account_id: row.account_id,
           amount: Number(row.amount),
+          charge: Number(row.charge) || 0,
         })),
         bypass_warnings: codes,
       });

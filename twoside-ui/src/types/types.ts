@@ -109,7 +109,10 @@ export type InfoContextValue = {
 
 // --- Transaction forms ---
 
-export type LogExpenseSource = { account_id: string; amount: number };
+/** A charge is the fee paid to move money (bank/transfer/processing fee).
+ *  It is always expressed in the account currency. For sources (money out) it is
+ *  added to `amount`; for destinations (money in) it is deducted from `amount`. */
+export type LogExpenseSource = { account_id: string; amount: number; charge: number };
 export type LogExpensePayload = {
   description: string;
   transaction_date: string; // UTC ISO datetime ending in "Z"
@@ -118,7 +121,11 @@ export type LogExpensePayload = {
   bypass_warnings: string[];
 };
 
-export type LogIncomeDestination = { account_id: string; amount: number };
+export type LogIncomeDestination = {
+  account_id: string;
+  amount: number;
+  charge: number;
+};
 export type LogIncomePayload = {
   description: string;
   transaction_date: string; // UTC ISO datetime ending in "Z"
@@ -131,10 +138,15 @@ export type LogTransferPayload = {
   from_account_id: string;
   to_account_id: string;
   amount: number;
+  charge: number;
   bypass_warnings: string[];
 };
 
-export type LogGiveLoanSource = { account_id: string; amount: number };
+export type LogGiveLoanSource = {
+  account_id: string;
+  amount: number;
+  charge: number;
+};
 export type LogGiveLoanPayload = {
   description: string;
   transaction_date: string; // UTC ISO datetime ending in "Z"
@@ -143,7 +155,11 @@ export type LogGiveLoanPayload = {
   bypass_warnings: string[];
 };
 
-export type LogBorrowDestination = { account_id: string; amount: number };
+export type LogBorrowDestination = {
+  account_id: string;
+  amount: number;
+  charge: number;
+};
 export type LogBorrowPayload = {
   description: string;
   transaction_date: string; // UTC ISO datetime ending in "Z"
@@ -151,7 +167,11 @@ export type LogBorrowPayload = {
   destinations: LogBorrowDestination[];
 };
 
-export type LogRepayLoanSource = { account_id: string; amount: number };
+export type LogRepayLoanSource = {
+  account_id: string;
+  amount: number;
+  charge: number;
+};
 export type LogRepayLoanPayload = {
   description: string;
   transaction_date: string; // UTC ISO datetime ending in "Z"
@@ -160,7 +180,11 @@ export type LogRepayLoanPayload = {
   bypass_warnings: string[];
 };
 
-export type LogReceiveRepaymentDestination = { account_id: string; amount: number };
+export type LogReceiveRepaymentDestination = {
+  account_id: string;
+  amount: number;
+  charge: number;
+};
 export type LogReceiveRepaymentPayload = {
   description: string;
   transaction_date: string; // UTC ISO datetime ending in "Z"

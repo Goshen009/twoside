@@ -178,6 +178,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
         destinations: raw.destinations.map((row) => ({
           account_id: row.account_id,
           amount: Number(row.amount),
+          charge: Number(row.charge) || 0,
         })),
       });
       await refetch();

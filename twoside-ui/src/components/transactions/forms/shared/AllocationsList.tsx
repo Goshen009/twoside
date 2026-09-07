@@ -99,6 +99,9 @@ export function AllocationsList(props: AllocationsListProps) {
   const has_charges = charge_total > 0;
   const combined =
     charge_effect === "subtract" ? total - charge_total : total + charge_total;
+  // The charge sign tracks the polarity: on money-out it is added to the amount
+  // (+), on money-in it is withheld from what arrives (−).
+  const charge_prefix = charge_effect === "subtract" ? "−" : "+";
 
   return (
     <section
@@ -177,8 +180,9 @@ export function AllocationsList(props: AllocationsListProps) {
                 ) : null}
 
                 {/* Money line: the Amount is the sole bright field; an optional
-                    charge rides faintly to its right (+prefix) so it reads as a
-                    fee note rather than a competing column. Errors fall below. */}
+                    charge rides faintly to its right (sign follows polarity, so
+                    money-in reads as − charge) as a fee note rather than a
+                    competing column. Errors fall below. */}
                 <div className="mt-2.5 flex items-baseline gap-3">
                   <div className="flex min-w-0 flex-1 items-baseline justify-end">
                     <MoneyInput
@@ -190,7 +194,7 @@ export function AllocationsList(props: AllocationsListProps) {
                   </div>
                   <div className="shrink-0">
                     <MoneyInput
-                      leading="+"
+                      leading={charge_prefix}
                       value={row.charge}
                       aria_label="Charge"
                       on_change={(value) => on_charge_change(index, value)}
