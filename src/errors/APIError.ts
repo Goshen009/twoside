@@ -27,6 +27,13 @@ export class APIError {
     });
   }
 
+  static notFound(message: string): ProblemDetail {
+    return new ProblemDetail({
+      status: 404,
+      message
+    });
+  }
+
   static warning(code: WarningCode, message: string): ProblemDetail {
     return new ProblemDetail({
       status: 409,
