@@ -107,6 +107,73 @@ export type InfoContextValue = {
   refetch: () => Promise<void>; // never rejects; folds failures into `error`
 };
 
+// --- Transaction feed (GET /accounts/transactions) ---
+
+export type TransactionEntrySide = "DEBIT" | "CREDIT";
+export type TransactionLogType =
+  | "INCOME"
+  | "EXPENSE"
+  | "TRANSFER"
+  | "GIVE_LOAN"
+  | "BORROW"
+  | "RECEIVE_REPAYMENT"
+  | "REPAY_LOAN";
+
+export type RelatedAccount = { id: string; name: string };
+export type RelatedCounterparty = { id: string; name: string };
+
+export type TransactionEntry = {
+  account_id: string;
+  account_name: string;
+  is_active: boolean;
+  entry_id: string; // stable React key
+  side: TransactionEntrySide;
+  amount: number; // wire number
+  charge_amount: number | null; // wire number
+  log_type: TransactionLogType;
+  transaction_date: string; // ISO; Date parsing deferred to a later format helper
+  date_logged: string; // ISO
+  description: string;
+  category_id: string | null;
+  category_name: string | null;
+  is_category_active: boolean | null;
+  transaction_group_id: string;
+  related_account?: RelatedAccount; // present when TRANSFER
+  related_counterparty?: RelatedCounterparty | null; // present when group has loans
+};
+
+export type TransactionsPage = {
+  entries: TransactionEntry[];
+  next_cursor: string | null;
+  has_next: boolean;
+};
+
+export type TransactionsFilters = {
+  account_id: string | null;
+  category_id: string | null;
+  start_date: string | null; // YYYY-MM-DD
+  end_date: string | null; // YYYY-MM-DD
+};
+
+export type TransactionsListQuery = TransactionsFilters & {
+  cursor?: string | null;
+  limit: number;
+};
+
+export type TransactionsContextValue = {
+  entries: TransactionEntry[];
+  next_cursor: string | null;
+  has_next: boolean;
+  loading: boolean; // first page in flight with no rows yet
+  is_refreshing: boolean; // page-1 reload while rows already present
+  loading_more: boolean;
+  error: string | null;
+  filters: TransactionsFilters;
+  set_filters: (patch: Partial<TransactionsFilters>) => void; // merges over current; all-null fields reset to "all"
+  load_more: () => Promise<void>;
+  refetch: () => Promise<void>; // reload page 1 for current filters; never rejects
+};
+
 // --- Transaction forms ---
 
 /** A charge is the fee paid to move money (bank/transfer/processing fee).

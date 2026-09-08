@@ -10,6 +10,7 @@ import {
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { InfoProvider } from "@/hooks/useInfo";
+import { TransactionsProvider } from "@/hooks/useTransactions";
 import { AddTransactionFlowProvider } from "@/hooks/useAddTransactionFlow";
 import { AddTransactionFlow } from "@/components/transactions/AddTransactionFlow";
 import { AppNavbar } from "@/components/layout/AppNavbar";
@@ -72,10 +73,12 @@ export function App() {
     <BrowserRouter>
       <AuthProvider>
         <InfoProvider>
-          <AddTransactionFlowProvider>
-            <AddTransactionFlow />
-            <AnimatedRoutes />
-          </AddTransactionFlowProvider>
+          <TransactionsProvider>
+            <AddTransactionFlowProvider>
+              <AddTransactionFlow />
+              <AnimatedRoutes />
+            </AddTransactionFlowProvider>
+          </TransactionsProvider>
         </InfoProvider>
       </AuthProvider>
     </BrowserRouter>

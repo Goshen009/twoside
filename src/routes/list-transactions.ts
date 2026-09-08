@@ -107,6 +107,7 @@ async function handler(
     	entry_id: e.id,
     	side: e.side,
       amount: Number(e.amount),
+      charge_amount: e.charge_amount ? Number(e.charge_amount) : null,
       log_type: e.log_type,
       transaction_date: e.transaction_date,
       date_logged: e.posted_at,
@@ -114,7 +115,7 @@ async function handler(
       category_id: e.category_id,
       category_name: e.category?.name ?? null,
       is_category_active: e.category?.is_active ?? null,
-      transaction_group_id: e.transaction_group,
+      transaction_group_id: e.transaction_group_id,
       ...(e.log_type === 'TRANSFER' && { 
       	related_account: e.transaction_group.journal_entries
      			.filter(a => a.account.id !== e.account.id)
