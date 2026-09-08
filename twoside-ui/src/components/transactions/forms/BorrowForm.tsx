@@ -7,6 +7,8 @@ import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
+import { useLoans } from "@/hooks/useLoans";
+import { useTransactions } from "@/hooks/useTransactions";
 import { FormatUtils } from "@/lib/FormatUtils";
 import { borrowFormSchema, type BorrowFormValues } from "@/types/schemas";
 import type { FieldPath } from "react-hook-form";
@@ -47,6 +49,8 @@ const BLANK_DESTINATION: DestinationRow = {
 
 export function BorrowForm({ on_success }: BorrowFormProps) {
   const { data, refetch } = useInfo();
+  const { refetch: refetch_transactions } = useTransactions();
+  const { refetch: refetch_loans } = useLoans();
 
   const {
     register,
@@ -194,7 +198,7 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
           charge: Number(row.charge) || 0,
         })),
       });
-      await refetch();
+      await Promise.all([refetch(), refetch_transactions(), refetch_loans()]);
       reset();
       on_success();
     } catch (err) {

@@ -174,6 +174,63 @@ export type TransactionsContextValue = {
   refetch: () => Promise<void>; // reload page 1 for current filters; never rejects
 };
 
+// --- Loans feed (GET /loans) ---
+
+export type LoanStatus = InfoLoanStatus | "CLOSED"; // /info only ever returns OPEN/PARTIALLY_REPAID
+
+export type LoanRepayment = {
+  id: string;
+  amount: number; // wire number
+  date_repaid: string; // ISO
+  description: string | null;
+  account: { id: string; name: string } | null;
+};
+
+export type LoanEntry = {
+  id: string;
+  direction: LoanDirection;
+  status: LoanStatus;
+  amount: number; // wire number
+  description: string | null;
+  counterparty_id: string;
+  counterparty_name: string;
+  date_issued: string; // ISO
+  remaining: number; // wire number
+  total_repaid: number; // wire number
+  repayments: LoanRepayment[];
+};
+
+export type LoansPage = {
+  loans: LoanEntry[];
+  next_cursor: string | null;
+  has_next: boolean;
+};
+
+export type LoansFilters = {
+  status: LoanStatus | null;
+  direction: LoanDirection | null;
+  counterparty_id: string | null;
+};
+
+export type LoansListQuery = LoansFilters & {
+  cursor?: string | null;
+  limit: number;
+};
+
+export type LoansContextValue = {
+  loans: LoanEntry[];
+  next_cursor: string | null;
+  has_next: boolean;
+  loading: boolean; // first page in flight with no rows yet
+  is_refreshing: boolean; // page-1 reload while rows already present
+  loading_more: boolean;
+  error: string | null;
+  filters: LoansFilters;
+  set_filters: (patch: Partial<LoansFilters>) => void; // merges over current; null resets a dimension
+  load_more: () => Promise<void>;
+  refetch: () => Promise<void>; // reload page 1 for current filters; never rejects
+};
+
 // --- Transaction forms ---
 
 /** A charge is the fee paid to move money (bank/transfer/processing fee).

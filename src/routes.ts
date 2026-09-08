@@ -2,7 +2,7 @@ import { FastifyPluginAsync } from 'fastify';
 
 import { seed } from './routes/seed.js';
 import { login } from './routes/auth/login.js';
-import { list_loans } from './routes/list-loans.js';
+import { list_loans } from './routes/queries/list-loans.js';
 import { register_user } from './routes/auth/register.js';
 import { list_accounts } from './routes/list-accounts.js';
 import { list_categories } from './routes/list-categories.js';
@@ -23,7 +23,7 @@ import { get_transaction_group } from './routes/get-transaction-group.js';
 import { get_account_summary } from './routes/get-account-summary.js';
 import { list_transactions } from './routes/list-transactions.js';
 import { get_loan_repayment } from './routes/get-loan-repayments.js';
-import { get_loan } from './routes/get-loan.js';
+import { get_loan } from './routes/queries/get-loan.js';
 import { get_loans_summary } from './routes/get-loans-summary.js';
 import { get_category_summary } from './routes/get-category-summary.js';
 import { get_counterparty_loans } from './routes/get-counterparty-loans.js';
@@ -32,7 +32,7 @@ import { create_category } from './routes/create-category.js';
 import { create_counterparty } from './routes/create-counterparty.js';
 import { logout } from './routes/auth/logout.js';
 import { refresh } from './routes/auth/refresh.js';
-import { info } from './routes/info.js';
+import { info } from './routes/queries/info.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -117,6 +117,8 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.post("/auth/register", register_user);
 
   fastify.get("/info", info);
+  fastify.get("/loans", list_loans);
+  fastify.get("/transactions", list_transactions);
 
   fastify.post("/log/expense", log_expense);
   fastify.post("/log/income", log_income);
@@ -125,6 +127,7 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.post("/log/borrow", log_borrow);
   fastify.post("/log/loan-repayed", log_repay_loan);
   fastify.post("/log/borrow-returned", log_receive_repayment);
+  
   
   fastify.get("/accounts", list_accounts);
   fastify.get("/categories", list_categories);
@@ -140,9 +143,7 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get("/transaction-groups/:group_id", get_transaction_group);
   
   fastify.get("/accounts/summary", get_account_summary);
-  fastify.get("/accounts/transactions", list_transactions);
 
-  fastify.get("/loans", list_loans);
   fastify.get("/loans/summary", get_loans_summary);
   fastify.get("/loans/:loan_id", get_loan);
   fastify.get("/loan-repayments/:repayment_id", get_loan_repayment);

@@ -7,6 +7,7 @@ import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
+import { useTransactions } from "@/hooks/useTransactions";
 import { FormatUtils } from "@/lib/FormatUtils";
 import { incomeFormSchema, type IncomeFormValues } from "@/types/schemas";
 import type { FieldPath } from "react-hook-form";
@@ -42,6 +43,7 @@ const BLANK_DESTINATION: DestinationRow = {
 
 export function IncomeForm({ on_success }: IncomeFormProps) {
   const { data, refetch } = useInfo();
+  const { refetch: refetch_transactions } = useTransactions();
 
   const {
     register,
@@ -181,7 +183,7 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
           charge: Number(row.charge) || 0,
         })),
       });
-      await refetch();
+      await Promise.all([refetch(), refetch_transactions()]);
       reset();
       on_success();
     } catch (err) {

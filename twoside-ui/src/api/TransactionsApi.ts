@@ -21,7 +21,7 @@ export class TransactionsAPI {
     if (query.cursor) params.set("cursor", query.cursor);
     params.set("limit", String(query.limit));
     const { data } = await APIClient.request<TransactionsPage>(
-      `/accounts/transactions?${params.toString()}`,
+      `/transactions?${params.toString()}`,
       { method: "GET" },
     );
     return data;

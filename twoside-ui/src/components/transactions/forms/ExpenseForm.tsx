@@ -7,6 +7,7 @@ import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
 import { useInfo } from "@/hooks/useInfo";
+import { useTransactions } from "@/hooks/useTransactions";
 import { useWarningBypass } from "@/hooks/useWarningBypass";
 import { FormatUtils } from "@/lib/FormatUtils";
 import { expenseFormSchema, type ExpenseFormValues } from "@/types/schemas";
@@ -42,6 +43,7 @@ const BLANK_SOURCE: SourceRow = { account_id: "", amount: "", charge: "" };
 
 export function ExpenseForm({ on_success }: ExpenseFormProps) {
   const { data, refetch } = useInfo();
+  const { refetch: refetch_transactions } = useTransactions();
   const {
     pending_warning,
     bypassed_codes,
@@ -198,7 +200,7 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         })),
         bypass_warnings: codes,
       });
-      await refetch();
+      await Promise.all([refetch(), refetch_transactions()]);
       resetWarnings();
       reset();
       on_success();
