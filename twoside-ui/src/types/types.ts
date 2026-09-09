@@ -96,6 +96,8 @@ export type InfoData = {
   accounts: InfoAccount[];
   categories: InfoCategory[];
   counterparties: InfoCounterparty[];
+  total_you_are_owed: number; // wire number; net outstanding across GIVEN loans
+  total_you_owe: number; // wire number; net outstanding across BORROWED loans
   open_loans: InfoLoan[];
 };
 
@@ -171,7 +173,10 @@ export type TransactionsContextValue = {
   filters: TransactionsFilters;
   set_filters: (patch: Partial<TransactionsFilters>) => void; // merges over current; all-null fields reset to "all"
   load_more: () => Promise<void>;
-  refetch: () => Promise<void>; // reload page 1 for current filters; never rejects
+  /** Reload page 1 of the ACTIVE window. Pass the account id(s) a write just
+   *  touched to also drop those cached windows (and the "all accounts"
+   *  aggregate) while leaving unrelated accounts' loaded feeds intact. */
+  refetch: (touched_account_ids?: string[] | null) => Promise<void>; // never rejects
 };
 
 // --- Loans feed (GET /loans) ---
@@ -451,3 +456,52 @@ export type ReceiveRepaymentFormProps = {
 export type ExpensePickerTarget =
   | { kind: "account"; row_index: number }
   | { kind: "category" };
+
+// --- Home / dashboard ---
+
+export type BalancesProps = {
+  accounts: InfoAccount[];
+  currency_symbol: string;
+  net_total: number; // sum of account balances — shown on the "All Accounts" card
+  /** Account the feed is filtered to; null means the "All Accounts" card. */
+  active_account_id: string | null;
+  loading: boolean; // first /info fetch still in flight with no data yet
+  on_select_account: (account_id: string | null) => void;
+};
+
+export type TransactionRowProps = {
+  entry: TransactionEntry;
+  /** Show the owning account name when the feed spans all accounts. */
+  show_account_name: boolean;
+  currency_symbol: string;
+  /** IANA tz from /info; "" falls back to device-local for date rendering. */
+  time_zone?: string;
+  on_click: (entry: TransactionEntry) => void;
+};
+
+export type TransactionDetailSheetProps = {
+  entry: TransactionEntry | null;
+  currency_symbol: string;
+  time_zone: string; // IANA tz from /info; "" falls back to device-local
+  on_close: () => void;
+};
+
+export type DateRangeSheetProps = {
+  open: boolean;
+  start_date: string | null; // YYYY-MM-DD
+  end_date: string | null;
+  /** Fires on every date change; pass null for an open-ended side. */
+  on_change: (start_date: string | null, end_date: string | null) => void;
+  on_close: () => void;
+};
+
+export type FilterChipsProps = {
+  category_label: string; // selected category name or "Category"
+  has_category: boolean;
+  range_label: string; // "All time" or a formatted date range
+  has_date_range: boolean;
+  on_open_category: () => void;
+  on_open_date_range: () => void;
+  /** Clears the category + date-range filters (keeps the account scope). */
+  on_clear: () => void;
+};

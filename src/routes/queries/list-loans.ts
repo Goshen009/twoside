@@ -6,7 +6,7 @@ import Calc from "#/libs/calc.js";
 
 const schema = z.object({
   loan_id: z.uuid("loan_id must be a valid UUID").optional(),
-  status: z.enum(["OPEN", "PARTIALLY_REPAID", "CLOSED"]).optional(),
+  status: z.enum(["OPEN", "CLOSED"]).optional(),
   direction: z.enum(["GIVEN", "BORROWED"]).optional(),
   counterparty_id: z.uuid("counterparty_id must be a valid UUID").optional(),
   cursor: z.iso.datetime("cursor must be a valid ISO datetime").transform((val) => new Date(val)).optional(),
@@ -24,7 +24,8 @@ async function handler(
   const where: Prisma.LoanWhereInput = {
     transaction_group: { user_id: user.id },
     ...(loan_id && { id: loan_id }),
-    ...(status && { status }),
+    ...(status === "OPEN" && { status: { in: ["OPEN", "PARTIALLY_REPAID"] } }),
+    ...(status === "CLOSED" && { status: "CLOSED" }),
     ...(direction && { direction }),
     ...(counterparty_id && { counterparty_id }),
     ...(cursor && { date_issued: { lt: cursor } }),

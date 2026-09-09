@@ -183,7 +183,13 @@ export function IncomeForm({ on_success }: IncomeFormProps) {
           charge: Number(row.charge) || 0,
         })),
       });
-      await Promise.all([refetch(), refetch_transactions()]);
+      const touched_account_ids = [
+        ...new Set(raw.destinations.map((row) => row.account_id)),
+      ];
+      await Promise.all([
+        refetch(),
+        refetch_transactions(touched_account_ids),
+      ]);
       reset();
       on_success();
     } catch (err) {

@@ -175,7 +175,13 @@ export function TransferForm({ on_success }: TransferFormProps) {
         charge: Number(raw.charge) || 0,
         bypass_warnings: codes,
       });
-      await Promise.all([refetch(), refetch_transactions()]);
+      const touched_account_ids = [
+        ...new Set([raw.from_account_id, raw.to_account_id]),
+      ];
+      await Promise.all([
+        refetch(),
+        refetch_transactions(touched_account_ids),
+      ]);
       resetWarnings();
       reset();
       on_success();

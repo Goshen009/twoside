@@ -54,4 +54,63 @@ export class FormatUtils {
     });
     return `${date_part} ${time_part}`;
   }
+
+  /**
+   * Parse for display. Full ISO timestamps are parsed as-is and rendered in the
+   * account timezone when one is supplied; bare "YYYY-MM-DD" values (filter
+   * dates) are parsed at local noon so the calendar day never shifts.
+   */
+  private static parseForDisplay(iso: string, time_zone?: string): {
+    date: Date;
+    tz_options: { timeZone?: string };
+  } {
+    const is_date_only = /^\d{4}-\d{2}-\d{2}$/.test(iso);
+    const date = is_date_only
+      ? new Date(`${iso}T12:00:00`)
+      : new Date(iso);
+    const tz_options = !is_date_only && time_zone ? { timeZone: time_zone } : {};
+    return { date, tz_options };
+  }
+
+  /** ISO timestamp → "Sep 5, 2026". */
+  static formatDate(iso: string, time_zone?: string): string {
+    const { date, tz_options } = this.parseForDisplay(iso, time_zone);
+    if (Number.isNaN(date.getTime())) return iso;
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      ...tz_options,
+    });
+  }
+
+  /** ISO timestamp → "September 5, 2026". */
+  static formatDateLong(iso: string, time_zone?: string): string {
+    const { date, tz_options } = this.parseForDisplay(iso, time_zone);
+    if (Number.isNaN(date.getTime())) return iso;
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      ...tz_options,
+    });
+  }
+
+  /** ISO timestamp → "Sep 5, 2026, 10:49 AM". */
+  static formatDateTime(iso: string, time_zone?: string): string {
+    const { date, tz_options } = this.parseForDisplay(iso, time_zone);
+    if (Number.isNaN(date.getTime())) return iso;
+    const date_part = date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      ...tz_options,
+    });
+    const time_part = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      ...tz_options,
+    });
+    return `${date_part}, ${time_part}`;
+  }
 }

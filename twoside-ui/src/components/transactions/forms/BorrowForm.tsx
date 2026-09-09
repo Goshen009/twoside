@@ -198,7 +198,14 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
           charge: Number(row.charge) || 0,
         })),
       });
-      await Promise.all([refetch(), refetch_transactions(), refetch_loans()]);
+      const touched_account_ids = [
+        ...new Set(raw.destinations.map((row) => row.account_id)),
+      ];
+      await Promise.all([
+        refetch(),
+        refetch_transactions(touched_account_ids),
+        refetch_loans(),
+      ]);
       reset();
       on_success();
     } catch (err) {

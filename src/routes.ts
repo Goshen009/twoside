@@ -21,9 +21,9 @@ import { toggle_counterparty_status } from './routes/toggle-counterparty-status.
 import { get_balances } from './routes/get-balances.js';
 import { get_transaction_group } from './routes/get-transaction-group.js';
 import { get_account_summary } from './routes/get-account-summary.js';
-import { list_transactions } from './routes/list-transactions.js';
+import { list_transactions } from './routes/queries/list-transactions.js';
 import { get_loan_repayment } from './routes/get-loan-repayments.js';
-import { get_loan } from './routes/queries/get-loan.js';
+import { get_loan } from './routes/get-loan.js';
 import { get_loans_summary } from './routes/get-loans-summary.js';
 import { get_category_summary } from './routes/get-category-summary.js';
 import { get_counterparty_loans } from './routes/get-counterparty-loans.js';

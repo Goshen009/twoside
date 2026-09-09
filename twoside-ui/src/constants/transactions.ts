@@ -7,7 +7,11 @@ import {
   Receipt,
   TrendingUp,
 } from "lucide-react";
-import type { TransactionType, TransactionTypeMeta } from "@/types/types";
+import type {
+  TransactionLogType,
+  TransactionType,
+  TransactionTypeMeta,
+} from "@/types/types";
 
 export const TRANSACTION_TYPE_META: Record<TransactionType, TransactionTypeMeta> = {
   expense: {
@@ -73,3 +77,19 @@ export const LOAN_TRANSACTION_TYPES: TransactionType[] = [
   "repay_loan",
   "receive_repayment",
 ];
+
+/** Feed/journal `log_type` (uppercase wire values) → add-transaction meta key.
+ *  Lets the listing reuse the same icon/accent/label as the composer so a log
+ *  type reads consistently everywhere. */
+export const LOG_TYPE_TO_TRANSACTION_TYPE: Record<
+  TransactionLogType,
+  TransactionType
+> = {
+  EXPENSE: "expense",
+  INCOME: "income",
+  TRANSFER: "transfer",
+  GIVE_LOAN: "give_loan",
+  BORROW: "borrow",
+  REPAY_LOAN: "repay_loan",
+  RECEIVE_REPAYMENT: "receive_repayment",
+};

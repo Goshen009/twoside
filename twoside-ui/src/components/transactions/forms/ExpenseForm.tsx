@@ -200,7 +200,13 @@ export function ExpenseForm({ on_success }: ExpenseFormProps) {
         })),
         bypass_warnings: codes,
       });
-      await Promise.all([refetch(), refetch_transactions()]);
+      const touched_account_ids = [
+        ...new Set(raw.sources.map((row) => row.account_id)),
+      ];
+      await Promise.all([
+        refetch(),
+        refetch_transactions(touched_account_ids),
+      ]);
       resetWarnings();
       reset();
       on_success();

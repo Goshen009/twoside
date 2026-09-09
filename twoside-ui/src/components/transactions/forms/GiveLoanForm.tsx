@@ -201,7 +201,14 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
         })),
         bypass_warnings: codes,
       });
-      await Promise.all([refetch(), refetch_transactions(), refetch_loans()]);
+      const touched_account_ids = [
+        ...new Set(raw.sources.map((row) => row.account_id)),
+      ];
+      await Promise.all([
+        refetch(),
+        refetch_transactions(touched_account_ids),
+        refetch_loans(),
+      ]);
       resetWarnings();
       reset();
       on_success();
