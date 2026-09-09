@@ -222,10 +222,13 @@ export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
       const touched_account_ids = [
         ...new Set(raw.sources.map((row) => row.account_id)),
       ];
+      const touched_counterparty_ids = loan?.counterparty_id
+        ? [loan.counterparty_id]
+        : [];
       await Promise.all([
         refetch(),
         refetch_transactions(touched_account_ids),
-        refetch_loans(),
+        refetch_loans(touched_counterparty_ids),
       ]);
       resetWarnings();
       reset();

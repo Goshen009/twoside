@@ -190,7 +190,7 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
     set_is_submitting(true);
     const codes = pending_warning ? confirmWarning() : bypassed_codes;
     try {
-      await TransactionsAPI.logGiveLoan({
+      const result = await TransactionsAPI.logGiveLoan({
         description: raw.description,
         transaction_date: FormatUtils.toUtcIso(raw.transaction_date),
         counterparty_name: raw.counterparty_name,
@@ -204,10 +204,13 @@ export function GiveLoanForm({ on_success }: GiveLoanFormProps) {
       const touched_account_ids = [
         ...new Set(raw.sources.map((row) => row.account_id)),
       ];
+      const touched_counterparty_ids = result.counterparty_id
+        ? [result.counterparty_id]
+        : [];
       await Promise.all([
         refetch(),
         refetch_transactions(touched_account_ids),
-        refetch_loans(),
+        refetch_loans(touched_counterparty_ids),
       ]);
       resetWarnings();
       reset();

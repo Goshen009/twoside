@@ -36,6 +36,7 @@ async function handler(
   const payables_account = user.system_accounts.PAYABLES!;
   const expense_account = user.system_accounts.EXPENSE!;
 
+  let resolved_counterparty_id;
   await this.prisma.$transaction(async (tx) => {
   	const resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)
 
@@ -63,7 +64,7 @@ async function handler(
     });
   });
 
-  return reply.code(200).send({ message: "Successful" });
+  return reply.code(200).send({ message: "Successful", counterparty_id: resolved_counterparty_id });
 }
 
 export const log_borrow = { handler, schema: { body: schema } };

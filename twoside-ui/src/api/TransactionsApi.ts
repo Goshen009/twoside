@@ -48,18 +48,30 @@ export class TransactionsAPI {
     });
   }
 
-  static async logGiveLoan(payload: LogGiveLoanPayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/loan", {
+  static async logGiveLoan(
+    payload: LogGiveLoanPayload,
+  ): Promise<{ counterparty_id: string }> {
+    const { data } = await APIClient.request<{
+      message: string;
+      counterparty_id: string;
+    }>("/log/loan", {
       method: "POST",
       body: payload,
     });
+    return data;
   }
 
-  static async logBorrow(payload: LogBorrowPayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/borrow", {
+  static async logBorrow(
+    payload: LogBorrowPayload,
+  ): Promise<{ counterparty_id: string }> {
+    const { data } = await APIClient.request<{
+      message: string;
+      counterparty_id: string;
+    }>("/log/borrow", {
       method: "POST",
       body: payload,
     });
+    return data;
   }
 
   static async logRepayLoan(payload: LogRepayLoanPayload): Promise<void> {

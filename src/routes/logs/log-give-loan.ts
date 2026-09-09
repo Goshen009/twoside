@@ -36,12 +36,13 @@ async function handler(
   const receivables_account = user.system_accounts.RECEIVABLES!;
   const expense_account = user.system_accounts.EXPENSE!;
 
+  let resolved_counterparty_id;
   await this.prisma.$transaction(async (tx) => {
   	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
    		await Ledger.checkSufficientBalance(tx, source_lines, new Date(transaction_date), user.currency_symbol);
    	}
   
- 		const resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)
+   	resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)
 
   	const charge_line = total_charges > 0
 	   	? [{
@@ -67,7 +68,7 @@ async function handler(
     });
   });
 
-  return reply.code(200).send({ message: "Successful" });
+  return reply.code(200).send({ message: "Successful", counterparty_id: resolved_counterparty_id });
 }
 
 export const log_give_loan = { handler, schema: { body: schema } };

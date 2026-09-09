@@ -212,7 +212,11 @@ export type LoansPage = {
 };
 
 export type LoansFilters = {
-  status: LoanStatus | null;
+  /** Open/Paid-off segmented control. Never null: unlike the transactions feed
+   *  there is no "all statuses" bucket. `OPEN` on the wire also returns
+   *  PARTIALLY_REPAID loans (partial is still open). */
+  status: "OPEN" | "CLOSED";
+  /** "All loans" carousel scope: null = both directions. */
   direction: LoanDirection | null;
   counterparty_id: string | null;
 };
@@ -231,9 +235,13 @@ export type LoansContextValue = {
   loading_more: boolean;
   error: string | null;
   filters: LoansFilters;
-  set_filters: (patch: Partial<LoansFilters>) => void; // merges over current; null resets a dimension
+  set_filters: (patch: Partial<LoansFilters>) => void; // merges over current; null clears direction/counterparty
   load_more: () => Promise<void>;
-  refetch: () => Promise<void>; // reload page 1 for current filters; never rejects
+  /** Reload page 1 of the ACTIVE window. Pass the counterparty id(s) a loan
+   *  write just touched to also drop those cached windows (and the "all
+   *  counterparties" aggregate) while leaving unrelated counterparties' loaded
+   *  feeds intact. */
+  refetch: (touched_counterparty_ids?: string[] | null) => Promise<void>; // never rejects
 };
 
 // --- Transaction forms ---

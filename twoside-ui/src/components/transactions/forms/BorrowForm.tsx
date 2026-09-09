@@ -188,7 +188,7 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
     set_banner_error(null);
     set_is_submitting(true);
     try {
-      await TransactionsAPI.logBorrow({
+      const result = await TransactionsAPI.logBorrow({
         description: raw.description,
         transaction_date: FormatUtils.toUtcIso(raw.transaction_date),
         counterparty_name: raw.counterparty_name,
@@ -201,10 +201,13 @@ export function BorrowForm({ on_success }: BorrowFormProps) {
       const touched_account_ids = [
         ...new Set(raw.destinations.map((row) => row.account_id)),
       ];
+      const touched_counterparty_ids = result.counterparty_id
+        ? [result.counterparty_id]
+        : [];
       await Promise.all([
         refetch(),
         refetch_transactions(touched_account_ids),
-        refetch_loans(),
+        refetch_loans(touched_counterparty_ids),
       ]);
       reset();
       on_success();
