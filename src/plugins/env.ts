@@ -1,6 +1,7 @@
 import fp from "fastify-plugin";
 import { z } from "zod/v4";
 
+// change the ENVIRONMENT tags to 'local', 'hosted', 'production'
 const Schema = z.object({
 	ENVIRONMENT: z.enum(['development', 'production', 'staging']),
 	DATABASE_URL: z.string(),

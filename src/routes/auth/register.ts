@@ -69,7 +69,8 @@ async function handler(
 	    sameSite: 'lax',
 	    secure: this.config.ENVIRONMENT === 'production',
 	    maxAge: 30 * 24 * 60 * 60,
-	    path: '/auth'
+	    path: '/auth',
+			...(this.config.ENVIRONMENT === 'development' && { domain: 'twoside.dev' } )
 	  })
    	.code(200)
     .send({ message: "Successful" });
