@@ -37,7 +37,7 @@ export class APIClient {
 
   static async refresh(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.api_base_url}/auth/refresh`, {
+      const res = await fetch(`/api/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
@@ -76,7 +76,7 @@ export class APIClient {
         headers["Authorization"] = `Bearer ${this.access_token}`;
       }
 
-      const res = await fetch(`${this.api_base_url}${path}`, {
+      const res = await fetch(`/api${path}`, {
         method,
         headers,
         credentials: "include",

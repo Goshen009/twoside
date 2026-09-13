@@ -67,10 +67,11 @@ async function handler(
   	.setCookie('refresh_token', refresh_token, {
 	  	httpOnly: true,
 	    sameSite: 'lax',
-	    secure: this.config.ENVIRONMENT === 'production',
+	    // secure: this.config.ENVIRONMENT === 'production',
+			secure: true,
 	    maxAge: 30 * 24 * 60 * 60,
-	    path: '/auth',
-			...(this.config.ENVIRONMENT === 'development' && { domain: 'twoside.dev' } )
+	    path: '/',
+			// ...(this.config.ENVIRONMENT === 'development' && { domain: 'twoside.dev' } )
 	  })
    	.code(200)
     .send({ message: "Successful" });
