@@ -5,6 +5,7 @@ const Schema = z.object({
 	ENVIRONMENT: z.enum(['local', 'staging', 'production']),
 	DATABASE_URL: z.string(),
   JWT_SECRET: z.string(),
+  ZEPTO_TOKEN: z.string()
 });
 
 export type Config = z.infer<typeof Schema>;
