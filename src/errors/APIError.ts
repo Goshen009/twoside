@@ -27,6 +27,13 @@ export class APIError {
     });
   }
 
+  static incorrectOTP(): ProblemDetail {
+  	return new ProblemDetail({
+   		status: 401,
+     	message: "Incorrect code."
+   	})
+  }
+
   static notFound(message: string): ProblemDetail {
     return new ProblemDetail({
       status: 404,
@@ -42,14 +49,11 @@ export class APIError {
     });
   }
 
-  static rateLimit<T = Record<string, unknown>>(
-    message: string,
-    extensions?: T,
-  ): ProblemDetail<T> {
-    return new ProblemDetail<T>({
+  static rateLimit(seconds: number): ProblemDetail {
+    return new ProblemDetail({
       status: 429,
-      message,
-      extensions,
+      message: "Rate Limit!",
+      extensions: { seconds }
     });
   }
 	

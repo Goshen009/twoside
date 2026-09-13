@@ -23,7 +23,7 @@ async function handler(
 	    secure: this.config.ENVIRONMENT === 'production',
 	    maxAge: 30 * 24 * 60 * 60,
 	    path: '/auth',
-			...(this.config.ENVIRONMENT === 'development' && { domain: 'twoside.dev' } )
+			...(this.config.ENVIRONMENT !== 'local' && { domain: 'twoside.dev' } )
 	  })
    	.code(200)
     .send({ message: "Successful" });
