@@ -1,12 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 
 import { seed } from './routes/seed.js';
-import { login } from './routes/auth/login.js';
 import { list_loans } from './routes/queries/list-loans.js';
-import { register_user } from './routes/auth/register.js';
-import { list_accounts } from './routes/list-accounts.js';
-import { list_categories } from './routes/list-categories.js';
-import { list_counterparties } from './routes/list-counterparties.js';
 import { log_transfer } from './routes/logs/log-transfer.js';
 import { log_expense } from './routes/logs/log-expense.js';
 import { log_income } from './routes/logs/log-income.js';
@@ -14,25 +9,13 @@ import { log_give_loan } from './routes/logs/log-give-loan.js';
 import { log_borrow } from './routes/logs/log-borrow.js';
 import { log_repay_loan } from './routes/logs/log_repay_loan.js';
 import { log_receive_repayment } from './routes/logs/log_receive_repayment.js';
-import { create_account } from './routes/create-account.js';
-import { toggle_account_status } from './routes/toggle-account-status.js';
-import { toggle_category_status } from './routes/toggle-category-status.js';
-import { toggle_counterparty_status } from './routes/toggle-counterparty-status.js';
-import { get_balances } from './routes/get-balances.js';
-import { get_transaction_group } from './routes/get-transaction-group.js';
-import { get_account_summary } from './routes/get-account-summary.js';
 import { list_transactions } from './routes/queries/list-transactions.js';
-import { get_loan_repayment } from './routes/get-loan-repayments.js';
-import { get_loan } from './routes/get-loan.js';
-import { get_loans_summary } from './routes/get-loans-summary.js';
-import { get_category_summary } from './routes/get-category-summary.js';
-import { get_counterparty_loans } from './routes/get-counterparty-loans.js';
-import { list_category_transactions } from './routes/list-category-transactions.js';
-import { create_category } from './routes/create-category.js';
-import { create_counterparty } from './routes/create-counterparty.js';
 import { logout } from './routes/auth/logout.js';
 import { refresh } from './routes/auth/refresh.js';
 import { info } from './routes/queries/info.js';
+import { request_otp } from './routes/auth/request-otp.js';
+import { verify_otp } from './routes/auth/verify-otp.js';
+import { set_profile } from './routes/set-profile.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -111,10 +94,12 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   
   fastify.get("/seed", seed);
 
-  fastify.post("/auth/login", login);
   fastify.post("/auth/logout", logout);
   fastify.post("/auth/refresh", refresh);
-  fastify.post("/auth/register", register_user);
+  fastify.post("/auth/verify-otp", verify_otp);
+  fastify.post("/auth/request-otp", request_otp);
+  
+  fastify.post("/profile", set_profile);
 
   fastify.get("/info", info);
   fastify.get("/loans", list_loans);
@@ -127,30 +112,6 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.post("/log/borrow", log_borrow);
   fastify.post("/log/loan-repayed", log_repay_loan);
   fastify.post("/log/borrow-returned", log_receive_repayment);
-  
-  
-  fastify.get("/accounts", list_accounts);
-  fastify.get("/categories", list_categories);
-  fastify.get("/counterparties", list_counterparties);
-  fastify.post("/accounts", create_account);
-  fastify.post("/categories", create_category);
-  fastify.post("/counterparties", create_counterparty);
-  fastify.patch("/accounts/:account_id", toggle_account_status);
-  fastify.patch("/categories/:category_id", toggle_category_status);
-  fastify.patch("/counterparties/:counterparty_id", toggle_counterparty_status);
-
-  fastify.get("/balances", get_balances);
-  fastify.get("/transaction-groups/:group_id", get_transaction_group);
-  
-  fastify.get("/accounts/summary", get_account_summary);
-
-  fastify.get("/loans/summary", get_loans_summary);
-  fastify.get("/loans/:loan_id", get_loan);
-  fastify.get("/loan-repayments/:repayment_id", get_loan_repayment);
-
-  fastify.get("/counterparties/:counterparty_id/loans", get_counterparty_loans);
-  fastify.get("/categories/:category_id/summary", get_category_summary);
-  fastify.get("/categories/:category_id/transactions", list_category_transactions);
 }
 
 export default routes

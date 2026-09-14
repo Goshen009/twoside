@@ -4,7 +4,7 @@ import Fastify from 'fastify'
 import Pino from 'pino';
 import "dotenv/config";
 
-const is_dev_environment = process.env.ENVIRONMENT === 'development';
+const is_dev_environment = process.env.ENVIRONMENT === 'local' || process.env.ENVIRONMENT === 'staging';
 
 const app = Fastify({
   logger: is_dev_environment ? {

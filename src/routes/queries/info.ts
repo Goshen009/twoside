@@ -16,6 +16,7 @@ async function handler(
 	  this.prisma.user.findUnique({
 	    where: { id: user.id },
 	    select: {
+				profile: { select: { username: true, currency_symbol: true, iana_timezone: true } },
 	      categories: { where: { is_active: true, is_charge: false }, orderBy: { name: 'asc' }, select: { id: true, name: true } },
 				counterparties: { where: { is_active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } },
 	    },
@@ -56,8 +57,9 @@ async function handler(
 	const total_you_owe = Calc.toDecimalNumber(total_you_owe_cents);
 
   return reply.code(200).send({
-  	currency_symbol: user.currency_symbol,
-   	iana_timezone: user.iana_timezone,
+  	username: user.profile.username,
+  	currency_symbol: user.profile.currency_symbol,
+   	iana_timezone: user.profile.iana_timezone,
     accounts: accounts.map(a => ({
     	id: a.id,
      	name: a.name,

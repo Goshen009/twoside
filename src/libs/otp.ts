@@ -1,6 +1,9 @@
 import { PrismaClient } from "#/prisma/client.js";
 import { APIError } from "#/errors/APIError.js";
 import { createHash, randomInt } from "crypto";
+import { Config } from "#/plugins/env.js";
+
+// import Email from "./email.js";
 
 const MAX_ATTEMPTS_TO_LOCK = 5;
 const MAX_OTP_REQUESTS_PER_DAY = 8;
@@ -17,7 +20,7 @@ class OTP {
     return createHash("sha256").update(value).digest("hex");
   }
 
-  static async createAndSend(prisma: PrismaClient, email: string) {
+  static async createAndSend(prisma: PrismaClient, config: Config, email: string, email_exists: boolean) {
   	const now = new Date();
 
     const otp = this.generateOTP();
@@ -32,14 +35,14 @@ class OTP {
     if (record) {
 	    if (record.cooldown_expires_at > now) {
 	    	const remaining_in_ms = record.cooldown_expires_at.getTime() - now.getTime();
-	     	throw APIError.rateLimit((remaining_in_ms / 1000));
+	     	throw APIError.rateLimit(Math.round(remaining_in_ms / 1000));
 	    }
 	
 	    const has_limit_window_expired = record.limit_reset_at < now;
 	    
 	    if (!has_limit_window_expired && record.limit_send_count >= MAX_OTP_REQUESTS_PER_DAY) {
 	     	const remaining_in_ms = record.limit_reset_at.getTime() - now.getTime();
-	      throw APIError.rateLimit((remaining_in_ms / 1000));
+	      throw APIError.rateLimit(Math.round(remaining_in_ms / 1000));
 	    }
 	
 	    await prisma.otpAttempts.update({
@@ -63,7 +66,15 @@ class OTP {
      	});
     }
 
-    // now we have the otp we can use to send.
+    console.log(otp);
+
+    // try {
+    //   await Email.sendOTP(config, { address: email, code: otp, email_exists });
+    // } catch (err) {
+    //   console.log(`Failed to send email for ${email}. Error is ${err}`);
+    //   await prisma.otpAttempts.delete({ where: { email } }).catch(() => {});
+    //   throw APIError.internalServerError();
+    // }
   }
   
 	static async verify(prisma: PrismaClient, otp: string, email: string) {

@@ -76,7 +76,7 @@ export class APIClient {
         headers["Authorization"] = `Bearer ${this.access_token}`;
       }
 
-      const res = await fetch(`/api${path}`, {
+      const res = await fetch(`${this.api_base_url}${path}`, {
         method,
         headers,
         credentials: "include",

@@ -38,7 +38,7 @@ async function handler(
   
   await this.prisma.$transaction(async (tx) => {
  		if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
-  		await Ledger.checkSufficientBalance(tx, [{...from_account, total_amount }], new Date(transaction_date), user.currency_symbol);
+  		await Ledger.checkSufficientBalance(tx, [{...from_account, total_amount }], new Date(transaction_date), user.profile.currency_symbol);
   	}
 
    	const charge_line = charge > 0

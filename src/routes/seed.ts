@@ -19,6 +19,7 @@ async function handler(
 			id: '245baa2f-cefe-45ad-8505-9278fe7cf4c4',
 			username: 'goshen',
 			password,
+			email: "q",
 			currency_symbol: '₦', // hardcoded for now,
       iana_timezone: 'Africa/Lagos', // hardcoded for now
 			accounts: {

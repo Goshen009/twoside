@@ -13,6 +13,17 @@ const REFRESH_EXPIRY_MILLISECONDS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const ACCESS_EXPIRY = '2d';
 
 class Tokens {
+	static COOKIE_CONFIG(config: Config) {
+		return {
+      path: '/auth',
+    	httpOnly: true,
+     	sameSite: 'lax' as const,
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      secure: !(config.ENVIRONMENT === 'local'),
+      ...(config.ENVIRONMENT !== 'local' && { domain: 'twoside.dev' })
+    };
+	}
+	
 	private static generateHash(value: string) {
     return createHash("sha256").update(value).digest("hex");
 	}

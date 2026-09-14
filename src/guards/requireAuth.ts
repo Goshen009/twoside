@@ -14,16 +14,25 @@ export default fp(async (fastify) => {
 			where: { id },
 			select: { 
 				id: true,
-				username: true,
 				accounts: true,
-    		iana_timezone: true,
-				currency_symbol: true,
+				profile: {
+					select: {
+						username: true,
+						currency_symbol: true,
+						iana_timezone: true
+					}
+				},
 				categories: { where: { is_charge: true } }
 			},
 		})
 		
 		if (!user)
 			throw APIError.invalidOrMissingToken();
+
+		const { profile } = user;
+
+		if (!profile)
+			throw APIError.noProfileSet();
 
 		const system_accounts = user.accounts.reduce<SystemAccountMap>((acc, account) => {
 			if (account.system_role) acc[account.system_role] = account;
@@ -39,6 +48,7 @@ export default fp(async (fastify) => {
 		
 		const authenticated_user: AuthenticatedUser = {
 		  ...user,
+			profile,
 			charge_category,
 		  system_accounts
 		};
@@ -50,13 +60,15 @@ export default fp(async (fastify) => {
 export type AuthenticatedUser = Prisma.UserGetPayload<{
 	select: {
 		id: true,
-		username: true,
 		accounts: true,
-    iana_timezone: true,
-		currency_symbol: true,
 		categories: { where: { is_charge: true } },
 	}
 }> & {
+	profile: { 
+		username: string,
+		currency_symbol: string,
+		iana_timezone: string
+	},
 	charge_category: Category,
 	system_accounts: SystemAccountMap
 };

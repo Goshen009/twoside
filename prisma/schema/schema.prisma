@@ -12,11 +12,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model Credentials {
-	@@map("credentials")
-	email									String @id
-}
-
 model OtpAttempts {
 	@@map("otp_attempts")
 	
@@ -38,14 +33,19 @@ model User {
 	@@map("users")
 
 	id										String @id @default(uuid())
-	username							String @unique // username instead of email cause like
-	password							String
-	currency_symbol       String
-  iana_timezone         String
+	email									String @unique
+
+	// these go away
+	username							String? @unique
+	password							String?
+	currency_symbol       String?
+  iana_timezone         String?
+  // to here 
 
 	created_at 						DateTime @default(now()) @db.Timestamptz(6)
   updated_at 						DateTime @updatedAt @db.Timestamptz(6)
 
+  profile								Profile?
   accounts							Account[]
   categories						Category[]
   refresh_tokens				RefreshToken[]
@@ -54,6 +54,20 @@ model User {
   transaction_groups		TransactionGroup[]
 
   test_chat_messages TestChatMessage[]
+}
+
+model Profile {
+	@@map("user_profile")
+
+	username							String @unique
+	currency_symbol       String
+  iana_timezone         String
+
+  created_at 						DateTime @default(now()) @db.Timestamptz(6)
+  updated_at 						DateTime @updatedAt @db.Timestamptz(6)
+
+  user_id								String @id
+  user									User @relation(fields: [user_id], references: [id])
 }
 
 model RefreshToken {

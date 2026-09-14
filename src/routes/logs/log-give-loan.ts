@@ -39,7 +39,7 @@ async function handler(
   let resolved_counterparty_id;
   await this.prisma.$transaction(async (tx) => {
   	if (!bypass_warnings.includes("INSUFFICIENT_BALANCE")) {
-   		await Ledger.checkSufficientBalance(tx, source_lines, new Date(transaction_date), user.currency_symbol);
+   		await Ledger.checkSufficientBalance(tx, source_lines, new Date(transaction_date), user.profile.currency_symbol);
    	}
   
    	resolved_counterparty_id = await Domain.enableOrCreateCounterparty(tx, user.id, counterparty_name)

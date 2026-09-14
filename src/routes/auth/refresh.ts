@@ -17,16 +17,12 @@ async function handler(
 
   return reply
   	.header('Authorization', `Bearer ${access_token}`)
-  	.setCookie('refresh_token', refresh_token, {
-	  	httpOnly: true,
-	    sameSite: 'lax',
-	    secure: this.config.ENVIRONMENT === 'production',
-	    maxAge: 30 * 24 * 60 * 60,
-	    path: '/auth',
-			...(this.config.ENVIRONMENT !== 'local' && { domain: 'twoside.dev' } )
-	  })
+  	.setCookie('refresh_token', refresh_token, Tokens.COOKIE_CONFIG(this.config))
    	.code(200)
-    .send({ message: "Successful" });
+    .send({ 
+    	message: "Successful",
+     	...(this.config.ENVIRONMENT !== 'production' && { refresh_token })
+    });
 }
 
 export const refresh = { handler };

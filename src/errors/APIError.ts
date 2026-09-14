@@ -27,6 +27,14 @@ export class APIError {
     });
   }
 
+  static noProfileSet(): ProblemDetail {
+  	return new ProblemDetail({
+   		status: 403,
+     	message: "Please complete your profile setup.",
+      extensions: { code: 'NO_PROFILE' }
+   	});
+  }
+
   static incorrectOTP(): ProblemDetail {
   	return new ProblemDetail({
    		status: 401,
@@ -49,11 +57,11 @@ export class APIError {
     });
   }
 
-  static rateLimit(seconds: number): ProblemDetail {
+  static rateLimit(retry_after_seconds: number): ProblemDetail {
     return new ProblemDetail({
       status: 429,
-      message: "Rate Limit!",
-      extensions: { seconds }
+      message: "Rate limit exceeded.",
+      extensions: { retry_after_seconds }
     });
   }
 	
