@@ -19,6 +19,10 @@ import { RegisterPage } from "@/pages/Register/RegisterPage";
 import { LoginPage } from "@/pages/Login/LoginPage";
 import { HomePage } from "@/pages/Home/HomePage";
 import { LoansPage } from "@/pages/Loans/LoansPage";
+import { NewPage } from "./pages/New/NewPage";
+import { OtpPage } from "./pages/New/OtpPage";
+import { OnboardPage } from "./pages/New/OnboardPage";
+import { AuthFlow } from "./pages/Auth/AuthFlow";
 
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { is_authenticated } = useAuth();
@@ -55,7 +59,10 @@ function AnimatedRoutes() {
           path="/login"
           element={
             <PublicOnlyRoute>
-              <LoginPage />
+              {/*<NewPage />*/}
+              {/*<OtpPage />*/}
+              {/*<OnboardPage />*/}
+              <AuthFlow />
             </PublicOnlyRoute>
           }
         />
@@ -69,6 +76,8 @@ function AnimatedRoutes() {
   );
 }
 
+// import { ShrinkTest } from "@/components/ShrinkTest";
+
 export function App() {
   return (
     <BrowserRouter>
@@ -77,6 +86,7 @@ export function App() {
           <TransactionsProvider>
             <LoansProvider>
               <AddTransactionFlowProvider>
+              	{/*<ShrinkTest />*/}
                 <AddTransactionFlow />
                 <AnimatedRoutes />
               </AddTransactionFlowProvider>
