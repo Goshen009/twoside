@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useState } from "react";
 
 interface EmailFormProps {
@@ -5,14 +6,20 @@ interface EmailFormProps {
 }
 
 export function EmailForm({ onComplete }: EmailFormProps) {
+	const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  const requestOtp = useAuthStore((state) => state.requestOtp);
 
-  function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await requestOtp(email);
       onComplete();
-    }, 2000);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -22,11 +29,14 @@ export function EmailForm({ onComplete }: EmailFormProps) {
           Email
         </label>
         <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Enter your email"
+        	id="email"
+         	name="email"
+         	type="email"
+         	required
+         	autoComplete="email"
+         	placeholder="e.g somerandomthingy@email.com"
+         	value={email}
+         	onChange={(e) => setEmail(e.target.value)}
           className="w-full bg-transparent p-0 pt-0.5 border-none text-foreground placeholder:text-muted/70 text-xs font-normal focus:ring-0 focus:outline-none"
         />
       </div>

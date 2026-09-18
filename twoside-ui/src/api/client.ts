@@ -37,7 +37,7 @@ export class APIClient {
 
   static async refresh(): Promise<boolean> {
     try {
-      const res = await fetch(`/api/auth/refresh`, {
+      const res = await fetch(`${this.api_base_url}/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });

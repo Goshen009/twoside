@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AuthShell } from "@/components/auth/AuthShell";
-import { EmailForm } from "@/components/auth/EmailForm";
-import { OtpForm } from "@/components/auth/OtpForm";
-import { OnboardForm } from "@/components/auth/OnboardForm";
+import { AuthShell } from "@/pages/Auth/AuthShell";
+import { EmailForm } from "@/pages/Auth/EmailForm";
+import { OtpForm } from "@/pages/Auth/OtpForm";
+import { OnboardForm } from "@/pages/Auth/OnboardForm";
 
 type Step = "login" | "otp" | "onboard";
 type Direction = "forward" | "backward";
