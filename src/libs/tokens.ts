@@ -16,6 +16,19 @@ const REFRESH_EXPIRY_MILLISECONDS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const ACCESS_EXPIRY = '2d';
 
 class Tokens {
+	private static COOKIE_DOMAIN(config: Config): string | undefined {
+	  switch (config.ENVIRONMENT) {
+	    case "local":
+	      return undefined;
+	    case "staging":
+	      return "develop.twoside.dev";
+	    case "production":
+	      return "twoside.dev";
+	    default:
+	      return undefined;
+	  }
+	}
+	
 	static COOKIE_CONFIG(config: Config) {
 		return {
       path: '/auth',
@@ -23,7 +36,7 @@ class Tokens {
      	sameSite: 'lax' as const,
       maxAge: 60 * 60 * 24 * 30, // 30 days
       secure: !(config.ENVIRONMENT === 'local'),
-      ...(config.ENVIRONMENT !== 'local' && { domain: 'twoside.dev' })
+      ...(this.COOKIE_DOMAIN(config) && { domain: this.COOKIE_DOMAIN(config) }),
     };
 	}
 

@@ -16,6 +16,7 @@ export function InstallPrompt() {
 
   useEffect(() => {
     const handler = (e: Event) => {
+      console.log("beforeinstallprompt fired");
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
