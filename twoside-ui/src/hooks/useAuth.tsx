@@ -18,8 +18,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [checking_session, setCheckingSession] = useState(true);
 
   useEffect(() => {
-    APIClient.refresh().then((success) => {
-      setIsAuthenticated(success);
+    APIClient.refresh().then(() => {
+      // setIsAuthenticated(success);
       setCheckingSession(false);
     });
   }, []);
