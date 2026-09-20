@@ -3,15 +3,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuthShell } from "@/pages/Auth/AuthShell";
 import { EmailForm } from "@/pages/Auth/EmailForm";
 import { OtpForm } from "@/pages/Auth/OtpForm";
-import { OnboardForm } from "@/pages/Auth/OnboardForm";
 
-type Step = "login" | "otp" | "onboard";
+type Step = "login" | "otp";
 type Direction = "forward" | "backward";
 
-const headlines: Record<Step, string> = {
-  login: "Ready to know where all your money went?",
-  otp: "I've emailed you a code",
-  onboard: "Getting you ready...",
+export type Mode = "login" | "register";
+interface AuthFlowProps {
+  mode: Mode;
+}
+
+const headlines: Record<Mode, Record<Step, string>> = {
+  login: {
+    login: "Welcome back",
+    otp: "I've emailed you a code",
+  },
+  register: {
+    login: "Ready to know where all your money went?",
+    otp: "I've emailed you a code",
+  },
 };
 
 const slideVariants = {
@@ -26,17 +35,30 @@ const slideVariants = {
   }),
 };
 
-export function AuthFlow() {
+export function AuthFlow({ mode }: AuthFlowProps) {
   const [step, setStep] = useState<Step>("login");
   const [direction, setDirection] = useState<Direction>("forward");
+  const [error_message, setErrorMessage] = useState<string | null>(null);
 
-  function goTo(nextStep: Step, dir: Direction) {
+  const goTo = (nextStep: Step, dir: Direction) => {
+  	setErrorMessage(null);
+    setDirection(dir);
+    setStep(nextStep);
+  }
+
+  const goToWithError = (nextStep: Step, dir: Direction, message: string) => {
+    setErrorMessage(message);
     setDirection(dir);
     setStep(nextStep);
   }
 
   return (
-    <AuthShell headline={headlines[step]}>
+    <AuthShell 
+    	headline={headlines[mode][step]}
+    	is_error={!!error_message}
+      error_message={error_message ?? undefined}
+      onDismissError={() => setErrorMessage(null)}
+    >
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div
           key={step}
@@ -49,16 +71,21 @@ export function AuthFlow() {
           className="w-full flex flex-col items-center"
         >
           {step === "login" && (
-            <EmailForm onComplete={() => goTo("otp", "forward")} />
+          	<EmailForm
+           		mode={mode}
+              onComplete={() => goTo("otp", "forward")}
+              onError={setErrorMessage}
+              onClearError={() => setErrorMessage(null)}
+            />
           )}
           {step === "otp" && (
             <OtpForm
-              onComplete={() => goTo("onboard", "forward")}
+            	mode={mode}
               onBack={() => goTo("login", "backward")}
+              onError={setErrorMessage}
+              onExpired={(message) => goToWithError("login", "backward", message)}
+              onClearError={() => setErrorMessage(null)}
             />
-          )}
-          {step === "onboard" && (
-            <OnboardForm onComplete={() => console.log("onboarding done")} />
           )}
         </motion.div>
       </AnimatePresence>

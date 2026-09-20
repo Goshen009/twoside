@@ -14,8 +14,11 @@ import { logout } from './routes/auth/logout.js';
 import { refresh } from './routes/auth/refresh.js';
 import { info } from './routes/queries/info.js';
 import { request_otp } from './routes/auth/request-otp.js';
-import { verify_otp } from './routes/auth/verify-otp.js';
+// import { verify_otp } from './routes/auth/verify-otp.js';
 import { set_profile } from './routes/set-profile.js';
+import { login } from './routes/auth/login.js';
+import { register } from './routes/auth/register.js';
+import { confirm_pending_token } from './routes/auth/confirm-pending-token.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -96,8 +99,13 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
   fastify.post("/auth/logout", logout);
   fastify.post("/auth/refresh", refresh);
-  fastify.post("/auth/verify-otp", verify_otp);
+
+  // fastify.post("/auth/verify-otp", verify_otp);
+  
   fastify.post("/auth/request-otp", request_otp);
+  fastify.post("/auth/login", login);
+  fastify.post("/auth/register", register);
+  fastify.post("/auth/confirm-pending", confirm_pending_token);
   
   fastify.post("/profile", set_profile);
 

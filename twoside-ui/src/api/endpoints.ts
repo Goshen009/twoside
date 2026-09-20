@@ -2,19 +2,43 @@ import { APIClient } from "@/api/client";
 
 export class Endpoints {
 	static async requestOtp(email: string): Promise<void> {
-    const { response } = await APIClient.request<{ message: string }>("/auth/request-otp", {
+    await APIClient.request<{ message: string }>("/auth/request-otp", {
       method: "POST",
       use_auth: false,
       body: { email },
     });
-    APIClient.setAccessToken(APIClient.extractAccessToken(response));
   }
 
-  static async verifyOtp(email: string, otp: string): Promise<VerifyOtpResponse> {
-    const { response, data } = await APIClient.request<VerifyOtpResponse>("/auth/request-otp", {
+  static async login(email: string, otp: string): Promise<VerifyOtpResponse> {
+    const { response, data } = await APIClient.request<VerifyOtpResponse>("/auth/login", {
       method: "POST",
       use_auth: false,
       body: { email, otp },
+    });
+
+    if (isVerifyOTPSuccess(data)) {
+    	APIClient.setAccessToken(APIClient.extractAccessToken(response));
+    }
+    return data;
+  }
+
+  static async register(email: string, otp: string): Promise<VerifyOtpResponse> {
+    const { response, data } = await APIClient.request<VerifyOtpResponse>("/auth/register", {
+      method: "POST",
+      use_auth: false,
+      body: { email, otp },
+    });
+
+    if (isVerifyOTPSuccess(data)) {
+    	APIClient.setAccessToken(APIClient.extractAccessToken(response));
+    }
+    return data;
+  }
+
+  static async confirmPending(): Promise<VerifyOtpSuccess> {
+    const { response, data } = await APIClient.request<VerifyOtpSuccess>("/auth/confirm-pending", {
+      method: "POST",
+      use_auth: false,
     });
     APIClient.setAccessToken(APIClient.extractAccessToken(response));
     return data;
@@ -27,8 +51,26 @@ export class Endpoints {
       APIClient.setAccessToken(null);
     }
   }
+
+  static async setProfile(username: string, iana_timezone: string, currency_symbol: string) {
+    return APIClient.request<{ message: string }>("/profile", {
+      method: "POST",
+      body: { username, iana_timezone, currency_symbol },
+    });
+  }
 }
 
-type VerifyOtpResponse = {
-	requires_onboarding: boolean;
+export interface VerifyOtpSuccess {
+  status: "FULLY_REGISTERED" | "REQUIRES_ONBOARDING";
+  email: string;
+  refresh_token?: string;
 }
+
+interface VerifyOtpPending {
+  status: "NOT_FOUND" | "ALREADY_EXISTING";
+}
+
+export type VerifyOtpResponse = VerifyOtpSuccess | VerifyOtpPending;
+
+export const isVerifyOTPSuccess = (result: VerifyOtpResponse): result is VerifyOtpSuccess =>
+  result.status === "FULLY_REGISTERED" || result.status === "REQUIRES_ONBOARDING";

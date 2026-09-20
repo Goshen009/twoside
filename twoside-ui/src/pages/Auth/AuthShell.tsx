@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { AnimatePresence } from "framer-motion";
+
 import { TopographicHeader } from "@/components/layout/TopographicHeader";
 import { BrandEmblem } from "@/components/ui/BrandEmblem";
 import { ErrorToast } from "@/components/ui/ErrorToast";
@@ -8,6 +10,7 @@ interface AuthShellProps {
   children: ReactNode;
   is_error?: boolean;
   error_message?: string;
+  onDismissError: () => void;
 }
 
 export function AuthShell({
@@ -15,10 +18,15 @@ export function AuthShell({
   children,
   is_error = false,
   error_message = "An error occurred. Please try again",
+  onDismissError
 }: AuthShellProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
-      {is_error && <ErrorToast message={error_message} />}
+      <AnimatePresence>
+        {is_error && (
+          <ErrorToast key="error-toast" message={error_message} onDismiss={onDismissError} />
+        )}
+      </AnimatePresence>
 
       <TopographicHeader height={300} />
 

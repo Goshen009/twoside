@@ -5,12 +5,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useAuth } from "@/hooks/useAuth";
+// import { useAuth } from "@/hooks/useAuth";
 import type {
   AddTransactionFlowContextValue,
   AddTransactionFlowStage,
   TransactionType,
 } from "@/types/types";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AddTransactionFlowContext =
@@ -28,7 +29,10 @@ export function useAddTransactionFlow(): AddTransactionFlowContextValue {
 }
 
 export function AddTransactionFlowProvider({ children }: { children: ReactNode }) {
-  const { is_authenticated } = useAuth();
+  // const { is_authenticated } = useAuth();
+
+  const is_authenticated = useAuthStore((state) => state.is_authenticated);
+  
   const [is_open, set_is_open] = useState(false);
   const [stage, set_stage] = useState<AddTransactionFlowStage>("type_select");
   const [transaction_type, set_transaction_type] = useState<TransactionType | null>(

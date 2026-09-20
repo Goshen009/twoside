@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { motion } from "framer-motion";
 
 interface BrandEmblemProps {
   icon?: ReactNode;
@@ -8,19 +9,23 @@ interface BrandEmblemProps {
 
 export function BrandEmblem({ icon, size = 56, is_error = false }: BrandEmblemProps) {
   return (
-    <div
-      className={`flex items-center justify-center shadow-lg ring-4 ring-background rounded-full transition-colors duration-200 ${
-        is_error ? "shadow-red-500/30" : "shadow-primary/25"
-      }`}
+    <motion.div
+      className="flex items-center justify-center shadow-lg ring-4 ring-background rounded-full"
+      animate={{
+        boxShadow: is_error
+          ? "0 10px 25px -5px rgba(239, 68, 68, 0.3)"
+          : "0 10px 25px -5px rgba(16, 185, 129, 0.25)",
+      }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <div
-        className={`rounded-full flex items-center justify-center text-background transition-colors duration-200 active:scale-95 ${
-          is_error ? "bg-[#EF4444]" : "bg-primary"
-        }`}
+      <motion.div
+        className="rounded-full flex items-center justify-center text-background active:scale-95"
         style={{ width: size, height: size }}
+        animate={{ backgroundColor: is_error ? "#EF4444" : "#10b981" }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
       >
         {icon}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

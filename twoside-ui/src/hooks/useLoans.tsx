@@ -9,12 +9,13 @@ import {
   type ReactNode,
 } from "react";
 import { LoansAPI } from "@/api/LoansApi";
-import { useAuth } from "@/hooks/useAuth";
+// import { useAuth } from "@/hooks/useAuth";
 import type {
   LoanEntry,
   LoansContextValue,
   LoansFilters,
 } from "@/types/types";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const PAGE_SIZE = 25;
 
@@ -94,7 +95,9 @@ export function useLoans(): LoansContextValue {
 }
 
 export function LoansProvider({ children }: { children: ReactNode }) {
-  const { is_authenticated } = useAuth();
+  // const { is_authenticated } = useAuth();
+
+  const is_authenticated = useAuthStore((state) => state.is_authenticated);
 
   // The active filter set selects which cached window the context exposes.
   const [filters, setFilters] = useState<LoansFilters>(DEFAULT_FILTERS);

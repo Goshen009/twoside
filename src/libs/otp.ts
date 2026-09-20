@@ -3,7 +3,7 @@ import { APIError } from "#/errors/APIError.js";
 import { createHash, randomInt } from "crypto";
 import { Config } from "#/plugins/env.js";
 
-// import Email from "./email.js";
+import Email from "./email.js";
 
 const MAX_ATTEMPTS_TO_LOCK = 5;
 const MAX_OTP_REQUESTS_PER_DAY = 8;
@@ -18,6 +18,22 @@ class OTP {
 	
   private static generateHash(value: string) {
     return createHash("sha256").update(value).digest("hex");
+  }
+
+  private static formatDuration(ms: number): string {
+    const total_seconds = Math.ceil(ms / 1000);
+    const hours = Math.floor(total_seconds / 3600);
+    const minutes = Math.floor((total_seconds % 3600) / 60);
+    const seconds = total_seconds % 60;
+  
+    const parts: string[] = [];
+    if (hours > 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
+    if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
+  
+    if (parts.length === 1) return parts[0]!;
+    if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
+    return `${parts[0]}, ${parts[1]}, and ${parts[2]}`;
   }
 
   static async createAndSend(prisma: PrismaClient, config: Config, email: string, email_exists: boolean) {
@@ -35,14 +51,14 @@ class OTP {
     if (record) {
 	    if (record.cooldown_expires_at > now) {
 	    	const remaining_in_ms = record.cooldown_expires_at.getTime() - now.getTime();
-	     	throw APIError.rateLimit(Math.round(remaining_in_ms / 1000));
+	     	throw APIError.rateLimit(`Slow down — you can request another code in ${this.formatDuration(remaining_in_ms)}.`);
 	    }
 	
 	    const has_limit_window_expired = record.limit_reset_at < now;
 	    
 	    if (!has_limit_window_expired && record.limit_send_count >= MAX_OTP_REQUESTS_PER_DAY) {
 	     	const remaining_in_ms = record.limit_reset_at.getTime() - now.getTime();
-	      throw APIError.rateLimit(Math.round(remaining_in_ms / 1000));
+	      throw APIError.rateLimit(`Eight OTP requests in one day? That's a lot. You're locked out for ${this.formatDuration(remaining_in_ms)} — if this was a genuine mistake, reach out and I'll sort it.`);
 	    }
 	
 	    await prisma.otpAttempts.update({
@@ -66,15 +82,17 @@ class OTP {
      	});
     }
 
-    console.log(otp);
-
-    // try {
-    //   await Email.sendOTP(config, { address: email, code: otp, email_exists });
-    // } catch (err) {
-    //   console.log(`Failed to send email for ${email}. Error is ${err}`);
-    //   await prisma.otpAttempts.delete({ where: { email } }).catch(() => {});
-    //   throw APIError.internalServerError();
-    // }
+    if (config.ENVIRONMENT === 'local') {
+    	console.log(otp);
+    } else {
+	    try {
+	      await Email.sendOTP(config, { address: email, code: otp, email_exists });
+	    } catch (err) {
+	      console.log(`Failed to send email for ${email}. Error is ${err}`);
+	      await prisma.otpAttempts.delete({ where: { email } }).catch(() => {});
+	      throw APIError.internalServerError();
+	    }
+    }
   }
   
 	static async verify(prisma: PrismaClient, otp: string, email: string) {

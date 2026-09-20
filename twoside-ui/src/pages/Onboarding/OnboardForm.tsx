@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { ApiError } from "@/api/client";
 
 interface OnboardFormProps {
-  onComplete: () => void;
+  onError: (message: string) => void;
+  onClearError: () => void;
 }
 
 function getGmtOffset(timeZone: string): string {
@@ -16,23 +19,37 @@ function getGmtOffset(timeZone: string): string {
 }
 
 const timezones = [
-  { value: "Africa/Lagos", label: "Lagos" },
-  { value: "Africa/Accra", label: "Accra" },
-  { value: "Europe/London", label: "London" },
-  { value: "Australia/Sydney", label: "Sydney" },
-  { value: "America/New_York", label: "New York" },
+  { value: "Africa/Lagos", label: "Africa/Lagos" },
+  { value: "Africa/Accra", label: "Africa/Accra" },
+  { value: "Europe/London", label: "Europe/London" },
+  { value: "Australia/Sydney", label: "Australia/Sydney" },
+  { value: "America/New_York", label: "America/New York" },
 ];
 
-export function OnboardForm({ onComplete }: OnboardFormProps) {
+export function OnboardForm({ onError, onClearError }: OnboardFormProps) {
+	const logged_in_email = useAuthStore((state) => state.logged_in_email);
+	const logout = useAuthStore((state) => state.logout);
+  const setProfile = useAuthStore((state) => state.setProfile);
+	
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      onComplete();
-    }, 2000);
-  }
+  
+    const form = new FormData(e.currentTarget);
+    const username = form.get("name") as string;
+    const currency_symbol = form.get("currency") as string;
+    const iana_timezone = form.get("timezone") as string;
+  
+    try {
+      await setProfile(username, iana_timezone, currency_symbol);
+    } catch (error) {
+      onError(ApiError.getErrorMessage(error));
+    } finally {
+    	setLoading(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3.5 max-w-sm">
@@ -45,7 +62,11 @@ export function OnboardForm({ onComplete }: OnboardFormProps) {
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="e.g. Adebayo, Sarah..."
+          required
+          minLength={1}
+          maxLength={40}
+          placeholder="e.g. Goshen"
+          onFocus={onClearError}
           className="w-full bg-transparent p-0 pt-0.5 border-none text-foreground placeholder:text-muted/70 font-normal focus:ring-0 focus:outline-none text-xs"
         />
       </div>
@@ -59,6 +80,7 @@ export function OnboardForm({ onComplete }: OnboardFormProps) {
             id="currency"
             name="currency"
             defaultValue="₦"
+            onFocus={onClearError}
             className="w-full bg-transparent p-0 border-none text-foreground font-medium text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
           >
             <option value="₦">₦123,456.78</option>
@@ -79,6 +101,7 @@ export function OnboardForm({ onComplete }: OnboardFormProps) {
             id="timezone"
             name="timezone"
             defaultValue="Africa/Lagos"
+            onFocus={onClearError}
             className="w-full bg-transparent p-0 border-none text-foreground font-medium text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
           >
             {timezones.map((tz) => (
@@ -94,10 +117,22 @@ export function OnboardForm({ onComplete }: OnboardFormProps) {
       <button
         type="submit"
         disabled={loading}
+        onFocus={onClearError}
         className="w-full h-11 bg-primary hover:bg-primary-hover active:scale-[0.99] text-white font-bold text-xs rounded-full shadow-lg shadow-primary/20 flex items-center justify-center transition duration-150 ease-in-out cursor-pointer mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Continuing..." : "Continue"}
       </button>
+
+      <p className="text-xs text-center text-muted mt-4">
+        Not {logged_in_email}?{" "}
+        <button
+          type="button"
+          onClick={logout}
+          className="text-primary hover:underline font-medium cursor-pointer bg-transparent border-none p-0 inline"
+        >
+          Log out
+        </button>
+      </p>
     </form>
   );
 }

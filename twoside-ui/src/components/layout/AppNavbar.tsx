@@ -1,7 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { ArrowLeftRight, HandCoins, Home, LogOut, Plus } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+// import { useAuth } from "@/hooks/useAuth";
 import { useAddTransactionFlow } from "@/hooks/useAddTransactionFlow";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 function navClassName(is_active: boolean): string {
   return `flex flex-col items-center gap-1 transition-colors ${
@@ -10,7 +11,10 @@ function navClassName(is_active: boolean): string {
 }
 
 export function AppNavbar() {
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
+
+  const logout = useAuthStore((state) => state.logout);
+  
   const { open } = useAddTransactionFlow();
 
   return (

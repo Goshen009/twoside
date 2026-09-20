@@ -9,12 +9,13 @@ import {
   type ReactNode,
 } from "react";
 import { TransactionsAPI } from "@/api/TransactionsApi";
-import { useAuth } from "@/hooks/useAuth";
+// import { useAuth } from "@/hooks/useAuth";
 import type {
   TransactionEntry,
   TransactionsContextValue,
   TransactionsFilters,
 } from "@/types/types";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const PAGE_SIZE = 25;
 
@@ -93,7 +94,9 @@ export function useTransactions(): TransactionsContextValue {
 }
 
 export function TransactionsProvider({ children }: { children: ReactNode }) {
-  const { is_authenticated } = useAuth();
+  // const { is_authenticated } = useAuth();
+  // 
+  const is_authenticated = useAuthStore((state) => state.is_authenticated);
 
   // The active filter set selects which cached window the context exposes.
   const [filters, setFilters] = useState<TransactionsFilters>(DEFAULT_FILTERS);

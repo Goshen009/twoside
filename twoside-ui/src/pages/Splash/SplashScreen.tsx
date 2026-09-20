@@ -1,6 +1,6 @@
 export function SplashScreen() {
   return (
-    <div className="h-screen w-full bg-background text-foreground flex items-center justify-center relative overflow-hidden font-sans antialiased select-none">
+    <div className="min-h-[100dvh] w-full bg-background text-foreground flex items-center justify-center relative font-sans antialiased select-none">
       {/* Background atmosphere */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
         {/* Center ambient glow */}

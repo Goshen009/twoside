@@ -1,11 +1,17 @@
 import { useAuthStore } from "@/stores/useAuthStore";
+import { ApiError } from "@/api/client";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import type { Mode } from "./AuthFlow";
 
 interface EmailFormProps {
   onComplete: () => void;
+  onError: (message: string) => void;
+  onClearError: () => void;
+  mode: Mode;
 }
 
-export function EmailForm({ onComplete }: EmailFormProps) {
+export function EmailForm({ onComplete, onError, onClearError, mode }: EmailFormProps) {
 	const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   
@@ -14,9 +20,12 @@ export function EmailForm({ onComplete }: EmailFormProps) {
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
       await requestOtp(email);
       onComplete();
+    } catch (error) {
+    	onError(ApiError.getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -37,6 +46,7 @@ export function EmailForm({ onComplete }: EmailFormProps) {
          	placeholder="e.g somerandomthingy@email.com"
          	value={email}
          	onChange={(e) => setEmail(e.target.value)}
+          onFocus={onClearError}
           className="w-full bg-transparent p-0 pt-0.5 border-none text-foreground placeholder:text-muted/70 text-xs font-normal focus:ring-0 focus:outline-none"
         />
       </div>
@@ -44,6 +54,7 @@ export function EmailForm({ onComplete }: EmailFormProps) {
       <button
         type="submit"
         disabled={loading}
+        onFocus={onClearError}
         className="w-full h-11 bg-primary hover:bg-primary-hover active:scale-[0.99] text-white font-bold text-xs rounded-full shadow-lg shadow-primary/20 flex items-center justify-center transition duration-150 ease-in-out cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Sending Verification Code..." : "Send Verification Code"}
@@ -57,7 +68,7 @@ export function EmailForm({ onComplete }: EmailFormProps) {
 
       <button
         type="button"
-        className="w-full max-w-sm h-11 bg-surface hover:bg-surface-hover active:scale-[0.99] border border-border rounded-full flex items-center justify-center gap-3 text-foreground font-medium text-xs transition duration-150 ease-in-out cursor-pointer shadow-lg mb-6"
+        className="w-full max-w-sm h-11 bg-surface hover:bg-surface-hover active:scale-[0.99] border border-border rounded-full flex items-center justify-center gap-3 text-foreground font-medium text-xs transition duration-150 ease-in-out cursor-pointer shadow-lg mb-4"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -67,6 +78,24 @@ export function EmailForm({ onComplete }: EmailFormProps) {
         </svg>
         <span>Continue with Google</span>
       </button>
+
+      <p className="text-xs text-center text-muted">
+        {mode === "login" ? (
+          <>
+          	First time?{" "}
+          	<Link to="/register" className="text-primary hover:underline font-medium">
+              Create an account
+            </Link>
+          </>
+        ) : (
+          <>
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline font-medium">
+              Log in
+            </Link>
+          </>
+        )}
+      </p>
     </form>
   );
 }

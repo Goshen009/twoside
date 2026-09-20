@@ -15,6 +15,16 @@ export class ApiError extends Error {
     delete rest.fields;
     this.extensions = rest;
   }
+
+  static getErrorMessage(error: unknown): string {
+    if (error instanceof ApiError) {
+     	if (error.status === 400 && error.fields && error.fields.length > 0) {
+       	return error.fields[0].message;
+      }
+      return error.message;
+    }
+    return "Well, that's embarrassing. Something broke on our end — try again?";
+  }
 }
 
 export class APIClient {
@@ -35,7 +45,7 @@ export class APIClient {
     return header.replace(/^Bearer\s+/i, "");
   }
 
-  static async refresh(): Promise<boolean> {
+  static async refresh(): Promise<{ status: "FULLY_REGISTERED" | "REQUIRES_ONBOARDING", email: string } | null> {
     try {
       const res = await fetch(`${this.api_base_url}/auth/refresh`, {
         method: "POST",
@@ -45,15 +55,16 @@ export class APIClient {
       if (!res.ok) {
         this.access_token = null;
         this.onUnauthorized?.();
-        return false;
+        return null;
       }
 
       this.setAccessToken(this.extractAccessToken(res));
-      return true;
+      const data = await res.json();
+      return { status: data.status, email: data.email };
     } catch {
       this.access_token = null;
       this.onUnauthorized?.();
-      return false;
+      return null;
     }
   }
 
@@ -84,7 +95,7 @@ export class APIClient {
       });
 
       if (res.status === 401 && use_auth && attempt === 0) {
-        if (await this.refresh()) {
+        if ((await this.refresh()) !== null) {
           continue;
         }
       }

@@ -9,8 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { InfoAPI } from "@/api/InfoApi";
-import { useAuth } from "@/hooks/useAuth";
+// import { useAuth } from "@/hooks/useAuth";
 import type { InfoContextValue, InfoData } from "@/types/types";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 function error_message(err: unknown): string {
   return err instanceof Error
@@ -29,7 +30,9 @@ export function useInfo(): InfoContextValue {
 }
 
 export function InfoProvider({ children }: { children: ReactNode }) {
-  const { is_authenticated } = useAuth();
+  // const { is_authenticated } = useAuth();
+
+  const is_authenticated = useAuthStore((state) => state.is_authenticated);
 
   const [data, setData] = useState<InfoData | null>(null);
   const [error, setError] = useState<string | null>(null);

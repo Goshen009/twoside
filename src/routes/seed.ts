@@ -1,13 +1,10 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
-import Password from "#/libs/password.js";
 
 async function handler(
   this: FastifyInstance,
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-	const password = await Password.hash('000000');
-
 	const balance_snapshots = {
   	create: [
    		{ balance: 0, as_of_date: new Date() }
@@ -17,11 +14,7 @@ async function handler(
 	await this.prisma.user.create({
 		data: {
 			id: '245baa2f-cefe-45ad-8505-9278fe7cf4c4',
-			username: 'goshen',
-			password,
-			email: "q",
-			currency_symbol: '₦', // hardcoded for now,
-      iana_timezone: 'Africa/Lagos', // hardcoded for now
+			email: "seed@gmail.com",
 			accounts: {
 				create: [
     			{ name: 'Cash', type: 'ASSET', system_role: null, balance_snapshots },

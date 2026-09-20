@@ -38,8 +38,16 @@ export class APIError {
   static incorrectOTP(): ProblemDetail {
   	return new ProblemDetail({
    		status: 401,
-     	message: "Incorrect code."
+     	message: "Wrong code."
    	})
+  }
+
+  static expiredPendingToken(): ProblemDetail {
+  	return new ProblemDetail({
+   		status: 403,
+    	message: "That took a while — your session's gone stale. Let's get you a fresh code.",
+      extensions: { code: "EXPIRED_PENDING_TOKEN" },
+   	});
   }
 
   static notFound(message: string): ProblemDetail {
@@ -57,18 +65,17 @@ export class APIError {
     });
   }
 
-  static rateLimit(retry_after_seconds: number): ProblemDetail {
+  static rateLimit(message: string): ProblemDetail {
     return new ProblemDetail({
       status: 429,
-      message: "Rate limit exceeded.",
-      extensions: { retry_after_seconds }
+      message,
     });
   }
 	
 	static internalServerError() {
 		return new ProblemDetail({
 			status: 500,
-			message: 'An unexpected error occurred'
+			message: `Well, that's embarrassing. Something broke on our end — try again?`
 		})
 	}
 }

@@ -31,18 +31,7 @@ export default defineConfig({
   },
   server: {
     host: true,
-    // https: {
-    // 	cert: "/home/goshen/tailscale_certs/kettle.ratfish-cosmological.ts.net.crt",
-    //  	key: "/home/goshen/tailscale_certs/kettle.ratfish-cosmological.ts.net.key"
-    // },
     allowedHosts: ['100.103.127.67', '100.99.208.67'],
-    // proxy: {
-    // 	'/api': {
-    //  		target: 'http://localhost:8080',
-    //    	changeOrigin: true,
-    //     rewrite: (path) => path.replace(/^\/api/, '')
-    //  	}
-    // }
   },
   preview: {
     port: 5173,
