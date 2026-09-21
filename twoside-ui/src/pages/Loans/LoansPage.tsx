@@ -12,10 +12,11 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { PickerSheet } from "@/components/ui/PickerSheet";
 import { Sheet } from "@/components/ui/Sheet";
-import { useInfo } from "@/hooks/useInfo";
+// import { useInfo } from "@/hooks/useInfo";
 import { useLoans } from "@/hooks/useLoans";
 import { FormatUtils } from "@/lib/FormatUtils";
 import type { LoanDirection, LoanEntry } from "@/types/types";
+import { useInfoStore } from "@/stores/useInfoStore";
 
 /**
  * Loans hub — a consumer of the real data layer. The scope carousel + Open /
@@ -156,7 +157,11 @@ function DetailRow({ label, value, value_class = "text-zinc-200" }: { label: str
 }
 
 export function LoansPage() {
-  const { data: info, loading: info_loading } = useInfo();
+  // const { data: info, loading: info_loading } = useInfo();
+
+  const info = useInfoStore((state) => state.data);
+  const info_loading = useInfoStore((state) => state.is_loading);
+
   const {
     loans,
     loading,
@@ -185,7 +190,7 @@ export function LoansPage() {
   const active_counterparty_name =
     counterparties.find((counterparty) => counterparty.id === filters.counterparty_id)?.name ?? null;
 
-  const owed_total = info?.total_you_are_owed ?? 0;
+  const owed_total = info?.total_owed_to_you ?? 0;
   const owe_total = info?.total_you_owe ?? 0;
   const show_totals = info !== null && !info_loading;
   const empty_message = active_counterparty_name

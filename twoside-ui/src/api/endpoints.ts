@@ -1,4 +1,5 @@
 import { APIClient } from "@/api/client";
+import type { InfoData } from "@/stores/useInfoStore";
 
 export class Endpoints {
 	static async requestOtp(email: string): Promise<void> {
@@ -57,6 +58,11 @@ export class Endpoints {
       method: "POST",
       body: { username, iana_timezone, currency_symbol },
     });
+  }
+
+  static async getInfo(): Promise<InfoData> {
+  	const { data } = await APIClient.request<InfoData>("/info", { method: 'GET' });
+   	return data;
   }
 }
 

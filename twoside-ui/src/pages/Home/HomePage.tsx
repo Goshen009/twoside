@@ -1,13 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp, Wallet } from "lucide-react";
-import { useInfo } from "@/hooks/useInfo";
 import { useTransactions } from "@/hooks/useTransactions";
 import { Balances } from "./Balances";
 import { TransactionsFeed } from "./TransactionsFeed";
 
+import { useInfoStore } from "@/stores/useInfoStore";
+
 export function HomePage() {
-  const { data: info, loading: info_loading } = useInfo();
+  // const { data: info, loading: info_loading } = useInfo();
+
+  const info = useInfoStore((state) => state.data);
+  const loading = useInfoStore(state => state.is_loading);
+  
   const { filters, set_filters } = useTransactions();
 
   const accounts = useMemo(() => info?.accounts ?? [], [info]);
@@ -75,7 +80,7 @@ export function HomePage() {
             currency_symbol={info?.currency_symbol ?? "₦"}
             net_total={net_total}
             active_account_id={filters.account_id}
-            loading={info_loading}
+            loading={loading}
             on_select_account={handleSelectAccount}
           />
         </div>

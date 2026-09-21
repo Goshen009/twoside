@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { AlertCircle, Receipt } from "lucide-react";
 import { PickerSheet } from "@/components/ui/PickerSheet";
-import { useInfo } from "@/hooks/useInfo";
+// import { useInfo } from "@/hooks/useInfo";
 import { useTransactions } from "@/hooks/useTransactions";
 import { FormatUtils } from "@/lib/FormatUtils";
 import type { TransactionEntry } from "@/types/types";
@@ -9,6 +9,7 @@ import { DateRangeSheet } from "./DateRangeSheet";
 import { FilterChips } from "./FilterChips";
 import { TransactionDetailSheet } from "./TransactionDetailSheet";
 import { TransactionRow } from "./TransactionRow";
+import { useInfoStore } from "@/stores/useInfoStore";
 
 function buildRangeLabel(
   start_date: string | null,
@@ -27,7 +28,9 @@ function buildRangeLabel(
 }
 
 export function TransactionsFeed() {
-  const { data: info } = useInfo();
+  // const { data: info } = useInfo();
+
+  const info = useInfoStore((state) => state.data);
   const transactions = useTransactions();
 
   const categories = useMemo(() => info?.categories ?? [], [info]);

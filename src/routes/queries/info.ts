@@ -39,7 +39,7 @@ async function handler(
 		Balances.getBalancesAtDate(this.prisma, accounts, new Date())
 	]);
 
-	const total_you_are_owed_cents = open_loans
+	const total_owed_to_you_cents = open_loans
 	  .filter(l => l.direction === 'GIVEN')
 	  .reduce((sum, l) => {
 	    const repaid = l.repayments.reduce((s, r) => s + Calc.toWholeNumber(Number(r.amount)), 0);
@@ -53,7 +53,7 @@ async function handler(
 	    return sum + Calc.toWholeNumber(Number(l.amount)) - repaid;
 	  }, 0);
 	
-	const total_you_are_owed = Calc.toDecimalNumber(total_you_are_owed_cents);
+	const total_owed_to_you = Calc.toDecimalNumber(total_owed_to_you_cents);
 	const total_you_owe = Calc.toDecimalNumber(total_you_owe_cents);
 
   return reply.code(200).send({
@@ -67,7 +67,7 @@ async function handler(
     })),
     categories: user_data?.categories ?? [],
     counterparties: user_data?.counterparties ?? [],
-    total_you_are_owed,
+    total_owed_to_you,
     total_you_owe,
     open_loans: open_loans.map(l => ({
     	id: l.id,

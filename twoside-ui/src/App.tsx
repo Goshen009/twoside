@@ -14,7 +14,6 @@ import { AuthFlow } from "./pages/Auth/AuthFlow";
 import { SplashScreen } from "./pages/Splash/SplashScreen";
 import { OnboardPage } from "./pages/Onboarding/OnboardPage";
 
-import { InfoProvider } from "@/hooks/useInfo";
 import { TransactionsProvider } from "@/hooks/useTransactions";
 import { LoansProvider } from "@/hooks/useLoans";
 import { AddTransactionFlowProvider } from "@/hooks/useAddTransactionFlow";
@@ -144,7 +143,6 @@ export function App() {
 
       {!checking_session && (
         <BrowserRouter>
-         <InfoProvider>
          		<TransactionsProvider>
            		<LoansProvider>
              		<AddTransactionFlowProvider>
@@ -153,7 +151,6 @@ export function App() {
                	</AddTransactionFlowProvider>
              </LoansProvider>
            </TransactionsProvider>
-         </InfoProvider>
         </BrowserRouter>
       )}
    	</>
