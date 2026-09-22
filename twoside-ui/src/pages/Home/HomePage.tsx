@@ -5,13 +5,13 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { Balances } from "./Balances";
 import { TransactionsFeed } from "./TransactionsFeed";
 
-import { useInfoStore } from "@/stores/useInfoStore";
+import { useUserStore } from "@/stores/useUserStore";
 
 export function HomePage() {
   // const { data: info, loading: info_loading } = useInfo();
 
-  const info = useInfoStore((state) => state.data);
-  const loading = useInfoStore(state => state.is_loading);
+  const info = useUserStore((state) => state.data);
+  const loading = useUserStore(state => state.is_loading);
   
   const { filters, set_filters } = useTransactions();
 

@@ -3,12 +3,32 @@ import { ApiError } from '@/api/client';
 import { Endpoints } from '@/api/endpoints';
 import { useAuthStore } from './useAuthStore';
 
+interface Account {
+	id: string,
+	name: string,
+	balance: number,
+	is_active: boolean
+}
+
+interface Category {
+	id: string,
+	name: string,
+	is_active: boolean
+}
+
+interface Counterparty {
+	id: string,
+	name: string,
+	is_active: boolean
+}
+
 export interface InfoData {
+	username: string,
 	currency_symbol: string,
 	iana_timezone: string,
-	accounts: { id: string, name: string, balance: number }[],
-	categories: { id: string, name: string }[],
-	counterparties: { id: string, name: string }[],
+	accounts: Account[],
+	categories: Category[],
+	counterparties: Counterparty[],
 	total_you_owe: number,
 	total_owed_to_you: number,
 	open_loans: {
@@ -32,13 +52,19 @@ interface InfoState {
 	fetch: () => Promise<void>;
 	refetch: () => Promise<void>;
 	reset: () => void;
+
+	createCategory: (name: string) => Promise<void>;
+  editCategory: (id: string, name: string, set_active: boolean) => Promise<void>;
+
+  createCounterparty: (name: string) => Promise<void>;
+  editCounterparty: (id: string, name: string, set_active: boolean) => Promise<void>;
 }
 
 // Ticket counter — module-level, not part of the store's state (it's an
 // implementation detail, not something any component should read or react to).
 let request_seq = 0;
 
-export const useInfoStore = create<InfoState>((set) => ({
+export const useUserStore = create<InfoState>((set, get) => ({
 	data: null,
 	is_loading: false,
   is_refreshing: false,
@@ -76,6 +102,26 @@ export const useInfoStore = create<InfoState>((set) => ({
   	request_seq++; // invalidate anything currently in flight
     set({ data: null, error: null, is_loading: false, is_refreshing: false });
   },
+
+  createCategory: async (name: string) => {
+    await Endpoints.createCategory(name);
+    await get().refetch();
+  },
+  
+  editCategory: async (id: string, name: string, set_active: boolean) => {
+    await Endpoints.editCategory(id, name, set_active);
+    await get().refetch();
+  },
+  
+  createCounterparty: async (name: string) => {
+    await Endpoints.createCounterparty(name);
+    await get().refetch();
+  },
+  
+  editCounterparty: async (id: string, name: string, set_active: boolean) => {
+    await Endpoints.editCounterparty(id, name, set_active);
+    await get().refetch();
+  },
 }));
 
 // React to auth transitions — this is the Option A pattern from earlier:
@@ -83,9 +129,9 @@ export const useInfoStore = create<InfoState>((set) => ({
 useAuthStore.subscribe((state, prev_state) => {
   if (state.is_authenticated !== prev_state.is_authenticated) {
     if (state.is_authenticated) {
-      useInfoStore.getState().fetch();
+      useUserStore.getState().fetch();
     } else {
-      useInfoStore.getState().reset();
+      useUserStore.getState().reset();
     }
   }
 });

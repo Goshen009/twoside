@@ -16,7 +16,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { useLoans } from "@/hooks/useLoans";
 import { FormatUtils } from "@/lib/FormatUtils";
 import type { LoanDirection, LoanEntry } from "@/types/types";
-import { useInfoStore } from "@/stores/useInfoStore";
+import { useUserStore } from "@/stores/useUserStore";
 
 /**
  * Loans hub — a consumer of the real data layer. The scope carousel + Open /
@@ -159,8 +159,8 @@ function DetailRow({ label, value, value_class = "text-zinc-200" }: { label: str
 export function LoansPage() {
   // const { data: info, loading: info_loading } = useInfo();
 
-  const info = useInfoStore((state) => state.data);
-  const info_loading = useInfoStore((state) => state.is_loading);
+  const info = useUserStore((state) => state.data);
+  const info_loading = useUserStore((state) => state.is_loading);
 
   const {
     loans,

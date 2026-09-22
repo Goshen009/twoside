@@ -9,7 +9,7 @@ import { DateRangeSheet } from "./DateRangeSheet";
 import { FilterChips } from "./FilterChips";
 import { TransactionDetailSheet } from "./TransactionDetailSheet";
 import { TransactionRow } from "./TransactionRow";
-import { useInfoStore } from "@/stores/useInfoStore";
+import { useUserStore } from "@/stores/useUserStore";
 
 function buildRangeLabel(
   start_date: string | null,
@@ -30,7 +30,7 @@ function buildRangeLabel(
 export function TransactionsFeed() {
   // const { data: info } = useInfo();
 
-  const info = useInfoStore((state) => state.data);
+  const info = useUserStore((state) => state.data);
   const transactions = useTransactions();
 
   const categories = useMemo(() => info?.categories ?? [], [info]);

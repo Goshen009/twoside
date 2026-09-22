@@ -57,6 +57,13 @@ export class APIError {
     });
   }
 
+  static conflict(message: string): ProblemDetail {
+  	return new ProblemDetail({
+   		status: 409,
+     	message
+   	});
+  }
+
   static warning(code: WarningCode, message: string): ProblemDetail {
     return new ProblemDetail({
       status: 409,

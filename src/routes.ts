@@ -19,6 +19,10 @@ import { set_profile } from './routes/set-profile.js';
 import { login } from './routes/auth/login.js';
 import { register } from './routes/auth/register.js';
 import { confirm_pending_token } from './routes/auth/confirm-pending-token.js';
+import { create_category } from './routes/category/create-category.js';
+import { edit_category } from './routes/category/edit-category.js';
+import { create_counterparty } from './routes/counterparty/create-counterparty.js';
+import { edit_counterparty } from './routes/counterparty/edit-counterparty.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -112,6 +116,11 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get("/info", info);
   fastify.get("/loans", list_loans);
   fastify.get("/transactions", list_transactions);
+
+  fastify.post("/category", create_category);
+  fastify.patch("/category/:category_id", edit_category);
+  fastify.post("/counterparty", create_counterparty);
+  fastify.patch("/counterparty/:counterparty_id", edit_counterparty);
 
   fastify.post("/log/expense", log_expense);
   fastify.post("/log/income", log_income);

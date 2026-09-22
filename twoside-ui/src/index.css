@@ -31,6 +31,12 @@
   --font-mono: var(--font-sans);
 }
 
+@layer components {
+  .app-container {
+    @apply max-w-[345px] mx-auto;
+  }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

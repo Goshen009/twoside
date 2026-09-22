@@ -1,5 +1,5 @@
 import { APIClient } from "@/api/client";
-import type { InfoData } from "@/stores/useInfoStore";
+import type { InfoData } from "@/stores/useUserStore";
 
 export class Endpoints {
 	static async requestOtp(email: string): Promise<void> {
@@ -63,6 +63,40 @@ export class Endpoints {
   static async getInfo(): Promise<InfoData> {
   	const { data } = await APIClient.request<InfoData>("/info", { method: 'GET' });
    	return data;
+  }
+
+  static async createCategory(category_name: string): Promise<void> {
+  	await APIClient.request("/category", { 
+   		method: 'POST',
+     	body: { category_name }
+   	});
+  }
+
+  static async editCategory(id:string, category_name: string, set_active: boolean): Promise<void> {
+  	await APIClient.request(`/category/${id}`, { 
+   		method: 'PATCH',
+     	body: { 
+      	category_name,
+       	set_active: set_active ? 'true' : 'false'
+      }
+   	});
+  }
+
+  static async createCounterparty(counterparty_name: string): Promise<void> {
+  	await APIClient.request("/counterparty", { 
+   		method: 'POST',
+     	body: { counterparty_name }
+   	});
+  }
+
+  static async editCounterparty(id:string, counterparty_name: string, set_active: boolean): Promise<void> {
+  	await APIClient.request(`/counterparty/${id}`, { 
+   		method: 'PATCH',
+     	body: { 
+      	counterparty_name,
+       	set_active: set_active ? 'true' : 'false'
+      }
+   	});
   }
 }
 

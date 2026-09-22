@@ -25,6 +25,9 @@ import { HomePage } from "@/pages/Home/HomePage";
 import { LoansPage } from "@/pages/Loans/LoansPage";
 import { useIsPWAMode } from "./hooks/useIsPWAMode";
 import { LandingPage } from "./pages/Landing/LandingPage";
+import { SettingsPage } from "./pages/Settings/SettingsPage";
+import { ProfileSettingsPage } from "./pages/Settings/ProfileSettingsPage";
+import { ManageListPage } from "./pages/Settings/ManageListPage";
 
 function RequirePWA({ children }: { children: ReactNode }) {
   const is_pwa_mode = useIsPWAMode();
@@ -110,6 +113,9 @@ function AnimatedRoutes() {
         <Route element={<RequirePWA><ProtectedLayout/></RequirePWA>}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/loans" element={<LoansPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/profile" element={<ProfileSettingsPage />} />
+          <Route path="/settings/:type" element={<ManageListPage />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />
