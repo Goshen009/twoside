@@ -38,6 +38,9 @@
 // };
 
 export function ManageListPage() {
+	return (
+		<></>
+	);
   // const { type } = useParams<{ type: ListType }>();
   // const list_type = (type ?? "accounts") as ListType;
 
