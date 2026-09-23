@@ -40,15 +40,17 @@ export interface TransactionEntry {
 }
 
 interface CachedTransactionWindow extends ListTransactionsResponse {
-	is_loading: boolean,
+	filters: TransactionFilters,
 	error: string | null,
-	// then all those other fields.
+	is_fetching: boolean,
+	loading_more: boolean,
 }
 
 interface TransactionsState {
 	data: Record<string, CachedTransactionWindow>,
 	
 	fetch: (filters: TransactionFilters) => Promise<void>;
+	load_more: (filters: TransactionFilters) => Promise<void>;
 }
 
 const request_seq = new Map<string, number>();   
@@ -67,7 +69,7 @@ const get_key = (filters: TransactionFilters): string => {
 	]);
 }
 
-export const useTransactionsStore = create<TransactionsState>((set) => ({
+export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 	data: {},
 
 	fetch: async (filters: TransactionFilters) => {
@@ -77,26 +79,25 @@ export const useTransactionsStore = create<TransactionsState>((set) => ({
 		set((state) => {
 			const existing = state.data[key];
 			const update = existing
-				? { ...existing, is_loading: true, error: null }
-				: { entries: [], next_cursor: null, has_next: false, is_loading: true, error: null };
+				? { ...existing, is_fetching: true, error: null }
+				: { entries: [], filters, next_cursor: null, has_next: false, is_fetching: true, error: null, loading_more: false };
 			return { data: { ...state.data, [key]: update } };
 		});
 
 		try {
-			const data = await Endpoints.listTransactions({
-				account_id: filters.account_id ?? undefined,
-				category_id: filters.category_id ?? undefined
-			});
+			const data = await Endpoints.listTransactions({ ...filters });
 			if (seq !== request_seq.get(key)) return;
 			set((state) => ({
 			  data: {
 			    ...state.data,
 			    [key]: {
 			      entries: data.entries,
+						filters,
 			      next_cursor: data.next_cursor,
 			      has_next: data.has_next,
-			      is_loading: false,
+			      is_fetching: false,
 			      error: null,
+						loading_more: false
 			    },
 			  },
 			}));
@@ -105,8 +106,8 @@ export const useTransactionsStore = create<TransactionsState>((set) => ({
 			set((state) => {
 				const existing = state.data[key];
 				const update = existing
-					? { ...existing, is_loading:false, error: ApiError.getErrorMessage(err) }
-					: { entries: [], next_cursor: null, has_next: false, is_loading: false, error: ApiError.getErrorMessage(err) };
+					? { ...existing, is_fetching: false, error: ApiError.getErrorMessage(err) }
+					: { entries: [], filters, next_cursor: null, has_next: false, is_fetching: false, error: ApiError.getErrorMessage(err), loading_more: false };
 				return { data: { ...state.data, [key]: update } };
 			});
 		}
@@ -114,38 +115,50 @@ export const useTransactionsStore = create<TransactionsState>((set) => ({
 
 	load_more: async (filters: TransactionFilters) => {
 		const key = get_key(filters);
+		const existing = get().data[key];
+		
+		if (!existing) {
+			console.warn("load_more called with no existing window for key", key);
+			return;
+		}
+		
+		if (existing.loading_more) return;
+		if (!existing.has_next || !existing.next_cursor) return;
+		
 		const seq = next_seq(filters);
 
-		set((state) => {
-			const existing = state.data[key];
-			const update = existing
-				? { ...existing, is_loading: true, error: null }
-				: { entries: [], next_cursor: null, has_next: false, is_loading: true, error: null };
-			return { data: { ...state.data, [key]: update } };
-		});
+		set((state) => ({
+			data: { ...state.data, [key]: { ...existing, loading_more: true } }
+		}));
 
 		try {
 			const data = await Endpoints.listTransactions({
-				account_id: filters.account_id ?? undefined,
-				category_id: filters.category_id ?? undefined
+				...filters,
+				cursor: existing.next_cursor
 			});
+			
 			if (seq !== request_seq.get(key)) return;
-			set((state) => {
-				const existing = state.data[key];
-				const update = existing
-					? { entries: [...existing.entries, ...data.entries ], next_cursor: data.next_cursor, has_next: data.has_next, is_loading: false, error: null }
-					: { entries: data.entries,  next_cursor: data.next_cursor, has_next: data.has_next, is_loading: false, error: null };
-				return { data: { ...state.data, [key]: update } };
-			});
+			
+			set((state) => ({
+				data: { ...state.data, [key]: {
+					entries: [...existing.entries, ...data.entries],
+					filters,
+					next_cursor: data.next_cursor,
+					has_next: data.has_next,
+					is_fetching: false,
+					error: null,
+					loading_more: false
+				}}
+			}));
 		} catch (err) {
 			if (seq !== request_seq.get(key)) return;
-			set((state) => {
-				const existing = state.data[key];
-				const update = existing
-					? { ...existing, is_loading:false, error: ApiError.getErrorMessage(err) }
-					: { entries: [], next_cursor: null, has_next: false, is_loading: false, error: ApiError.getErrorMessage(err) };
-				return { data: { ...state.data, [key]: update } };
-			});
+			set((state) => ({
+				data: { ...state.data, [key]: {
+					...existing,
+					loading_more: false,
+					error: ApiError.getErrorMessage(err)
+				}}
+			}));
 		}
 	}
 }));
