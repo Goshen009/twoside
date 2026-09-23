@@ -29,6 +29,14 @@
   /* Money/numerals render in the UI sans (with tabular figures where marked),
      not a terminal mono — amounts should read like the rest of the app. */
   --font-mono: var(--font-sans);
+
+  --color-expense: #fb7185;
+  --color-income: #4ade80;
+  --color-transfer: #60a5fa;
+  --color-give-loan: #fbbf24;
+  --color-borrow: #a78bfa;
+  --color-repay-loan: #fb923c;
+  --color-receive-repayment: #34d399;
 }
 
 @layer components {

@@ -1,0 +1,320 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>New Transaction - Personal Finance</title>
+<!-- Load Tailwind CSS v3 with forms and container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            appDark: '#0e131a',
+            surfaceDark: '#121822',
+            cardDark: '#1a222f',
+            cardDarkHover: '#222c3c',
+            brandGreen: '#10b981',
+            brandGreenGlow: '#059669',
+            brandCoral: '#ef4444',
+            brandBlue: '#3b82f6',
+            brandAmber: '#f59e0b',
+            brandIndigo: '#6366f1',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="base-styling">
+    /* Disable bounce scroll effect on iOS */
+    html, body {
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+      background-color: #000000;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    }
+    /* Hide scrollbar for a sleek native app feel */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    * {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style data-purpose="bottom-sheet-animation">
+    /* Subtle glow for the floating action button */
+    .fab-glow {
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.45);
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="flex justify-center items-center min-h-screen bg-black select-none text-white antialiased">
+<!-- BEGIN: MobileDeviceContainer -->
+<!-- iPhone 15 Pro standard aspect mobile frame -->
+<div class="relative w-full max-w-[428px] h-[926px] bg-appDark overflow-hidden flex flex-col shadow-2xl">
+<!-- BEGIN: BackgroundDashboard (Dimmed Backdrop) -->
+<!-- Represents SCREEN_6 blurred and dimmed underneath modal overlay -->
+<div aria-hidden="true" class="absolute inset-0 z-0 flex flex-col pointer-events-none opacity-40 filter blur-[2px]">
+<!-- Status Bar Area -->
+<div class="flex justify-between items-center px-8 pt-4 pb-2 text-white font-medium text-sm tracking-tight">
+<span class="">9:41</span>
+<div class="flex items-center space-x-2 text-xs">
+<!-- Cellular -->
+<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M2 17h2v4H2v-4zm5-4h2v8H7v-8zm5-5h2v13h-2V8zm5-5h2v18h-2V3z"></path></svg>
+<!-- Wifi -->
+<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"></path></svg>
+<!-- Battery -->
+<div class="w-6 h-3 border border-white rounded-sm p-[1px] flex items-center">
+<div class="h-full w-full bg-white rounded-2xs"></div>
+</div>
+</div>
+</div>
+<!-- Header Profile Summary -->
+<div class="px-6 pt-3 flex justify-between items-center">
+<h1 class="text-2xl font-bold tracking-tight text-white">Hi Eni,</h1>
+<div class="w-10 h-10 rounded-full bg-[#1b232e] border border-gray-700/50 flex items-center justify-center relative">
+<div class="w-2.5 h-2.5 rounded-full bg-brandGreen"></div>
+</div>
+</div>
+<!-- Hero Wallet Card Preview -->
+<div class="px-6 mt-5">
+<div class="bg-cardDark/80 rounded-3xl p-6 border border-gray-800/60 shadow-lg relative">
+<div class="flex justify-end mb-2">
+<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="text-center">
+<div class="text-xs text-gray-400 tracking-wide font-medium">Opay</div>
+<div class="text-3xl font-extrabold mt-1 text-white tracking-tight">₦34,567<span class="text-xl font-normal text-gray-300">.90</span></div>
+</div>
+</div>
+</div>
+</div>
+<!-- END: BackgroundDashboard -->
+<!-- BEGIN: BackdropScrim -->
+<!-- Dark dimmed overlay to emphasize slide-up panel -->
+<div class="absolute inset-0 bg-black/60 backdrop-blur-[3px] z-10" data-purpose="modal-scrim"></div>
+<!-- END: BackdropScrim -->
+<!-- BEGIN: TopStatusBar (Live in modal state) -->
+<div class="relative z-20 flex justify-between items-center px-8 pt-3 pb-1 text-white font-medium text-xs tracking-tight">
+<span class="">9:41</span>
+<div class="flex items-center space-x-2">
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M2 17h2v4H2v-4zm5-4h2v8H7v-8zm5-5h2v13h-2V8zm5-5h2v18h-2V3z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"></path></svg>
+<div class="w-5 h-2.5 border border-white rounded-[3px] p-[1px] flex items-center">
+<div class="h-full w-full bg-white rounded-[1px]"></div>
+</div>
+</div>
+</div>
+<!-- END: TopStatusBar -->
+<!-- Spacer to allow top backdrop visibility -->
+<div class="h-20 shrink-0"></div>
+<!-- BEGIN: BottomSheetModal -->
+<!-- Slide-up card matching IMAGE_1 styling with dark rounded-t-3xl panel -->
+<main class="relative z-20 flex-1 bg-surfaceDark rounded-t-[32px] border-t border-gray-800/80 shadow-[0_-12px_32px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden" data-purpose="new-transaction-sheet" style="background-color: rgb(17, 20, 23); border-color: rgb(30, 36, 43);">
+<!-- Sheet Pull Handle Indicator -->
+<div class="w-full flex justify-center pt-3 pb-1">
+<div class="w-10 h-1 bg-gray-600/40 rounded-full" style="background-color: rgb(46, 56, 66);"></div>
+</div>
+<!-- Sheet Header: Title & Close Action -->
+<header class="flex items-center justify-between px-6 py-3 shrink-0">
+<h2 class="text-xl font-semibold text-white tracking-tight">New Transaction</h2>
+<button aria-label="Close modal" class="w-8 h-8 rounded-full bg-cardDark/70 hover:bg-cardDark flex items-center justify-center text-gray-400 hover:text-white transition-colors duration-150" type="button" style="background-color: rgb(34, 41, 48); color: rgb(148, 163, 184);">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</header>
+<!-- Scrollable List of Transaction Actions -->
+<div class="flex-1 overflow-y-auto px-5 pb-24 space-y-2.5 pt-1" data-purpose="options-scroll-container"><!-- Expense Action -->
+<div class="group active:scale-[0.99] transition-all duration-150 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.2);">
+<svg class="w-5 h-5" style="color: #fb7185;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 14l6-6m0 0h-5m5 0v5" stroke-linecap="round" stroke-linejoin="round"></path>
+<rect height="16" rx="2" stroke="currentColor" stroke-width="2" width="18" x="3" y="4"></rect>
+</svg>
+</div>
+<div>
+<div class="text-[15px] font-semibold leading-tight" style="color: #f1f5f9;">Expense</div>
+<div class="text-xs font-normal mt-0.5" style="color: #64748b;">Spend from an account</div>
+</div>
+</div>
+<svg class="w-4 h-4 transition-colors" style="color: #475569;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+
+<!-- Income Action -->
+<div class="group active:scale-[0.99] transition-all duration-150 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.2);">
+<svg class="w-5 h-5" style="color: #34d399;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="text-[15px] font-semibold leading-tight" style="color: #f1f5f9;">Income</div>
+<div class="text-xs font-normal mt-0.5" style="color: #64748b;">Receive into an account</div>
+</div>
+</div>
+<svg class="w-4 h-4 transition-colors" style="color: #475569;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+
+<!-- Transfer Action -->
+<div class="group active:scale-[0.99] transition-all duration-150 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: rgba(6, 182, 212, 0.12); border: 1px solid rgba(6, 182, 212, 0.2);">
+<svg class="w-5 h-5" style="color: #22d3ee;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="text-[15px] font-semibold leading-tight" style="color: #f1f5f9;">Transfer</div>
+<div class="text-xs font-normal mt-0.5" style="color: #64748b;">Move between your accounts</div>
+</div>
+</div>
+<svg class="w-4 h-4 transition-colors" style="color: #475569;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+
+<!-- SECTION: LOANS -->
+<div class="pt-3 pb-1 px-1">
+<span class="text-xs font-semibold tracking-wider uppercase" style="color: #64748b;">LOANS</span>
+</div>
+
+<!-- Give Loan Action -->
+<div class="group active:scale-[0.99] transition-all duration-150 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.2);">
+<svg class="w-5 h-5" style="color: #fbbf24;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="text-[15px] font-semibold leading-tight" style="color: #f1f5f9;">Give Loan</div>
+<div class="text-xs font-normal mt-0.5" style="color: #64748b;">Lend money to someone</div>
+</div>
+</div>
+<svg class="w-4 h-4 transition-colors" style="color: #475569;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+
+<!-- Borrow Action -->
+<div class="group active:scale-[0.99] transition-all duration-150 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.2);">
+<svg class="w-5 h-5" style="color: #818cf8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="text-[15px] font-semibold leading-tight" style="color: #f1f5f9;">Borrow</div>
+<div class="text-xs font-normal mt-0.5" style="color: #64748b;">Take money from someone</div>
+</div>
+</div>
+<svg class="w-4 h-4 transition-colors" style="color: #475569;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+
+<!-- Repay Loan Action -->
+<div class="group active:scale-[0.99] transition-all duration-150 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: rgba(249, 115, 22, 0.12); border: 1px solid rgba(249, 115, 22, 0.2);">
+<svg class="w-5 h-5" style="color: #fb923c;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="text-[15px] font-semibold leading-tight" style="color: #f1f5f9;">Repay Loan</div>
+<div class="text-xs font-normal mt-0.5" style="color: #64748b;">Pay back money you borrowed</div>
+</div>
+</div>
+<svg class="w-4 h-4 transition-colors" style="color: #475569;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+
+<!-- Receive Repayment Action -->
+<div class="group active:scale-[0.99] transition-all duration-150 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.2);">
+<svg class="w-5 h-5" style="color: #34d399;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="text-[15px] font-semibold leading-tight" style="color: #f1f5f9;">Receive Repayment</div>
+<div class="text-xs font-normal mt-0.5" style="color: #64748b;">Collect money you lent</div>
+</div>
+</div>
+<svg class="w-4 h-4 transition-colors" style="color: #475569;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div></div>
+</main>
+<!-- END: BottomSheetModal -->
+<!-- BEGIN: BottomNavigationBar -->
+<!-- iOS Dock with center highlighted emerald '+' button -->
+<nav class="relative z-30 bg-[#0d131b]/95 backdrop-blur-md border-t border-gray-800/70 px-4 pt-2.5 pb-6 flex items-center justify-around" data-purpose="bottom-navigation-bar" style="background-color: rgba(17, 20, 23, 0.96); border-color: rgb(30, 36, 43);">
+<!-- Home Tab (Inactive) -->
+<button class="flex flex-col items-center justify-center space-y-1 text-gray-500 hover:text-gray-300 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Home</span>
+</button>
+<!-- Wallet Tab (Inactive) -->
+<button class="flex flex-col items-center justify-center space-y-1 text-gray-500 hover:text-gray-300 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Wallet</span>
+</button>
+<!-- Centered Elevated Action Button (+) with brand emerald green -->
+<div class="relative -top-5 flex flex-col items-center">
+<button aria-label="Add transaction" class="w-14 h-14 rounded-full bg-brandGreen text-white flex items-center justify-center fab-glow ring-4 ring-[#0d131b] active:scale-95 transition-transform duration-150" type="button">
+<svg class="w-7 h-7 stroke-current" fill="none" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Analytics Tab (Inactive) -->
+<button class="flex flex-col items-center justify-center space-y-1 text-gray-500 hover:text-gray-300 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Analytics</span>
+</button>
+<!-- Settings Tab (Inactive) -->
+<button class="flex flex-col items-center justify-center space-y-1 text-gray-500 hover:text-gray-300 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-medium tracking-tight">Setting</span>
+</button>
+</nav>
+<!-- END: BottomNavigationBar -->
+<!-- BEGIN: HomeIndicator (iOS Gesture Bar) -->
+<div class="absolute bottom-1 inset-x-0 flex justify-center z-40 pointer-events-none">
+<div class="w-32 h-1 bg-white/20 rounded-full"></div>
+</div>
+<!-- END: HomeIndicator -->
+</div>
+<!-- END: MobileDeviceContainer -->
+
+
+</body></html>

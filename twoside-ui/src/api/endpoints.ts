@@ -1,4 +1,5 @@
 import { APIClient } from "@/api/client";
+import type { TransactionEntry } from "@/stores/useTransactionsStore";
 import type { InfoData } from "@/stores/useUserStore";
 
 export class Endpoints {
@@ -98,6 +99,30 @@ export class Endpoints {
       }
    	});
   }
+
+  static async listTransactions(params: {
+  	cursor?: string,
+    account_id?: string,
+    category_id?: string,
+    start_date?: string,
+    end_date?: string
+  }, limit?: number): Promise<ListTransactionsResponse> {
+  	const query_params = new URLSearchParams();
+    if (limit) query_params.set("limit", String(limit));
+    
+   	for (const [key, value] of Object.entries(params)) {
+    	if (value) query_params.set(key, value); 
+    }
+    
+  	const { data } = await APIClient.request<ListTransactionsResponse>(`/transactions?${query_params.toString()}`, { method: 'GET' });
+   	return data;
+  }
+}
+
+export interface ListTransactionsResponse {
+	entries: TransactionEntry[],
+	next_cursor: string | null,
+	has_next: boolean
 }
 
 export interface VerifyOtpSuccess {

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html lang="en" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Home Dashboard - Binary Green &amp; Red Amounts</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            appDark: '#121212',
+            appSurface: '#1e232a',
+            appSurfaceHover: '#282f38',
+            appBorder: 'rgba(156, 163, 175, 0.2)',
+            appMuted: '#9ca3af',
+            appForeground: '#f3f4f6',
+            emeraldAccent: '#10b981',
+            roseExpense: '#f87171',
+            steelBlue: '#60a5fa'
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom App Styles -->
+<style data-purpose="custom-scroll-and-effects">
+    body {
+      background-color: #0b0d11;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    /* Hide scrollbars for slick app view */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<!-- END: Custom App Styles -->
+</head>
+<body class="flex justify-center items-center min-h-screen p-0 sm:p-4 text-appForeground antialiased selection:bg-emeraldAccent selection:text-black">
+<!-- BEGIN: Mobile Device Frame Simulator -->
+<main class="w-full max-w-[390px] h-[844px] bg-appDark sm:rounded-[44px] shadow-2xl overflow-hidden relative border border-white/5 flex flex-col justify-between">
+<!-- Top Decorative iOS Dynamic Island & Status Area -->
+<div class="shrink-0 z-50 bg-appDark/80 backdrop-blur-md">
+<!-- BEGIN: IOSStatusBar -->
+<div class="h-11 px-7 flex items-center justify-between text-xs font-semibold tracking-tight text-white/90">
+<!-- Time -->
+<span class="text-[14px] font-medium tracking-normal">9:41</span>
+<!-- Dynamic Pill Simulator (subtle) -->
+<div class="w-24 h-4 bg-black rounded-full hidden sm:block"></div>
+<!-- Status Icons (Signal, Wifi, Battery) -->
+<div class="flex items-center space-x-2">
+<!-- Cellular -->
+<svg class="w-4 h-3 fill-current" viewbox="0 0 17 11">
+<rect height="4" rx="0.5" width="2.5" x="0" y="7"></rect>
+<rect height="6" rx="0.5" width="2.5" x="4" y="5"></rect>
+<rect height="8.5" rx="0.5" width="2.5" x="8" y="2.5"></rect>
+<rect height="11" rx="0.5" width="2.5" x="12" y="0"></rect>
+</svg>
+<!-- Wifi -->
+<svg class="w-3.5 h-3.5 fill-current" viewbox="0 0 16 12">
+<path d="M8 2.5C10.6 2.5 13 3.6 14.7 5.3L16 3.9C13.9 1.8 11.1 0.5 8 0.5C4.9 0.5 2.1 1.8 0 3.9L1.3 5.3C3 3.6 5.4 2.5 8 2.5ZM8 6.5C9.7 6.5 11.2 7.2 12.3 8.3L13.7 6.9C12.2 5.4 10.2 4.5 8 4.5C5.8 4.5 3.8 5.4 2.3 6.9L3.7 8.3C4.8 7.2 6.3 6.5 8 6.5ZM8 10.5C8.8 10.5 9.5 11.2 9.5 12C9.5 12.8 8.8 13.5 8 13.5C7.2 13.5 6.5 12.8 6.5 12C6.5 11.2 7.2 10.5 8 10.5Z" transform="translate(0, -1)"></path>
+</svg>
+<!-- Battery -->
+<div class="flex items-center">
+<div class="w-5 h-2.5 border border-white/80 rounded-[3px] p-[1px] flex items-center">
+<div class="h-full w-3.5 bg-white rounded-[1.5px]"></div>
+</div>
+<div class="w-0.5 h-1 bg-white/80 rounded-r-sm"></div>
+</div>
+</div>
+</div>
+<!-- END: IOSStatusBar -->
+<!-- BEGIN: NavigationHeader -->
+<header class="px-5 pt-2 pb-3 flex items-center justify-between">
+<!-- Back Navigation Button -->
+<!-- Welcome Text -->
+<h1 class="text-xl font-bold tracking-tight text-appForeground">Hi Eni,</h1>
+<!-- Notifications Indicator Button -->
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-appSurface border border-appBorder flex items-center justify-center text-appForeground relative hover:bg-appSurfaceHover active:scale-95 transition-all" type="button">
+<!-- Active alert indicator badge -->
+<span class="absolute top-2.5 right-2.5 w-2 h-2 bg-emeraldAccent rounded-full ring-2 ring-appSurface"></span>
+</button>
+</header>
+<!-- END: NavigationHeader -->
+</div>
+<!-- Scrollable Screen Body -->
+<div class="flex-1 overflow-y-auto no-scrollbar px-5 space-y-5 pb-6">
+<!-- BEGIN: AccountBalanceCard -->
+<section aria-label="Account Balance" class="bg-appSurface rounded-3xl p-5 border border-appBorder shadow-lg relative overflow-hidden group">
+<!-- Subtle background glowing radial light -->
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-emeraldAccent/10 rounded-full blur-2xl pointer-events-none"></div>
+<!-- Privacy Eye Toggle Icon -->
+<div class="flex justify-end items-center mb-1">
+<button aria-label="Toggle balance visibility" class="text-appMuted hover:text-white p-1 rounded-full hover:bg-white/5 transition-colors" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</button>
+</div>
+<!-- Account Balance Label and Primary Number -->
+<div class="text-center pb-2">
+<p class="text-sm text-appForeground/80 font-medium tracking-wide mb-1.5">Opay</p>
+<div class="flex items-center justify-center space-x-1">
+<span class="text-3xl font-extrabold tracking-tight text-white font-sans tabular-nums">₦34,567<span class="text-white/60">.90</span>
+</span>
+</div>
+<!-- Account Number Copy Tag -->
+<div class="mt-4 flex flex-col items-center justify-center space-y-1.5"><div class="flex items-center space-x-1.5"><div class="w-4 h-1.5 rounded-full bg-emeraldAccent"></div><div class="w-1.5 h-1.5 rounded-full bg-white/20"></div><div class="w-1.5 h-1.5 rounded-full bg-white/20"></div></div></div>
+</div>
+</section>
+<!-- END: AccountBalanceCard -->
+<!-- BEGIN: QuickActionsRow -->
+<!-- END: QuickActionsRow -->
+<!-- BEGIN: TransactionsSection -->
+<section aria-label="Recent Transactions" class="space-y-3"><div class="space-y-6"><div class="space-y-1"><div class="flex items-center justify-between px-1 mb-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-appMuted">Today</h2><a class="text-xs text-emeraldAccent hover:underline font-medium" href="#">See All</a></div><div class="divide-y divide-white/5"><div class="py-3 flex items-center justify-between"><div class="flex items-center space-x-3.5"><div class="w-10 h-10 rounded-full bg-rose-500/15 flex items-center justify-center text-rose-400 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg></div><div><p class="text-[15px] font-medium text-white leading-tight">Supermarket Groceries</p><p class="text-xs text-white/50 leading-normal mt-1">Expense • 02:15 PM</p></div></div><span class="text-sm font-semibold tabular-nums text-rose-300/85">-₦12,450.00</span></div><div class="py-3 flex items-center justify-between"><div class="flex items-center space-x-3.5"><div class="w-10 h-10 rounded-full bg-emeraldAccent/15 flex items-center justify-center text-emeraldAccent shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M17 7L7 17"></path><path d="M17 17H7V7"></path></svg></div><div><p class="text-[15px] font-medium text-white leading-tight">Design Retainer Payout</p><p class="text-xs text-white/50 leading-normal mt-1">Income • 10:30 AM</p></div></div><span class="text-sm font-semibold tabular-nums text-emerald-300/85">+₦350,000.00</span></div><div class="py-3 flex items-center justify-between"><div class="flex items-center space-x-3.5"><div class="w-10 h-10 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-400 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M8 3L4 7l4 4"></path><path d="M4 7h16"></path><path d="M16 21l4-4-4-4"></path><path d="M20 17H4"></path></svg></div><div><p class="text-[15px] font-medium text-white leading-tight">Transfer to Kuda Bank</p><p class="text-xs text-white/50 leading-normal mt-1">Transfer • 08:47 AM</p></div></div><span class="text-sm font-semibold tabular-nums text-rose-300/85">-₦50,000.00</span></div></div></div><div class="space-y-1"><div class="flex items-center justify-between px-1 mb-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-appMuted">Yesterday</h2></div><div class="divide-y divide-white/5"><div class="py-3 flex items-center justify-between"><div class="flex items-center space-x-3.5"><div class="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-400 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11l4-4"></path><path d="M17 7h4v4"></path></svg></div><div><p class="text-[15px] font-medium text-white leading-tight">Loan to Tunde Adeleke</p><p class="text-xs text-white/50 leading-normal mt-1">Lending • 04:20 PM</p></div></div><span class="text-sm font-semibold tabular-nums text-rose-300/85">-₦80,000.00</span></div><div class="py-3 flex items-center justify-between"><div class="flex items-center space-x-3.5"><div class="w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><rect height="16" rx="2" width="20" x="2" y="4"></rect><path d="M16 10l-4 4-4-4"></path><path d="M12 14V8"></path></svg></div><div><p class="text-[15px] font-medium text-white leading-tight">Loan from QuickCredit</p><p class="text-xs text-white/50 leading-normal mt-1">Borrowing • 11:15 AM</p></div></div><span class="text-sm font-semibold tabular-nums text-emerald-300/85">+₦150,000.00</span></div></div></div><div class="space-y-1"><div class="flex items-center justify-between px-1 mb-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-appMuted">May 14, 2026</h2></div><div class="divide-y divide-white/5"><div class="py-3 flex items-center justify-between"><div class="flex items-center space-x-3.5"><div class="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-300 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M17 7L7 17"></path><path d="M17 17H7V7"></path><path d="M16 16l2 2 4-4"></path></svg></div><div><p class="text-[15px] font-medium text-white leading-tight">Loan Repayment from Tu...</p><p class="text-xs text-white/50 leading-normal mt-1">Loan Repayment • 09:10 AM</p></div></div><span class="text-sm font-semibold tabular-nums text-emerald-300/85">+₦40,000.00</span></div><div class="py-3 flex items-center justify-between"><div class="flex items-center space-x-3.5"><div class="w-10 h-10 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path><path d="M16 16l2 2 4-4"></path></svg></div><div><p class="text-[15px] font-medium text-white leading-tight">QuickCredit Loan Payoff</p><p class="text-xs text-white/50 leading-normal mt-1">Debt Repayment • 05:00 PM</p></div></div><span class="text-sm font-semibold tabular-nums text-rose-300/85">-₦75,000.00</span></div></div></div></div></section>
+<!-- END: TransactionsSection -->
+</div>
+<!-- BEGIN: BottomNavigationBar -->
+<nav class="shrink-0 bg-appSurface/95 backdrop-blur-md border-t border-appBorder px-6 pt-3 pb-7">
+<div class="flex items-center justify-between max-w-xs mx-auto">
+<!-- Home (Active Tab) -->
+<button class="flex flex-col items-center space-y-1 text-emeraldAccent focus:outline-none" type="button">
+<div class="w-9 h-7 bg-emeraldAccent/15 rounded-full flex items-center justify-center">
+<!-- Filled Home Icon -->
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+<path d="M12 3.172l8 6.4V20a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V9.572l8-6.4z"></path>
+</svg>
+</div>
+<span class="text-[10px] font-semibold tracking-wide">Home</span>
+</button>
+<!-- Wallet Tab -->
+<button class="flex flex-col items-center space-y-1 text-appMuted hover:text-white transition-colors focus:outline-none" type="button">
+<div class="w-9 h-7 flex items-center justify-center">
+<!-- Wallet Icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<span class="text-[10px] font-medium tracking-wide">Wallet</span>
+</button>
+<!-- Analytics Tab -->
+<button class="flex flex-col items-center space-y-1 text-appMuted hover:text-white transition-colors focus:outline-none" type="button">
+<div class="w-9 h-7 flex items-center justify-center">
+<!-- Analytics Icon (Card/Chart style) -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<rect height="16" rx="4" stroke-width="1.8" width="16" x="4" y="4"></rect>
+<path d="M9 14v2m3-6v6m3-3v3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<span class="text-[10px] font-medium tracking-wide">Analytics</span>
+</button>
+<!-- Settings Tab -->
+<button class="flex flex-col items-center space-y-1 text-appMuted hover:text-white transition-colors focus:outline-none" type="button">
+<div class="w-9 h-7 flex items-center justify-center">
+<!-- Settings Nut/Gear Icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<circle cx="12" cy="12" r="3" stroke-width="1.8"></circle>
+</svg>
+</div>
+<span class="text-[10px] font-medium tracking-wide">Setting</span>
+</button>
+</div>
+<!-- Home Indicator bar (iOS) -->
+<div class="w-32 h-1 bg-white/20 rounded-full mx-auto mt-4"></div>
+</nav>
+<!-- END: BottomNavigationBar -->
+</main>
+<!-- END: Mobile Device Frame Simulator -->
+</body></html>
