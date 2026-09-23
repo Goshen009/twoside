@@ -6,7 +6,6 @@ import { AlertCircle, User } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
-import { useInfo } from "@/hooks/useInfo";
 import { useLoans } from "@/hooks/useLoans";
 import { useTransactions } from "@/hooks/useTransactions";
 import { FormatUtils } from "@/lib/FormatUtils";
@@ -22,6 +21,7 @@ import { DateTimeField } from "@/components/transactions/forms/shared/DateTimeFi
 import { DescriptionField } from "@/components/transactions/forms/shared/DescriptionField";
 import { NameField } from "@/components/transactions/forms/shared/NameField";
 import { PickerSheet } from "@/components/ui/PickerSheet";
+import { useUserStore } from "@/stores/useUserStore";
 
 type DestinationRow = BorrowFormValues["destinations"][number];
 
@@ -48,7 +48,8 @@ const BLANK_DESTINATION: DestinationRow = {
 };
 
 export function BorrowForm({ on_success }: BorrowFormProps) {
-  const { data, refetch } = useInfo();
+  const data = useUserStore((state) => state.data);
+  const refetch = useUserStore((state) => state.refetch);
   const { refetch: refetch_transactions } = useTransactions();
   const { refetch: refetch_loans } = useLoans();
 

@@ -6,7 +6,7 @@ import { AlertCircle, BanknoteArrowUp } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
-import { useInfo } from "@/hooks/useInfo";
+import { useUserStore } from "@/stores/useUserStore";
 import { useLoans } from "@/hooks/useLoans";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useWarningBypass } from "@/hooks/useWarningBypass";
@@ -48,7 +48,8 @@ type RepayLoanPickerTarget =
 const BLANK_SOURCE: SourceRow = { account_id: "", amount: "", charge: "" };
 
 export function RepayLoanForm({ on_success }: RepayLoanFormProps) {
-  const { data, refetch } = useInfo();
+  const data = useUserStore((state) => state.data);
+  const refetch = useUserStore((state) => state.refetch);
   const { refetch: refetch_transactions } = useTransactions();
   const { refetch: refetch_loans } = useLoans();
   const {

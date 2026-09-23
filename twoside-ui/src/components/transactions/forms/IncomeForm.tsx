@@ -6,7 +6,7 @@ import { AlertCircle } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
-import { useInfo } from "@/hooks/useInfo";
+import { useUserStore } from "@/stores/useUserStore";
 import { useTransactions } from "@/hooks/useTransactions";
 import { FormatUtils } from "@/lib/FormatUtils";
 import { incomeFormSchema, type IncomeFormValues } from "@/types/schemas";
@@ -42,7 +42,8 @@ const BLANK_DESTINATION: DestinationRow = {
 };
 
 export function IncomeForm({ on_success }: IncomeFormProps) {
-  const { data, refetch } = useInfo();
+  const data = useUserStore((state) => state.data);
+  const refetch = useUserStore((state) => state.refetch);
   const { refetch: refetch_transactions } = useTransactions();
 
   const {

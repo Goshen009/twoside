@@ -6,7 +6,7 @@ import { AlertCircle, Tag } from "lucide-react";
 import { ApiError } from "@/api/client";
 import { TransactionsAPI } from "@/api/TransactionsApi";
 import { TRANSACTION_TYPE_META } from "@/constants/transactions";
-import { useInfo } from "@/hooks/useInfo";
+import { useUserStore } from "@/stores/useUserStore";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useWarningBypass } from "@/hooks/useWarningBypass";
 import { FormatUtils } from "@/lib/FormatUtils";
@@ -42,7 +42,8 @@ type SourcesErrors = {
 const BLANK_SOURCE: SourceRow = { account_id: "", amount: "", charge: "" };
 
 export function ExpenseForm({ on_success }: ExpenseFormProps) {
-  const { data, refetch } = useInfo();
+  const data = useUserStore((state) => state.data);
+  const refetch = useUserStore((state) => state.refetch);
   const { refetch: refetch_transactions } = useTransactions();
   const {
     pending_warning,
