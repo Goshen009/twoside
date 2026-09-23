@@ -36,11 +36,11 @@ export interface InfoData {
 		amount: number,
 		status: "OPEN" | "PARTIALLY_REPAID",
 		direction: "GIVEN" | "BORROWED",
-		date_issues: string // ISO string,
+		date_issued: string // ISO string,
 		counterparty_id: string,
 		counterparty_name: string,
 		total_repaid: number
-	}
+	}[]
 }
 
 interface InfoState {
