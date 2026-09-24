@@ -21,7 +21,7 @@ import { AddTransactionFlowProvider } from "@/hooks/useAddTransactionFlow";
 import { AddTransactionFlow } from "@/components/transactions/AddTransactionFlow";
 
 import { AppNavbar } from "@/components/layout/AppNavbar";
-import { HomePage } from "@/pages/Home/HomePage";
+import { HomePage } from "./pages/Home/HomePage";
 import { LoansPage } from "@/pages/Loans/LoansPage";
 import { useIsPWAMode } from "./hooks/useIsPWAMode";
 import { LandingPage } from "./pages/Landing/LandingPage";

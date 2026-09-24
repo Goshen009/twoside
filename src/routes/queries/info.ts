@@ -17,8 +17,8 @@ async function handler(
 	    where: { id: user.id },
 	    select: {
 				profile: { select: { username: true, currency_symbol: true, iana_timezone: true } },
-	      categories: { where: { is_charge: false }, orderBy: { name: 'asc' }, select: { id: true, name: true, is_active: true } },
-				counterparties: { where: {  }, orderBy: { name: 'asc' }, select: { id: true, name: true, is_active: true } },
+	      categories: { where: { is_active: true, is_charge: false }, orderBy: { name: 'asc' }, select: { id: true, name: true, is_active: true } },
+				counterparties: { where: { is_active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true, is_active: true } },
 	    },
 	  }),
 	  this.prisma.loan.findMany({
@@ -64,6 +64,7 @@ async function handler(
     	id: a.id,
      	name: a.name,
       balance: balances[a.id],
+      is_active: a.is_active
     })),
     categories: user_data?.categories ?? [],
     counterparties: user_data?.counterparties ?? [],

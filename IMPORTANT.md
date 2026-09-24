@@ -1,0 +1,1 @@
+## When deleting accounts, a user must always have at least 1 account. It must never be 0.

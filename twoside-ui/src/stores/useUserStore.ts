@@ -3,7 +3,7 @@ import { ApiError } from '@/api/client';
 import { Endpoints } from '@/api/endpoints';
 import { useAuthStore } from './useAuthStore';
 
-interface Account {
+export interface Account {
 	id: string,
 	name: string,
 	balance: number,
@@ -45,7 +45,7 @@ export interface InfoData {
 
 interface InfoState {
 	data: InfoData | null,
-	is_loading: boolean,
+	is_fetching: boolean,
 	is_refreshing: boolean,
 	error: string | null,
 
@@ -66,21 +66,21 @@ let request_seq = 0;
 
 export const useUserStore = create<InfoState>((set, get) => ({
 	data: null,
-	is_loading: false,
+	is_fetching: false,
   is_refreshing: false,
   error: null,
 	
 	fetch: async () => {
 		const seq = ++request_seq;
-    set({ is_loading: true, error: null });
+    set({ is_fetching: true, error: null });
 
     try {
 	   	const data = await Endpoints.getInfo();
 			if (seq !== request_seq) return; // superseded — drop silently
-			set({ data, error: null, is_loading: false });
+			set({ data, error: null, is_fetching: false });
     } catch (err) {
    		if (seq !== request_seq) return;
-      set({ error: ApiError.getErrorMessage(err), is_loading: false });
+      set({ error: ApiError.getErrorMessage(err), is_fetching: false });
     }
 	},
 
@@ -100,7 +100,7 @@ export const useUserStore = create<InfoState>((set, get) => ({
 
   reset: () => {
   	request_seq++; // invalidate anything currently in flight
-    set({ data: null, error: null, is_loading: false, is_refreshing: false });
+    set({ data: null, error: null, is_fetching: false, is_refreshing: false });
   },
 
   createCategory: async (name: string) => {

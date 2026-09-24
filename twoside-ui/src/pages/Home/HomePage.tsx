@@ -1,112 +1,143 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronUp, Wallet } from "lucide-react";
-import { useTransactions } from "@/hooks/useTransactions";
-import { Balances } from "./Balances";
-import { TransactionsFeed } from "./TransactionsFeed";
+import { HomeHeader } from "./componenets/HomeHeader";
+import { AccountBalanceCard } from "./componenets/AccountBalanceCard";
+import { TransactionGroup } from "./componenets/TransactionGroup";
+import type { TransactionEntry } from "@/stores/useTransactionsStore";
+import { useState } from "react";
 
-import { useUserStore } from "@/stores/useUserStore";
+const dummy_entries: TransactionEntry[] = [
+  {
+  	entry_id: "entry-1",
+    account_id: "acc-1",
+    account_name: "Opay",
+    is_active: true,
+    side: "CREDIT",
+    amount: 12450,
+    charge_amount: null,
+    log_type: "EXPENSE",
+    transaction_date: "2026-09-23T14:15:00Z",
+    date_logged: "2026-09-23T14:15:00Z",
+    description: "Supermarket Groceries",
+    category_id: "cat-1",
+    category_name: "Groceries",
+    is_category_active: true,
+    transaction_group_id: "tg-1",
+  },
+  {
+  	entry_id: "entry-2",
+    account_id: "acc-1",
+    account_name: "Opay",
+    is_active: true,
+    side: "DEBIT",
+    amount: 350000,
+    charge_amount: null,
+    log_type: "INCOME",
+    transaction_date: "2026-09-23T10:30:00Z",
+    date_logged: "2026-09-23T10:30:00Z",
+    description: "Design Retainer Payout",
+    category_id: null,
+    category_name: null,
+    is_category_active: null,
+    transaction_group_id: "tg-2",
+  },
+  {
+  	entry_id: "entry-3",
+    account_id: "acc-1",
+    account_name: "Opay",
+    is_active: true,
+    side: "CREDIT",
+    amount: 50000,
+    charge_amount: null,
+    log_type: "TRANSFER",
+    transaction_date: "2026-09-23T08:47:00Z",
+    date_logged: "2026-09-23T08:47:00Z",
+    description: "Transfer to Kuda Bank",
+    category_id: null,
+    category_name: null,
+    is_category_active: null,
+    transaction_group_id: "tg-3",
+    related_account: { id: "acc-4", name: "Kuda Bank" },
+  },
+  {
+  	entry_id: "entry-4",
+    account_id: "acc-1",
+    account_name: "Opay",
+    is_active: true,
+    side: "CREDIT",
+    amount: 80000,
+    charge_amount: null,
+    log_type: "GIVE_LOAN",
+    transaction_date: "2026-09-22T16:20:00Z",
+    date_logged: "2026-09-22T16:20:00Z",
+    description: "Loan to Tunde Adeleke for some reandom items and here's just some more for good measure",
+    category_id: null,
+    category_name: null,
+    is_category_active: null,
+    transaction_group_id: "tg-4",
+    related_counterparty: { id: "cp-1", name: "Tunde Adeleke" },
+  },
+  {
+  	entry_id: "entry-5",
+    account_id: "acc-1",
+    account_name: "Opay",
+    is_active: true,
+    side: "DEBIT",
+    amount: 150000,
+    charge_amount: null,
+    log_type: "BORROW",
+    transaction_date: "2026-09-22T11:15:00Z",
+    date_logged: "2026-09-22T11:15:00Z",
+    description: "Loan from QuickCredit",
+    category_id: null,
+    category_name: null,
+    is_category_active: null,
+    transaction_group_id: "tg-5",
+    related_counterparty: { id: "cp-2", name: "QuickCredit" },
+  },
+];
+
+function groupByDate(entries: TransactionEntry[]): { label: string; entries: TransactionEntry[] }[] {
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+  const buckets = new Map<string, TransactionEntry[]>();
+  for (const entry of entries) {
+    const date = new Date(entry.transaction_date);
+    const key =
+      date.toDateString() === today
+        ? "Today"
+        : date.toDateString() === yesterday
+          ? "Yesterday"
+          : date.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+    buckets.set(key, [...(buckets.get(key) ?? []), entry]);
+  }
+  return Array.from(buckets, ([label, entries]) => ({ label, entries }));
+}
 
 export function HomePage() {
-  // const { data: info, loading: info_loading } = useInfo();
-
-  const info = useUserStore((state) => state.data);
-  const loading = useUserStore(state => state.is_loading);
-  
-  const { filters, set_filters } = useTransactions();
-
-  const accounts = useMemo(() => info?.accounts ?? [], [info]);
-  const net_total = useMemo(
-    () => accounts.reduce((sum, account) => sum + account.balance, 0),
-    [accounts],
-  );
-
-  const [is_carousel_visible, setIsCarouselVisible] = useState(true);
-  const carousel_ref = useRef<HTMLDivElement>(null);
-
-  // Once the balance card scrolls out of view, swap in a floating account pill
-  // (top) and a jump-to-top button (bottom).
-  useEffect(() => {
-    const element = carousel_ref.current;
-    if (!element) return;
-    const observer = new IntersectionObserver(
-      (entries) => setIsCarouselVisible(entries[0]?.isIntersecting ?? false),
-      { threshold: 0.1 },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  function handleSelectAccount(account_id: string | null): void {
-    set_filters({ account_id });
-  }
-
-  function scrollToTop(): void {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  const selected_account =
-    accounts.find((account) => account.id === filters.account_id) ?? null;
-  const sticky_name = selected_account?.name ?? "All Accounts";
+	const [active_index, setActiveIndex] = useState(0);
+	
+  const groups = groupByDate(dummy_entries);
 
   return (
-    <div className="relative min-h-dvh pb-28">
-      <AnimatePresence>
-        {!is_carousel_visible ? (
-          <motion.div
-            key="account-pill"
-            initial={{ y: -15, opacity: 0, scale: 0.98 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -15, opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed left-1/2 top-2 z-40 mx-auto flex w-[94%] max-w-md -translate-x-1/2 items-center justify-between rounded-2xl border border-white/10 bg-surface/85 px-4 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-          >
-            <div className="flex min-w-0 items-center gap-2.5">
-              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-white/5 bg-white/5 text-muted">
-                <Wallet className="h-3 w-3" />
-              </div>
-              <span className="truncate text-xs font-medium text-zinc-200">
-                {sticky_name}
-              </span>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      <div className="mx-auto w-full max-w-md space-y-4 px-4 pt-4">
-        <div ref={carousel_ref}>
-          <Balances
-            accounts={accounts}
-            currency_symbol={info?.currency_symbol ?? "₦"}
-            net_total={net_total}
-            active_account_id={filters.account_id}
-            loading={loading}
-            on_select_account={handleSelectAccount}
-          />
-        </div>
-
-        <div className="border-t border-white/5 pt-2">
-          <TransactionsFeed />
-        </div>
+    <div className="app-container min-h-screen pb-28">
+      <div className="px-5">
+        <HomeHeader/>
       </div>
 
-      <AnimatePresence>
-        {!is_carousel_visible ? (
-          <motion.button
-            key="jump-top"
-            type="button"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={scrollToTop}
-            aria-label="Jump to top"
-            className="fixed bottom-24 right-5 z-40 flex cursor-pointer items-center justify-center rounded-2xl border border-white/20 bg-primary p-3 text-background shadow-xl transition-opacity hover:opacity-90"
-          >
-            <ChevronUp className="h-5 w-5 font-bold" />
-          </motion.button>
-        ) : null}
-      </AnimatePresence>
+      <div className="px-5 space-y-5">
+        <AccountBalanceCard active_index={active_index} onIndexChange={setActiveIndex} />
+
+        <section aria-label="Recent Transactions" className="space-y-6">
+          {groups.map((group) => (
+            <TransactionGroup
+              key={group.label}
+              label={group.label}
+              entries={group.entries}
+              currency_symbol="₦"
+            />
+          ))}
+        </section>
+      </div>
     </div>
   );
 }

@@ -21,6 +21,7 @@ export interface TransactionFilters {
 };
 
 export interface TransactionEntry {
+	entry_id: string,
 	account_id: string,
 	account_name: string,
 	is_active: boolean,
