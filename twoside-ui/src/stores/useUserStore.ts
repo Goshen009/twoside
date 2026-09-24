@@ -26,6 +26,7 @@ export interface InfoData {
 	username: string,
 	currency_symbol: string,
 	iana_timezone: string,
+	total_balance: number,
 	accounts: Account[],
 	categories: Category[],
 	counterparties: Counterparty[],

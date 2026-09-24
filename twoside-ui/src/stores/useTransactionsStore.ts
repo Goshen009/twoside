@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { ApiError } from "@/api/client";
 import { Endpoints, type ListTransactionsResponse } from "@/api/endpoints";
-import { useAuthStore } from "./useAuthStore";
 
 type TransactionLogType = 
 	| "INCOME"
@@ -49,9 +48,10 @@ interface CachedTransactionWindow extends ListTransactionsResponse {
 
 interface TransactionsState {
 	data: Record<string, CachedTransactionWindow>,
+	get_window: (filters: TransactionFilters) => CachedTransactionWindow,
 	
-	fetch: (filters: TransactionFilters) => Promise<void>;
-	load_more: (filters: TransactionFilters) => Promise<void>;
+	fetch: (filters: TransactionFilters) => Promise<void>,
+	load_more: (filters: TransactionFilters) => Promise<void>
 }
 
 const request_seq = new Map<string, number>();   
@@ -72,6 +72,11 @@ const get_key = (filters: TransactionFilters): string => {
 
 export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 	data: {},
+
+	get_window: (filters: TransactionFilters): CachedTransactionWindow => {
+		const key = get_key(filters);
+		return get().data[key];
+	},
 
 	fetch: async (filters: TransactionFilters) => {
 		const key = get_key(filters);

@@ -56,10 +56,14 @@ async function handler(
 	const total_owed_to_you = Calc.toDecimalNumber(total_owed_to_you_cents);
 	const total_you_owe = Calc.toDecimalNumber(total_you_owe_cents);
 
+	const total_whole = Object.values(balances).reduce((sum, b) => sum + Calc.toWholeNumber(b), 0);
+	const total_balance = Calc.toDecimalNumber(total_whole);   
+
   return reply.code(200).send({
   	username: user.profile.username,
   	currency_symbol: user.profile.currency_symbol,
    	iana_timezone: user.profile.iana_timezone,
+    total_balance,
     accounts: accounts.map(a => ({
     	id: a.id,
      	name: a.name,
