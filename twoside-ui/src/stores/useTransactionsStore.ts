@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { ApiError } from "@/api/client";
+import { useAuthStore } from "./useAuthStore";
 import { Endpoints, type ListTransactionsResponse } from "@/api/endpoints";
 
 type TransactionLogType = 
@@ -51,7 +52,8 @@ interface TransactionsState {
 	get_window: (filters: TransactionFilters) => CachedTransactionWindow,
 	
 	fetch: (filters: TransactionFilters) => Promise<void>,
-	load_more: (filters: TransactionFilters) => Promise<void>
+	load_more: (filters: TransactionFilters) => Promise<void>,
+	reset: () => void;
 }
 
 const request_seq = new Map<string, number>();   
@@ -166,5 +168,16 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 				}}
 			}));
 		}
-	}
+	},
+
+	reset: () => {
+	  request_seq.clear();
+	  set({ data: {} });
+	},
 }));
+
+useAuthStore.subscribe((state, prev_state) => {
+  if (state.is_authenticated !== prev_state.is_authenticated && !state.is_authenticated) {
+    useTransactionsStore.getState().reset();
+  }
+});

@@ -1,6 +1,7 @@
 import { useTransactionsStore, type TransactionEntry } from "@/stores/useTransactionsStore";
 import { useUserStore } from "@/stores/useUserStore";
 
+import { TransactionSkeletonList } from "./componenets/TransactionSkeletonList";
 import { AccountBalanceCard } from "./componenets/AccountBalanceCard";
 import { TransactionGroup } from "./componenets/TransactionGroup";
 import { HomeHeader } from "./componenets/HomeHeader";
@@ -28,7 +29,8 @@ const group_by_date = (entries: TransactionEntry[], timezone: string): { label: 
 
 export function HomePage() {
 	const [selected_account_id, setSelectedAccountId] = useState<string | null>(null);
-	
+
+	const currency_symbol = useUserStore((state) => state.data?.currency_symbol);
 	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
 	const fetch = useTransactionsStore((state) => state.fetch);
 
@@ -56,14 +58,18 @@ export function HomePage() {
         <AccountBalanceCard onAccountChange={setSelectedAccountId} />
 
         <section aria-label="Recent Transactions" className="space-y-6">
-          {groups.map((group) => (
-            <TransactionGroup
-              key={group.label}
-              label={group.label}
-              entries={group.entries}
-              currency_symbol="₦"
-            />
-          ))}
+          {window?.is_fetching && (window?.entries.length ?? 0) === 0 ? (
+            <TransactionSkeletonList />
+          ) : (
+            groups.map((group) => (
+              <TransactionGroup
+                key={group.label}
+                label={group.label}
+                entries={group.entries}
+                currency_symbol={currency_symbol ?? "₦"}
+              />
+            ))
+          )}
         </section>
       </div>
     </div>

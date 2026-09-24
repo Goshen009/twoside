@@ -18,7 +18,7 @@ export function TransactionGroup({ label, entries, currency_symbol }: Transactio
       <div className="divide-y divide-border">
         {entries.map((entry) => (
           <TransactionRow
-            key={entry.transaction_group_id}
+            key={entry.entry_id}
             entry={entry}
             currency_symbol={currency_symbol}
           />
