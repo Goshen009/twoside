@@ -1,9 +1,13 @@
 import { useTransactionsStore, type TransactionEntry } from "@/stores/useTransactionsStore";
+import { useScrolledPast } from "@/hooks/useScrolledPast";
 import { useUserStore } from "@/stores/useUserStore";
+import { useIsInView } from "@/hooks/useIsInView";
 
 import { TransactionSkeletonList } from "./componenets/TransactionSkeletonList";
 import { AccountBalanceCard } from "./componenets/AccountBalanceCard";
+import { ScrollToTopButton } from "@/components/ui/ScrollToTopButton";
 import { TransactionGroup } from "./componenets/TransactionGroup";
+import { StickyAccountPill } from "./componenets/StickyAccountPill";
 import { HomeHeader } from "./componenets/HomeHeader";
 
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -34,8 +38,9 @@ export function HomePage() {
 
 	const currency_symbol = useUserStore((state) => state.data?.currency_symbol);
 	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
-	const fetch = useTransactionsStore((state) => state.fetch);
 	const load_more = useTransactionsStore((state) => state.load_more);
+	const accounts = useUserStore((state) => state.data?.accounts);
+	const fetch = useTransactionsStore((state) => state.fetch);
 
 	useEffect(() => {
 		const key_filters = { account_id: selected_account_id, category_id: null };
@@ -49,7 +54,14 @@ export function HomePage() {
 		category_id: null
 	}));
 
-	const can_load_more = !!window?.has_next && !window?.loading_more;
+	const { ref: balance_sentinel_ref, is_in_view } = useIsInView<HTMLDivElement>();
+	const scrolled_past_threshold = useScrolledPast(400);
+	
+	const account_name = selected_account_id === null
+    ? "All Accounts"
+    : accounts?.find((a) => a.id === selected_account_id)?.name ?? "";
+
+	const can_load_more = !!window?.has_next && !window?.loading_more && !window?.load_more_error;
 
 	const handleLoadMore = useCallback(() => {
   	load_more({ account_id: selected_account_id, category_id: null });
@@ -67,6 +79,7 @@ export function HomePage() {
 
       <div className="px-5 space-y-5">
         <AccountBalanceCard onAccountChange={setSelectedAccountId} />
+        <div ref={balance_sentinel_ref} />
 
         <section aria-label="Recent Transactions" className="space-y-6">
           {window?.is_fetching && (window?.entries.length ?? 0) === 0 ? (
@@ -116,6 +129,9 @@ export function HomePage() {
             </>
           )}
         </section>
+
+        <StickyAccountPill visible={!is_in_view} account_name={account_name} />
+        <ScrollToTopButton visible={scrolled_past_threshold} />
       </div>
     </div>
   );

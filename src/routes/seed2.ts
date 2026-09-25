@@ -33,21 +33,15 @@ async function handler(
    *
    * This is a seed/test endpoint, so quick-and-dirty is fine.
    */
-  const auth_header = request.headers.authorization;
-  if (!auth_header) {
+  const authorization = request.headers.authorization;
+
+  if (!authorization) {
     return reply.code(401).send({
       message: "Authorization header required",
     });
   }
 
-  const authorization = auth_header.substring(7);
-  if (!authorization) {
-		  return reply.code(401).send({
-		    message: "Authorization header required",
-		  });
-	  }
-
-  const origin = `${request.protocol}://${request.hostname}`;
+  const origin = `http://127.0.0.1:8080`;
 
   async function api(
     method: string,
@@ -58,7 +52,7 @@ async function handler(
       method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorization,
+        Authorization: authorization!,
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });

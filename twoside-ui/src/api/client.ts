@@ -35,7 +35,6 @@ export class APIClient {
 
   static setAccessToken(token: string | null): void {
     this.access_token = token;
-    console.log(this.access_token);
   }
 
   static extractAccessToken(response: Response): string {
