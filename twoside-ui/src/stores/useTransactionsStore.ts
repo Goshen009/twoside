@@ -43,6 +43,7 @@ export interface TransactionEntry {
 interface CachedTransactionWindow extends ListTransactionsResponse {
 	filters: TransactionFilters,
 	error: string | null,
+	load_more_error: string | null,
 	is_fetching: boolean,
 	loading_more: boolean,
 }
@@ -95,7 +96,8 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 						has_next: false,
 						error: null,
 						is_fetching: true,
-						loading_more: false
+						loading_more: false,
+						load_more_error: null
 					}
 				}
 			}
@@ -114,7 +116,8 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 			      has_next: data.has_next,
 			      is_fetching: false,
 			      error: null,
-						loading_more: false
+						loading_more: false,
+						load_more_error: null
 			    },
 			  },
 			}));
@@ -150,7 +153,14 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 		const seq = next_seq(filters);
 
 		set((state) => ({
-			data: { ...state.data, [key]: { ...existing, loading_more: true } }
+			data: { 
+				...state.data,
+				[key]: { 
+					...existing,
+					loading_more: true,
+					load_more_error: null
+				}
+			}
 		}));
 
 		try {
@@ -169,7 +179,8 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 					has_next: data.has_next,
 					is_fetching: false,
 					error: null,
-					loading_more: false
+					loading_more: false,
+					load_more_error: null
 				}}
 			}));
 		} catch (err) {
@@ -178,7 +189,7 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 				data: { ...state.data, [key]: {
 					...existing,
 					loading_more: false,
-					error: ApiError.getErrorMessage(err)
+					load_more_error: ApiError.getErrorMessage(err)
 				}}
 			}));
 		}

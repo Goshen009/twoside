@@ -6,7 +6,9 @@ import { AccountBalanceCard } from "./componenets/AccountBalanceCard";
 import { TransactionGroup } from "./componenets/TransactionGroup";
 import { HomeHeader } from "./componenets/HomeHeader";
 
-import { useEffect, useState } from "react";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { useEffect, useState, useCallback } from "react";
+import { Loader2 } from "lucide-react";
 import { DateTime } from "luxon";
 
 const group_by_date = (entries: TransactionEntry[], timezone: string): { label: string; entries: TransactionEntry[] }[] => {
@@ -33,6 +35,7 @@ export function HomePage() {
 	const currency_symbol = useUserStore((state) => state.data?.currency_symbol);
 	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
 	const fetch = useTransactionsStore((state) => state.fetch);
+	const load_more = useTransactionsStore((state) => state.load_more);
 
 	useEffect(() => {
 		const key_filters = { account_id: selected_account_id, category_id: null };
@@ -45,6 +48,14 @@ export function HomePage() {
 		account_id: selected_account_id,
 		category_id: null
 	}));
+
+	const can_load_more = !!window?.has_next && !window?.loading_more;
+
+	const handleLoadMore = useCallback(() => {
+  	load_more({ account_id: selected_account_id, category_id: null });
+	}, [load_more, selected_account_id]);
+	
+	const sentinel_ref = useInfiniteScroll(handleLoadMore, can_load_more);
 	
 	const groups = group_by_date(window?.entries ?? [], iana_timezone ?? "Africa/Lagos")
 
@@ -76,14 +87,33 @@ export function HomePage() {
               No transactions found. Add some
             </p>
           ) : (
-            groups.map((group) => (
-              <TransactionGroup
-                key={group.label}
-                label={group.label}
-                entries={group.entries}
-                currency_symbol={currency_symbol ?? "₦"}
-              />
-            ))
+         		<>
+              {groups.map((group) => (
+                <TransactionGroup
+                  key={group.label}
+                  label={group.label}
+                  entries={group.entries}
+                  currency_symbol={currency_symbol ?? "₦"}
+                />
+              ))}
+              {window && groups.length > 0 && (
+                <div ref={sentinel_ref} className="py-4 flex items-center justify-center">
+                  {window.loading_more && <Loader2 className="w-5 h-5 text-muted animate-spin" />}
+                  {window.load_more_error && !window.loading_more && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted">Little error while loading more.</p>
+                      <button
+                        type="button"
+                        onClick={handleLoadMore}
+                        className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>

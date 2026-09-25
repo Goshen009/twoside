@@ -78,14 +78,10 @@ export const useUserStore = create<InfoState>((set, get) => ({
     try {
 	   	const data = await Endpoints.getInfo();
 			if (seq !== request_seq) return; // superseded — drop silently
-			console.log('good');
 			set({ data, error: null, is_fetching: false });
-			console.log(get());
     } catch (err) {
    		if (seq !== request_seq) return;
-     	console.log('err');
       set({ error: ApiError.getErrorMessage(err), is_fetching: false });
-      console.log(get());
     }
 	},
 

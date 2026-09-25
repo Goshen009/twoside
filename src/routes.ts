@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 
-import { seed } from './routes/seed.js';
+// import { seed } from './routes/seed.js';
 import { list_loans } from './routes/queries/list-loans.js';
 import { log_transfer } from './routes/logs/log-transfer.js';
 import { log_expense } from './routes/logs/log-expense.js';
@@ -23,6 +23,7 @@ import { create_category } from './routes/category/create-category.js';
 import { edit_category } from './routes/category/edit-category.js';
 import { create_counterparty } from './routes/counterparty/create-counterparty.js';
 import { edit_counterparty } from './routes/counterparty/edit-counterparty.js';
+import { seed2 } from './routes/seed2.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -99,7 +100,7 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   // if it don't exist it should just auto-magically get for all time.
 
   
-  fastify.get("/seed", seed);
+  fastify.get("/seed", seed2);
 
   fastify.post("/auth/logout", logout);
   fastify.post("/auth/refresh", refresh);

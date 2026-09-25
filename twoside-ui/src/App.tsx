@@ -158,14 +158,14 @@ export function App() {
 
       {!checking_session && (
         <BrowserRouter>
-         		{/*<TransactionsProvider>*/}
+         		<TransactionsProvider>
            		{/*<LoansProvider>*/}
              		<AddTransactionFlowProvider>
                		<AddTransactionFlow />
             			<AnimatedRoutes />
                	</AddTransactionFlowProvider>
              {/*</LoansProvider>*/}
-           {/*</TransactionsProvider>*/}
+           </TransactionsProvider>
         </BrowserRouter>
       )}
    	</>
