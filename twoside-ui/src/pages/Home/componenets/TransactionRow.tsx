@@ -1,29 +1,23 @@
 import type { TransactionEntry } from "@/types/types";
+import { useUserStore } from "@/stores/useUserStore";
+import { useUIStore } from "@/stores/useUIStore";
+
 import Constants from "@/lib/Constants";
+import Format from "@/lib/Format";
 
 interface TransactionRowProps {
   entry: TransactionEntry;
   currency_symbol: string;
 }
 
-function formatAmount(amount: number, currency_symbol: string): string {
-  const [whole, decimal] = amount.toFixed(2).split(".");
-  const with_separators = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${currency_symbol}${with_separators}.${decimal}`;
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 export function TransactionRow({ entry, currency_symbol }: TransactionRowProps) {
+	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
+	const is_hidden = useUIStore((state) => state.is_amounts_hidden);
+	
   const meta = Constants.TRANSACTION_TYPE_META[entry.log_type];
   const Icon = meta.icon;
   const is_inflow = entry.side === "DEBIT"; // asset account: debit = money in
-
+  
   return (
 	  <div className="py-3 flex items-center justify-between gap-3">
 	    <div className="flex items-center gap-2 min-w-0">
@@ -35,13 +29,20 @@ export function TransactionRow({ entry, currency_symbol }: TransactionRowProps) 
 	          {entry.description}
 	        </p>
 	        <p className="text-2xs text-muted leading-normal mt-1">
-	          {meta.label} • {formatTime(entry.transaction_date)}
+	          {Format.time(entry.transaction_date, iana_timezone ?? "Africa/Lagos").time} • { meta.label }
 	        </p>
 	      </div>
 	    </div>
-	    <span className={`text-[13px] font-semibold tabular-nums shrink-0 ${is_inflow ? "text-income" : "text-expense"}`}>
-	      {is_inflow ? "+" : "-"}
-	      {formatAmount(entry.amount, currency_symbol)}
+	    <span
+			  className={`text-[13px] font-semibold tabular-nums shrink-0 ${
+			    is_hidden ? "text-white" : is_inflow ? "text-income" : "text-expense"
+			  }`}
+			>
+				{is_hidden ? (
+					<span className="text-muted">—</span>
+				) : (
+					<>{is_inflow ? "+" : "-"}{Format.money(entry.amount, currency_symbol).full}</>
+				)}		
 	    </span>
 	  </div>
   );

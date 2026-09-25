@@ -85,11 +85,20 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 		const seq = next_seq(filters);
 
 		set((state) => {
-			const existing = state.data[key];
-			const update = existing
-				? { ...existing, is_fetching: true, error: null }
-				: { entries: [], filters, next_cursor: null, has_next: false, is_fetching: true, error: null, loading_more: false };
-			return { data: { ...state.data, [key]: update } };
+			return {
+				data: {
+					...state.data,
+					[key]: {
+						entries: [],
+						filters,
+						next_cursor: null,
+						has_next: false,
+						error: null,
+						is_fetching: true,
+						loading_more: false
+					}
+				}
+			}
 		});
 
 		try {
@@ -112,11 +121,16 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 		} catch (err) {
 			if (seq !== request_seq.get(key)) return;
 			set((state) => {
-				const existing = state.data[key];
-				const update = existing
-					? { ...existing, is_fetching: false, error: ApiError.getErrorMessage(err) }
-					: { entries: [], filters, next_cursor: null, has_next: false, is_fetching: false, error: ApiError.getErrorMessage(err), loading_more: false };
-				return { data: { ...state.data, [key]: update } };
+				return {
+					data: {
+						...state.data,
+						[key]: {
+							...state.data[key],
+							is_fetching: false,
+							error: ApiError.getErrorMessage(err)
+						}
+					}
+				}
 			});
 		}
 	},

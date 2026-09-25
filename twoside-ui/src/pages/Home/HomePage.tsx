@@ -60,6 +60,21 @@ export function HomePage() {
         <section aria-label="Recent Transactions" className="space-y-6">
           {window?.is_fetching && (window?.entries.length ?? 0) === 0 ? (
             <TransactionSkeletonList />
+          ) : window?.error ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <p className="text-sm text-muted">{window.error}</p>
+              <button
+                type="button"
+                onClick={() => fetch({ account_id: selected_account_id, category_id: null })}
+                className="text-sm font-semibold text-primary hover:underline cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
+          ) : window && groups.length === 0 ? (
+            <p className="text-sm text-muted text-center py-8">
+              No transactions found. Add some
+            </p>
           ) : (
             groups.map((group) => (
               <TransactionGroup

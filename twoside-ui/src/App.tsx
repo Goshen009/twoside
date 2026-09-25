@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useUserStore } from "./stores/useUserStore";
 
 import { AuthFlow } from "./pages/Auth/AuthFlow";
 import { SplashScreen } from "./pages/Splash/SplashScreen";
@@ -28,6 +29,7 @@ import { LandingPage } from "./pages/Landing/LandingPage";
 import { SettingsPage } from "./pages/Settings/SettingsPage";
 import { ProfileSettingsPage } from "./pages/Settings/ProfileSettingsPage";
 import { ManageListPage } from "./pages/Settings/ManageListPage";
+import { FullScreenError } from "./components/ui/FullScreenError";
 
 function RequirePWA({ children }: { children: ReactNode }) {
   const is_pwa_mode = useIsPWAMode();
@@ -59,10 +61,17 @@ function OnboardingRoute({ children }: { children: ReactNode }) {
 function ProtectedLayout() {
 	const is_authenticated = useAuthStore((state) => state.is_authenticated);
   const requires_onboarding = useAuthStore((state) => state.requires_onboarding);
+
+  const info_data = useUserStore((state) => state.data);
+  const info_error = useUserStore((state) => state.error);
+  const info_is_fetching = useUserStore((state) => state.is_fetching);
 	
   if (!is_authenticated) return <Navigate to="/login" replace />;
   if (requires_onboarding) return <Navigate to="/onboarding" replace />;
-  
+
+  if (!info_data && info_is_fetching) return <SplashScreen />;
+  if (!info_data && info_error !== null) return <FullScreenError onRetry={() => useUserStore.getState().fetch()} />;
+
   return (
     <>
       <Outlet />

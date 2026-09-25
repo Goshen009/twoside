@@ -82,7 +82,7 @@ export class APIError {
 	static internalServerError() {
 		return new ProblemDetail({
 			status: 500,
-			message: `Well, that's embarrassing. Something broke on our end — try again?`
+			message: `Well, that's embarrassing. Something broke on my end — try again?`
 		})
 	}
 }

@@ -44,7 +44,7 @@ export function AccountBalanceCard({ onAccountChange }: AccountBalanceCardProps)
   ];
 
   const account = display_accounts[active_index] ?? display_accounts[0];
-  const { whole, decimal } = Format.balance(account.balance, currency_symbol ?? "");
+  const { whole, decimal } = Format.money(account.balance, currency_symbol ?? "");
 
   function goToIndex(next_index: number, dir: 1 | -1) {
     setDirection(dir);

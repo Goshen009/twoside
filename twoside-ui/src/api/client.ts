@@ -23,7 +23,7 @@ export class ApiError extends Error {
       }
       return error.message;
     }
-    return "Well, that's embarrassing. Something broke on our end — try again?";
+    return "Well, that's embarrassing. Something broke on my end — try again?";
   }
 }
 

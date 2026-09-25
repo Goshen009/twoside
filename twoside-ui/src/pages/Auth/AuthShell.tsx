@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
 
-import { TopographicHeader } from "@/components/layout/TopographicHeader";
+import { TopographicHeader } from "@/pages/Auth/TopographicHeader";
 import { BrandEmblem } from "@/components/ui/BrandEmblem";
 import { ErrorToast } from "@/components/ui/ErrorToast";
 
