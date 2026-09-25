@@ -72,7 +72,7 @@ export function HomePage() {
 	const groups = group_by_date(window?.entries ?? [], iana_timezone ?? "Africa/Lagos")
 
   return (
-    <div className="app-container min-h-screen pb-28">
+    <div className="min-h-screen pb-28">
       <div className="px-5">
         <HomeHeader/>
       </div>
