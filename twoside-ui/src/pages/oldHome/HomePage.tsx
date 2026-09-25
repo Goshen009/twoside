@@ -11,7 +11,7 @@ export function HomePage() {
   // const { data: info, loading: info_loading } = useInfo();
 
   const info = useUserStore((state) => state.data);
-  const loading = useUserStore(state => state.is_loading);
+  const loading = useUserStore(state => state.is_fetching);
   
   const { filters, set_filters } = useTransactions();
 

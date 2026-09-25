@@ -16,7 +16,7 @@ import { SplashScreen } from "./pages/Splash/SplashScreen";
 import { OnboardPage } from "./pages/Onboarding/OnboardPage";
 
 import { TransactionsProvider } from "@/hooks/useTransactions";
-import { LoansProvider } from "@/hooks/useLoans";
+// import { LoansProvider } from "@/hooks/useLoans";
 import { AddTransactionFlowProvider } from "@/hooks/useAddTransactionFlow";
 
 import { AddTransactionFlow } from "@/components/transactions/AddTransactionFlow";

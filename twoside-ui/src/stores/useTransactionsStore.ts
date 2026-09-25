@@ -73,6 +73,13 @@ const get_key = (filters: TransactionFilters): string => {
 	]);
 }
 
+const to_query = (filters: TransactionFilters) => {
+  return {
+    account_id: filters.account_id ?? undefined,
+    category_id: filters.category_id ?? undefined,
+  };
+}
+
 export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 	data: {},
 
@@ -104,7 +111,7 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 		});
 
 		try {
-			const data = await Endpoints.listTransactions({ ...filters });
+			const data = await Endpoints.listTransactions({ ...to_query(filters) });
 			if (seq !== request_seq.get(key)) return;
 			set((state) => ({
 			  data: {
@@ -165,7 +172,7 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 
 		try {
 			const data = await Endpoints.listTransactions({
-				...filters,
+				...to_query(filters),
 				cursor: existing.next_cursor
 			});
 			

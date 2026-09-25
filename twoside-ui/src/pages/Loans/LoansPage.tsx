@@ -160,7 +160,7 @@ export function LoansPage() {
   // const { data: info, loading: info_loading } = useInfo();
 
   const info = useUserStore((state) => state.data);
-  const info_loading = useUserStore((state) => state.is_loading);
+  const info_loading = useUserStore((state) => state.is_fetching);
 
   const {
     loans,
