@@ -5,9 +5,10 @@ interface TransactionGroupProps {
   label: string;
   entries: TransactionEntry[];
   currency_symbol: string;
+  onEntryClick: (entry: TransactionEntry) => void;
 }
 
-export function TransactionGroup({ label, entries, currency_symbol }: TransactionGroupProps) {
+export function TransactionGroup({ label, entries, currency_symbol, onEntryClick }: TransactionGroupProps) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between px-1 mb-2">
@@ -21,6 +22,7 @@ export function TransactionGroup({ label, entries, currency_symbol }: Transactio
             key={entry.entry_id}
             entry={entry}
             currency_symbol={currency_symbol}
+            onClick={() => onEntryClick(entry)}
           />
         ))}
       </div>

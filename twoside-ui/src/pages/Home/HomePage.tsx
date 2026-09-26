@@ -4,10 +4,11 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useIsInView } from "@/hooks/useIsInView";
 
 import { TransactionSkeletonList } from "./componenets/TransactionSkeletonList";
-import { AccountBalanceCard } from "./componenets/AccountBalanceCard";
-import { ScrollToTopButton } from "@/components/ui/ScrollToTopButton";
-import { TransactionGroup } from "./componenets/TransactionGroup";
+import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
+import { TransactionDetailsModal } from "./TransactionDetailsModal";
 import { StickyAccountPill } from "./componenets/StickyAccountPill";
+import { TransactionGroup } from "./componenets/TransactionGroup";
+import { AccountBalanceCard } from "./AccountBalanceCard";
 import { HomeHeader } from "./componenets/HomeHeader";
 
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -35,6 +36,7 @@ const group_by_date = (entries: TransactionEntry[], timezone: string): { label: 
 
 export function HomePage() {
 	const [selected_account_id, setSelectedAccountId] = useState<string | null>(null);
+	const [selected_entry, setSelectedEntry] = useState<TransactionEntry | null>(null);
 
 	const currency_symbol = useUserStore((state) => state.data?.currency_symbol);
 	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
@@ -107,6 +109,7 @@ export function HomePage() {
                   label={group.label}
                   entries={group.entries}
                   currency_symbol={currency_symbol ?? "₦"}
+                  onEntryClick={setSelectedEntry}
                 />
               ))}
               {window && groups.length > 0 && (
@@ -129,6 +132,13 @@ export function HomePage() {
             </>
           )}
         </section>
+
+        <TransactionDetailsModal
+          entry={selected_entry}
+          currency_symbol={currency_symbol ?? "₦"}
+          timezone={iana_timezone ?? "Africa/Lagos"}
+          onClose={() => setSelectedEntry(null)}
+        />
 
         <StickyAccountPill visible={!is_in_view} account_name={account_name} />
         <ScrollToTopButton visible={scrolled_past_threshold} />

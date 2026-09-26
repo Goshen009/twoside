@@ -30,10 +30,7 @@ export function SplashScreen() {
       {/* Main content */}
       <main className="relative z-10 flex items-center justify-center px-6">
         <div className="flex items-baseline tracking-[-0.04em]">
-	       	<h1
-	          className="text-[44px] sm:text-[50px] font-bold text-foreground tracking-[-0.035em] leading-none"
-	          style={{ fontFamily: "'Inter', sans-serif" }}
-	        >
+	       	<h1 className="text-[44px] sm:text-[50px] font-bold text-foreground tracking-[-0.035em] leading-none">
 	          twoside
 	        </h1>
           <span

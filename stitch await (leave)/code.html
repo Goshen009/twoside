@@ -1,0 +1,231 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Log Expense - Personal Finance</title>
+<!-- Load Tailwind CSS v3 with forms and container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            appDark: '#0e131a',
+            surfaceDark: '#121822',
+            cardDark: '#1a222f',
+            cardDarkHover: '#222c3c',
+            brandGreen: '#10b981',
+            brandGreenGlow: '#059669',
+            brandCoral: '#ef4444',
+            brandBlue: '#3b82f6',
+            brandAmber: '#f59e0b',
+            brandIndigo: '#6366f1',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="base-styling">
+    /* Disable bounce scroll effect on iOS */
+    html, body {
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+      background-color: #000000;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    }
+    /* Hide scrollbar for a sleek native app feel */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    * {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style data-purpose="bottom-sheet-animation">
+    /* Subtle glow for the floating action button */
+    .fab-glow {
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.45);
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="flex justify-center items-center min-h-screen bg-black select-none text-white antialiased">
+<!-- BEGIN: MobileDeviceContainer -->
+<!-- iPhone 15 Pro standard aspect mobile frame -->
+<div class="relative w-full max-w-[428px] h-[926px] bg-appDark overflow-hidden flex flex-col shadow-2xl">
+<!-- BEGIN: BackgroundDashboard (Dimmed Backdrop) -->
+<!-- Represents SCREEN_6 blurred and dimmed underneath modal overlay -->
+<div aria-hidden="true" class="absolute inset-0 z-0 flex flex-col pointer-events-none opacity-40 filter blur-[2px]">
+<!-- Status Bar Area -->
+<div class="flex justify-between items-center px-8 pt-4 pb-2 text-white font-medium text-sm tracking-tight">
+<span class="">9:41</span>
+<div class="flex items-center space-x-2 text-xs">
+<!-- Cellular -->
+<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M2 17h2v4H2v-4zm5-4h2v8H7v-8zm5-5h2v13h-2V8zm5-5h2v18h-2V3z"></path></svg>
+<!-- Wifi -->
+<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"></path></svg>
+<!-- Battery -->
+<div class="w-6 h-3 border border-white rounded-sm p-[1px] flex items-center">
+<div class="h-full w-full bg-white rounded-2xs"></div>
+</div>
+</div>
+</div>
+<!-- Header Profile Summary -->
+<div class="px-6 pt-3 flex justify-between items-center">
+<h1 class="text-2xl font-bold tracking-tight text-white">Hi Eni,</h1>
+<div class="w-10 h-10 rounded-full bg-[#1b232e] border border-gray-700/50 flex items-center justify-center relative">
+<div class="w-2.5 h-2.5 rounded-full bg-brandGreen"></div>
+</div>
+</div>
+<!-- Hero Wallet Card Preview -->
+<div class="px-6 mt-5">
+<div class="bg-cardDark/80 rounded-3xl p-6 border border-gray-800/60 shadow-lg relative">
+<div class="flex justify-end mb-2">
+<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="text-center">
+<div class="text-xs text-gray-400 tracking-wide font-medium">Opay</div>
+<div class="text-3xl font-extrabold mt-1 text-white tracking-tight">₦34,567<span class="text-xl font-normal text-gray-300">.90</span></div>
+</div>
+</div>
+</div>
+</div>
+<!-- END: BackgroundDashboard -->
+<!-- BEGIN: BackdropScrim -->
+<!-- Dark dimmed overlay to emphasize slide-up panel -->
+<div class="absolute inset-0 bg-black/60 backdrop-blur-[3px] z-10" data-purpose="modal-scrim"></div>
+<!-- END: BackdropScrim -->
+<!-- BEGIN: TopStatusBar (Live in modal state) -->
+<div class="relative z-20 flex justify-between items-center px-8 pt-3 pb-1 text-white font-medium text-xs tracking-tight">
+<span class="">9:41</span>
+<div class="flex items-center space-x-2">
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M2 17h2v4H2v-4zm5-4h2v8H7v-8zm5-5h2v13h-2V8zm5-5h2v18h-2V3z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"></path></svg>
+<div class="w-5 h-2.5 border border-white rounded-[3px] p-[1px] flex items-center">
+<div class="h-full w-full bg-white rounded-[1px]"></div>
+</div>
+</div>
+</div>
+<!-- END: TopStatusBar -->
+<!-- Spacer to allow top backdrop visibility -->
+<div class="h-20 shrink-0"></div>
+<!-- BEGIN: BottomSheetModal -->
+<!-- Slide-up card matching IMAGE_1 styling with dark rounded-t-3xl panel -->
+<main class="relative z-20 flex-1 bg-surfaceDark rounded-t-[32px] border-t border-gray-800/80 shadow-[0_-12px_32px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden" data-purpose="new-transaction-sheet" style="background-color: rgb(17, 20, 23); border-color: rgb(30, 36, 43);"><!-- Sheet Pull Handle Indicator -->
+<div class="w-full flex justify-center pt-3 pb-1">
+<div class="w-10 h-1 rounded-full" style="background-color: rgb(46, 56, 66);"></div>
+</div>
+<!-- Sheet Header: Title, Category Badge & Close Action -->
+<header class="flex items-center justify-between px-6 py-2.5 shrink-0 border-b" style="border-color: rgba(36, 43, 51, 0.6);">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.25);">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #fb7185;" viewBox="0 0 24 24">
+<path d="M9 14l6-6m0 0h-5m5 0v5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h2 class="text-lg font-semibold text-white tracking-tight">Log Expense</h2>
+</div>
+<button aria-label="Close modal" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors duration-150" style="background-color: rgb(34, 41, 48); color: rgb(148, 163, 184);" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</header>
+<!-- Scrollable Log Expense Form Body -->
+<div class="flex-1 overflow-y-auto px-5 space-y-4 pt-3.5 pb-6" data-purpose="expense-form-container">
+<!-- Amount Hero Card -->
+
+<!-- Description Field -->
+<div class="space-y-1.5">
+<label class="text-xs font-semibold uppercase tracking-wider text-gray-400 px-1">Description</label>
+<div class="rounded-xl px-3.5 py-2.5 flex items-center space-x-2.5 shadow-sm" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[14px] text-white font-medium flex-1 truncate">Supermarket Groceries &amp; Toiletries</span>
+</div>
+</div>
+<!-- Category Selector with Quick Chips -->
+<div class="space-y-1.5">
+<div class="flex justify-between items-center px-1">
+<label class="text-xs font-semibold uppercase tracking-wider text-gray-400">Category</label>
+
+</div>
+<div class="rounded-xl p-2.5 flex items-center justify-between cursor-pointer" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-2.5">
+<div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background-color: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[14px] font-medium text-white">Groceries &amp; Pantry</span>
+</div>
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<!-- Quick Category Pill Chips -->
+
+</div>
+<!-- Date & Time Picker -->
+<div class="space-y-1.5">
+<label class="text-xs font-semibold uppercase tracking-wider text-gray-400 px-1">Date &amp; Time</label>
+<div class="rounded-xl px-3.5 py-2.5 flex items-center justify-between cursor-pointer" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[14px] font-medium text-white">Today, 02:15 PM</span>
+</div>
+<span class="text-xs font-medium" style="color: #64748b;">Change</span>
+</div>
+</div>
+<!-- Multi-Account Payment Breakdown -->
+<div class="space-y-2 pt-1">
+<div class="flex justify-between items-center px-1"><label class="text-xs font-semibold uppercase tracking-wider text-gray-400">Paid From Accounts</label></div>
+<!-- Account Row 1 (Opay) -->
+<div class="rounded-xl p-3 flex flex-col space-y-2" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);"><div class="flex items-center justify-between"><div class="flex items-center space-x-2.5"><div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs" style="background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">OP</div><div><div class="text-[14px] font-semibold text-white leading-tight">Opay</div><div class="text-[11px] text-gray-400 mt-0.5">Bal: ₦34,567.90</div></div></div><div class="text-right"><span class="text-sm font-bold text-white">₦10,000.00</span></div></div></div>
+<!-- Account Row 2 (Kuda Bank - Split) -->
+<div class="rounded-xl p-3 flex flex-col space-y-2" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);"><div class="flex items-center justify-between"><div class="flex items-center space-x-2.5"><div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs" style="background-color: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3);">KD</div><div><div class="text-[14px] font-semibold text-white leading-tight">Kuda Bank</div><div class="text-[11px] text-gray-400 mt-0.5">Bal: ₦18,200.00</div></div></div><div class="flex items-center space-x-2"><div class="text-right"><span class="text-sm font-bold text-white">₦2,450.00</span></div><button aria-label="Remove split" class="w-6 h-6 rounded-md flex items-center justify-center text-gray-500 hover:text-red-400 transition-colors" style="background-color: rgba(36, 43, 51, 0.6);" type="button"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div></div>
+<!-- Add Split Account Button -->
+<button class="w-full py-2.5 px-3 rounded-xl border border-dashed flex items-center justify-center space-x-2 text-xs font-semibold transition-colors duration-150 hover:border-gray-500" style="border-color: rgb(46, 56, 66); color: #34d399; background-color: rgba(26, 31, 36, 0.5);" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="">Split With Another Account</span>
+</button>
+<!-- Allocation Summary Badge -->
+<div class="rounded-xl px-3.5 py-2.5 flex items-center justify-between" style="background-color: rgb(26, 31, 36); border: 1px solid rgb(36, 43, 51);"><span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Total</span><span class="text-sm font-bold text-white tracking-tight">₦12,450.00</span></div>
+</div>
+<!-- Primary CTA: Save Expense Button -->
+<div class="pt-2">
+<button class="w-full py-3.5 px-4 rounded-2xl font-bold text-white text-[15px] flex items-center justify-center space-x-2 shadow-lg active:scale-[0.98] transition-all duration-150" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="">Save Expense</span>
+</button>
+</div>
+</div></main>
+<!-- END: BottomSheetModal -->
+<!-- BEGIN: BottomNavigationBar -->
+<!-- iOS Dock with center highlighted emerald '+' button -->
+
+<!-- END: BottomNavigationBar -->
+<!-- BEGIN: HomeIndicator (iOS Gesture Bar) -->
+<div class="absolute bottom-1 inset-x-0 flex justify-center z-40 pointer-events-none">
+<div class="w-32 h-1 bg-white/20 rounded-full"></div>
+</div>
+<!-- END: HomeIndicator -->
+</div>
+<!-- END: MobileDeviceContainer -->
+
+
+</body></html>

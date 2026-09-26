@@ -8,9 +8,10 @@ import Format from "@/lib/Format";
 interface TransactionRowProps {
   entry: TransactionEntry;
   currency_symbol: string;
+  onClick?: () => void;
 }
 
-export function TransactionRow({ entry, currency_symbol }: TransactionRowProps) {
+export function TransactionRow({ entry, currency_symbol, onClick }: TransactionRowProps) {
 	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
 	const is_hidden = useUIStore((state) => state.is_amounts_hidden);
 	
@@ -19,7 +20,7 @@ export function TransactionRow({ entry, currency_symbol }: TransactionRowProps) 
   const is_inflow = entry.side === "DEBIT"; // asset account: debit = money in
   
   return (
-	  <div className="py-3 flex items-center justify-between gap-3">
+	  <div onClick={onClick} className="py-3 flex items-center justify-between gap-3">
 	    <div className="flex items-center gap-2 min-w-0">
 	      <div className={`w-11 h-11 rounded-2xl ${meta.bg} ${meta.text} flex items-center justify-center shrink-0`}>
 	        <Icon className="w-5 h-5" />

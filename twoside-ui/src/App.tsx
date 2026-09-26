@@ -29,7 +29,7 @@ import { LandingPage } from "./pages/Landing/LandingPage";
 import { SettingsPage } from "./pages/Settings/SettingsPage";
 import { ProfileSettingsPage } from "./pages/Settings/ProfileSettingsPage";
 import { ManageListPage } from "./pages/Settings/ManageListPage";
-import { FullScreenError } from "./components/ui/FullScreenError";
+import { FullScreenError } from "./components/shared/FullScreenError";
 
 function RequirePWA({ children }: { children: ReactNode }) {
   const is_pwa_mode = useIsPWAMode();
