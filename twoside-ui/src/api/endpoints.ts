@@ -117,7 +117,54 @@ export class Endpoints {
   	const { data } = await APIClient.request<ListTransactionsResponse>(`/transactions?${query_params.toString()}`, { method: 'GET' });
    	return data;
   }
+
+  static async logExpense(payload: LogExpensePayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/expense", { method: "POST", body: payload });
+  }
+  
+  static async logIncome(payload: LogIncomePayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/income", { method: "POST", body: payload });
+  }
+  
+  static async logTransfer(payload: LogTransferPayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/transfer", { method: "POST", body: payload });
+  }
+  
+  static async logGiveLoan(payload: LogGiveLoanPayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/loan", { method: "POST", body: payload });
+  }
+  
+  static async logBorrow(payload: LogBorrowPayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/borrow", { method: "POST", body: payload });
+  }
+  
+  static async logRepayLoan(payload: LogRepayLoanPayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/loan-repayed", { method: "POST", body: payload });
+  }
+  
+  static async logReceiveRepayment(payload: LogReceiveRepaymentPayload): Promise<void> {
+    await APIClient.request<{ message: string }>("/log/borrow-returned", { method: "POST", body: payload });
+  }   
 }
+
+export interface AccountAllocation {
+  account_id: string;
+  amount: number;
+  charge: number;
+}
+
+interface CommonPayload {
+  description: string;
+  transaction_date: string; // UTC ISO
+}
+
+export interface LogExpensePayload extends CommonPayload { category_name: string | null; sources: AccountAllocation[]; }
+export interface LogIncomePayload extends CommonPayload { destinations: AccountAllocation[]; }
+export interface LogTransferPayload extends CommonPayload { amount: number; charge: number; from_account_id: string; to_account_id: string; }
+export interface LogGiveLoanPayload extends CommonPayload { counterparty_name: string; sources: AccountAllocation[]; }
+export interface LogBorrowPayload extends CommonPayload { counterparty_name: string; destinations: AccountAllocation[]; }
+export interface LogRepayLoanPayload extends CommonPayload { loan_id: string; sources: AccountAllocation[]; }
+export interface LogReceiveRepaymentPayload extends CommonPayload { loan_id: string; destinations: AccountAllocation[]; }
 
 export interface ListTransactionsResponse {
 	entries: TransactionEntry[],

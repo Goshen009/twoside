@@ -40,6 +40,12 @@
   --color-borrow: #a78bfa;
   --color-repay-loan: #fb923c;
   --color-receive-repayment: #34d399;
+
+  /* Transaction picker */
+  --color-picker-background: #0f1115;
+  --color-picker-surface: #191c24;
+  --color-picker-surface-hover: #20242d;
+  --color-picker-border: rgba(156, 163, 175, 0.12);
 }
 
 @layer components {

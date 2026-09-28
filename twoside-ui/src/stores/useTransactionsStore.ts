@@ -3,7 +3,7 @@ import { ApiError } from "@/api/client";
 import { useAuthStore } from "./useAuthStore";
 import { Endpoints, type ListTransactionsResponse } from "@/api/endpoints";
 
-type TransactionLogType = 
+export type TransactionLogType = 
 	| "INCOME"
 	| "EXPENSE"
 	| "TRANSFER"
@@ -51,6 +51,7 @@ interface CachedTransactionWindow extends ListTransactionsResponse {
 interface TransactionsState {
 	data: Record<string, CachedTransactionWindow>,
 	get_window: (filters: TransactionFilters) => CachedTransactionWindow,
+	invalidate: (touched_account_ids: string[]) => void;
 	
 	fetch: (filters: TransactionFilters) => Promise<void>,
 	load_more: (filters: TransactionFilters) => Promise<void>,
@@ -86,6 +87,21 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 	get_window: (filters: TransactionFilters): CachedTransactionWindow => {
 		const key = get_key(filters);
 		return get().data[key];
+	},
+
+	invalidate: (touched_account_ids) => {
+  	const touched = new Set(touched_account_ids);
+	  set((state) => {
+	    const next = { ...state.data };
+	    for (const [key, w] of Object.entries(state.data)) {
+	      const id = w.filters.account_id;
+	      if (id === null || touched.has(id)) {
+	        delete next[key];
+	        request_seq.set(key, (request_seq.get(key) ?? 0) + 1); // in-flight responses for it now get dropped
+	      }
+	    }
+	    return { data: next };
+	  });
 	},
 
 	fetch: async (filters: TransactionFilters) => {
@@ -203,7 +219,7 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
 	},
 
 	reset: () => {
-	  request_seq.clear();
+	  for (const key of Object.keys(get().data)) request_seq.set(key, (request_seq.get(key) ?? 0) + 1);
 	  set({ data: {} });
 	},
 }));

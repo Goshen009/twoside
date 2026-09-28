@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
+import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
 import { HandCoins, NotebookPen, Plus, Receipt, Settings } from "lucide-react";
-import { useAddTransactionFlow } from "@/hooks/useAddTransactionFlow";
 
 function navClassName(is_active: boolean): string {
 	return `flex flex-col items-center gap-1 transition-colors ${
@@ -9,7 +9,7 @@ function navClassName(is_active: boolean): string {
 }
 
 export function AppNavbar() {
-	const { open } = useAddTransactionFlow();
+	const open = useAddTransactionStore((s) => s.open);
 
 	return (
 		<nav className="fixed bottom-0 inset-x-0 z-40">

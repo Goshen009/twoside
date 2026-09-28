@@ -44,17 +44,19 @@ export function HomePage() {
 	const accounts = useUserStore((state) => state.data?.accounts);
 	const fetch = useTransactionsStore((state) => state.fetch);
 
+	const window = useTransactionsStore((state) => state.get_window({
+		account_id: selected_account_id,
+		category_id: null
+	}));
+	
+	const has_window = !!window;
+
 	useEffect(() => {
 		const key_filters = { account_id: selected_account_id, category_id: null };
 	  const existing = useTransactionsStore.getState().get_window(key_filters);
 	  if (existing && !existing.error) return; // cache hit, skip
 	  fetch(key_filters);
-  }, [selected_account_id, fetch]);
-
-	const window = useTransactionsStore((state) => state.get_window({
-		account_id: selected_account_id,
-		category_id: null
-	}));
+  }, [selected_account_id, fetch, has_window]);
 
 	const { ref: balance_sentinel_ref, is_in_view } = useIsInView<HTMLDivElement>();
 	const scrolled_past_threshold = useScrolledPast(400);
@@ -74,75 +76,77 @@ export function HomePage() {
 	const groups = group_by_date(window?.entries ?? [], iana_timezone ?? "Africa/Lagos")
 
   return (
-    <div className="min-h-screen pb-28">
-      <div className="px-5">
-        <HomeHeader/>
-      </div>
+  	<>
+	    <div className="min-h-screen pb-28">
+	      <div className="px-5">
+	        <HomeHeader/>
+	      </div>
+	
+	      <div className="px-5 space-y-5">
+	        <AccountBalanceCard onAccountChange={setSelectedAccountId} />
+	        <div ref={balance_sentinel_ref} />
+	
+	        <section aria-label="Recent Transactions" className="space-y-6">
+	          {window?.is_fetching && (window?.entries.length ?? 0) === 0 ? (
+	            <TransactionSkeletonList />
+	          ) : window?.error ? (
+	            <div className="flex flex-col items-center gap-3 py-8 text-center">
+	              <p className="text-sm text-muted">{window.error}</p>
+	              <button
+	                type="button"
+	                onClick={() => fetch({ account_id: selected_account_id, category_id: null })}
+	                className="text-sm font-semibold text-primary hover:underline cursor-pointer"
+	              >
+	                Retry
+	              </button>
+	            </div>
+	          ) : window && groups.length === 0 ? (
+	            <p className="text-sm text-muted text-center py-8">
+	              No transactions found. Add some
+	            </p>
+	          ) : (
+	         		<>
+	              {groups.map((group) => (
+	                <TransactionGroup
+	                  key={group.label}
+	                  label={group.label}
+	                  entries={group.entries}
+	                  currency_symbol={currency_symbol ?? "₦"}
+	                  onEntryClick={setSelectedEntry}
+	                />
+	              ))}
+	              {window && groups.length > 0 && (
+	                <div ref={sentinel_ref} className="py-4 flex items-center justify-center">
+	                  {window.loading_more && <Loader2 className="w-5 h-5 text-muted animate-spin" />}
+	                  {window.load_more_error && !window.loading_more && (
+	                    <div className="flex items-center gap-2">
+	                      <p className="text-xs text-muted">Little error while loading more.</p>
+	                      <button
+	                        type="button"
+	                        onClick={handleLoadMore}
+	                        className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+	                      >
+	                        Retry
+	                      </button>
+	                    </div>
+	                  )}
+	                </div>
+	              )}
+	            </>
+	          )}
+	        </section>
+	
+	        <StickyAccountPill visible={!is_in_view} account_name={account_name} />
+	        <ScrollToTopButton visible={scrolled_past_threshold} />
+	      </div>
+	    </div>
 
-      <div className="px-5 space-y-5">
-        <AccountBalanceCard onAccountChange={setSelectedAccountId} />
-        <div ref={balance_sentinel_ref} />
-
-        <section aria-label="Recent Transactions" className="space-y-6">
-          {window?.is_fetching && (window?.entries.length ?? 0) === 0 ? (
-            <TransactionSkeletonList />
-          ) : window?.error ? (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <p className="text-sm text-muted">{window.error}</p>
-              <button
-                type="button"
-                onClick={() => fetch({ account_id: selected_account_id, category_id: null })}
-                className="text-sm font-semibold text-primary hover:underline cursor-pointer"
-              >
-                Retry
-              </button>
-            </div>
-          ) : window && groups.length === 0 ? (
-            <p className="text-sm text-muted text-center py-8">
-              No transactions found. Add some
-            </p>
-          ) : (
-         		<>
-              {groups.map((group) => (
-                <TransactionGroup
-                  key={group.label}
-                  label={group.label}
-                  entries={group.entries}
-                  currency_symbol={currency_symbol ?? "₦"}
-                  onEntryClick={setSelectedEntry}
-                />
-              ))}
-              {window && groups.length > 0 && (
-                <div ref={sentinel_ref} className="py-4 flex items-center justify-center">
-                  {window.loading_more && <Loader2 className="w-5 h-5 text-muted animate-spin" />}
-                  {window.load_more_error && !window.loading_more && (
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted">Little error while loading more.</p>
-                      <button
-                        type="button"
-                        onClick={handleLoadMore}
-                        className="text-xs font-semibold text-primary hover:underline cursor-pointer"
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </section>
-
-        <TransactionDetailsModal
-          entry={selected_entry}
-          currency_symbol={currency_symbol ?? "₦"}
-          timezone={iana_timezone ?? "Africa/Lagos"}
-          onClose={() => setSelectedEntry(null)}
-        />
-
-        <StickyAccountPill visible={!is_in_view} account_name={account_name} />
-        <ScrollToTopButton visible={scrolled_past_threshold} />
-      </div>
-    </div>
+			<TransactionDetailsModal
+	     entry={selected_entry}
+	     currency_symbol={currency_symbol ?? "₦"}
+	     timezone={iana_timezone ?? "Africa/Lagos"}
+	     onClose={() => setSelectedEntry(null)}
+	     />
+   </>
   );
 }

@@ -15,11 +15,8 @@ import { AuthFlow } from "./pages/Auth/AuthFlow";
 import { SplashScreen } from "./pages/Splash/SplashScreen";
 import { OnboardPage } from "./pages/Onboarding/OnboardPage";
 
-import { TransactionsProvider } from "@/hooks/useTransactions";
-import { LoansProvider } from "@/hooks/useLoans";
-import { AddTransactionFlowProvider } from "@/hooks/useAddTransactionFlow";
-
-import { AddTransactionFlow } from "@/components/transactions/AddTransactionFlow";
+// import { TransactionsProvider } from "@/hooks/useTransactions";
+// import { LoansProvider } from "@/hooks/useLoans";
 
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { HomePage } from "./pages/Home/HomePage";
@@ -30,6 +27,7 @@ import { SettingsPage } from "./pages/Settings/SettingsPage";
 import { ProfileSettingsPage } from "./pages/Settings/ProfileSettingsPage";
 import { ManageListPage } from "./pages/Settings/ManageListPage";
 import { FullScreenError } from "./components/shared/FullScreenError";
+import { AddTransactionFlow } from "./pages/Transactions/AddTransactionFlow";
 
 function RequirePWA({ children }: { children: ReactNode }) {
   const is_pwa_mode = useIsPWAMode();
@@ -158,14 +156,12 @@ export function App() {
 
       {!checking_session && (
         <BrowserRouter>
-         		<TransactionsProvider>
-           		<LoansProvider>
-             		<AddTransactionFlowProvider>
+         		{/*<TransactionsProvider>*/}
+           		{/*<LoansProvider>*/}
                		<AddTransactionFlow />
             			<AnimatedRoutes />
-               	</AddTransactionFlowProvider>
-             </LoansProvider>
-           </TransactionsProvider>
+             {/*</LoansProvider>*/}
+           {/*</TransactionsProvider>*/}
         </BrowserRouter>
       )}
    	</>
