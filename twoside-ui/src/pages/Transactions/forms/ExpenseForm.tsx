@@ -4,34 +4,37 @@ import { TransactionFormShell } from "../components/TransactionFormShell";
 import { DescriptionField } from "../components/fields/DescriptionField";
 import { DateTimeField } from "../components/fields/DateTimeField";
 import { CategoryField } from "../components/fields/CategoryField";
-import { AccountSplitSection } from "../components/fields/AccountSplitSection";
-import type { AccountSplit } from "../components/fields/AccountSplitRow";
+import { AccountSplitSection } from "../components/AccountSplitSection";
+import type { AccountSplit } from "../components/AccountSplitRow";
 import { TotalSummary } from "../components/fields/TotalSummary";
 import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
 import { Endpoints } from "@/api/endpoints";
+
+import Money from "@/lib/Money";
 import TransactionPayload from "@/lib/TransactionPayload";
 
 export function ExpenseForm() {
   const accounts = useUserStore((s) => s.data?.accounts);
-  const currency_symbol = useUserStore((s) => s.data?.currency_symbol) ?? "₦";
-  const timezone = useUserStore((s) => s.data?.iana_timezone) ?? "Africa/Lagos";
-  const submit = useAddTransactionStore((s) => s.submit);
   const categories = useUserStore((s) => s.data?.categories) ?? [];
+  const timezone = useUserStore((s) => s.data?.iana_timezone) ?? "Africa/Lagos";
+  const currency_symbol = useUserStore((s) => s.data?.currency_symbol) ?? "₦";
+  
+  const submit = useAddTransactionStore((s) => s.submit);
 
   const [description, setDescription] = useState("");
-  const [date_iso, setDateIso] = useState(() => new Date().toISOString());
   const [category_id, setCategoryId] = useState<string | null>(null);
+  const [date_iso, setDateIso] = useState(() => new Date().toISOString());
   const [splits, setSplits] = useState<AccountSplit[]>(() => [
     { id: Math.random().toString(36).slice(2), account_id: accounts?.[0]?.id ?? "", amount: "", fee: "" },
   ]);
 
-  const total = splits.reduce((sum, s) => sum + (parseFloat(s.amount) || 0) + (parseFloat(s.fee) || 0), 0);
-  const can_submit =
-    description.trim().length > 0 &&
-    splits.every((s) => s.account_id && (parseFloat(s.amount) || 0) > 0);
+  const total = Money.sum(splits.flatMap((s) => [Money.parse(s.amount), Money.parse(s.fee)]));
 
+  const can_submit =
+		description.trim().length > 0 &&
+		splits.every((s) => s.account_id && Money.parse(s.amount) > 0);
   
-  function handleSubmit() {
+  const handleSubmit = () => {
     submit(
       () => Endpoints.logExpense({
         description: description.trim(),

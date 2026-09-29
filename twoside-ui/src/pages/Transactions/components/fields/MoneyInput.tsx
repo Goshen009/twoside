@@ -6,7 +6,7 @@ interface MoneyInputProps {
   placeholder?: string;
 }
 
-function sanitize(raw: string): string {
+const sanitize = (raw: string): string => {
   const cleaned = raw.replace(/[^\d.]/g, "");
   const [whole, ...rest] = cleaned.split(".");
   return rest.length ? `${whole}.${rest.join("").slice(0, 2)}` : whole;

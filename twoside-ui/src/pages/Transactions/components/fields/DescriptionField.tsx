@@ -14,6 +14,8 @@ export function DescriptionField({ value, onChange }: DescriptionFieldProps) {
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          required
+          maxLength={100}
           placeholder="What was this for?"
           className="flex-1 bg-transparent text-xs font-medium text-foreground outline-none placeholder:text-muted/60 placeholder:text-xs"
         />

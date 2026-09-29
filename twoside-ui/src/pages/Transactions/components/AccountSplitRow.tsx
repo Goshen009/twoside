@@ -1,6 +1,6 @@
-import { ChevronDown, Trash2 } from "lucide-react";
-import { FIELD_LABEL } from "./FormField";
-import { MoneyInput } from "./MoneyInput";
+import { Check, ChevronDown, Trash2 } from "lucide-react";
+import { FIELD_LABEL } from "./fields/FormField";
+import { MoneyInput } from "./fields/MoneyInput";
 
 import Format from "@/lib/Format";
 
@@ -18,16 +18,10 @@ interface AccountSplitRowProps {
   can_remove: boolean;
   onChange: (patch: Partial<AccountSplit>) => void;
   onRemove: () => void;
+  onDone: () => void;
 }
 
-export function AccountSplitRow({
-  split,
-  options,
-  currency_symbol,
-  can_remove,
-  onChange,
-  onRemove,
-}: AccountSplitRowProps) {
+export function AccountSplitRow({split, options, currency_symbol, can_remove, onChange, onRemove, onDone}: AccountSplitRowProps) {
   const selected = options.find((o) => o.id === split.account_id);
 
   return (
@@ -42,17 +36,18 @@ export function AccountSplitRow({
                 Bal: {Format.money(selected.balance, currency_symbol).full}
               </span>
             )}
-
+          
             {can_remove && (
-              <button
-                type="button"
-                aria-label="Remove account"
-                onClick={onRemove}
-                className="flex h-5 w-5 items-center justify-center rounded-md bg-white/5 text-muted transition-colors hover:text-rose"
-              >
+              <button type="button" aria-label="Remove account" onClick={onRemove}
+                className="flex h-5 w-5 items-center justify-center rounded-md bg-white/5 text-muted transition-colors hover:text-rose">
                 <Trash2 className="h-3 w-3" />
               </button>
             )}
+          
+            <button type="button" aria-label="Done" onClick={onDone}
+              className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/15 text-primary transition-colors">
+              <Check className="h-3 w-3" strokeWidth={2.5} />
+            </button>
           </div>
         </div>
 
