@@ -9,8 +9,9 @@ interface MoneyInputProps {
 const sanitize = (raw: string): string => {
   const cleaned = raw.replace(/[^\d.]/g, "");
   const [whole, ...rest] = cleaned.split(".");
-  return rest.length ? `${whole}.${rest.join("").slice(0, 2)}` : whole;
-}
+  const capped = whole.slice(0, 10);
+  return rest.length ? `${capped}.${rest.join("").slice(0, 2)}` : capped;
+};
 
 export function MoneyInput({ value, onChange, currency_symbol, size = "lg", placeholder = "0.00" }: MoneyInputProps) {
   const is_lg = size === "lg";

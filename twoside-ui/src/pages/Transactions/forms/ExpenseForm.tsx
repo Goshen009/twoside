@@ -45,14 +45,18 @@ export function ExpenseForm() {
       splits.map((s) => s.account_id),
     );
   }
+
+  const category_name = categories.find((c) => c.id === category_id)?.name ?? null;
+  const sources = TransactionPayload.toAllocations(splits);
   
   return (
     <TransactionFormShell
       log_type="EXPENSE"
+      payload={{ description: description.trim(), transaction_date: date_iso, category_name, sources }}
+      touched_account_ids={sources.map((s) => s.account_id)}
       title="Log Expense"
       submit_label="Save Expense"
       can_submit={can_submit}
-      onSubmit={handleSubmit}
     >
       <DescriptionField value={description} onChange={setDescription} />
       <DateTimeField value={date_iso} timezone={timezone} onChange={setDateIso} />

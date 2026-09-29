@@ -63,14 +63,17 @@ class Ledger {
 		const format = (amount: number) => `${currency_symbol}${amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 	
 	  const balances = await Balances.getBalancesAtDate(tx, lines, target_date);
-	  lines.forEach(l => {
-	    const balance_in_account = balances[l.id];
-	    if (balance_in_account === undefined)
-	      throw APIError.custom({ status: 500, message: `Could not resolve balance for account ${l.name}` });
-		
-	    if (Calc.toWholeNumber(balance_in_account) < Calc.toWholeNumber(l.total_amount))
-	      throw APIError.warning("INSUFFICIENT_BALANCE", `${l.name} only has ${format(balance_in_account)} but ${format(l.total_amount)} was requested.`);
-	  });
+		const short = lines
+		  .filter((l) => {
+		    const balance = balances[l.id];
+		    if (balance === undefined)
+		      throw APIError.custom({ status: 500, message: `Could not resolve balance for account ${l.name}` });
+						
+		    return Calc.toWholeNumber(balance) < Calc.toWholeNumber(l.total_amount);
+		  })
+		  .map((l) => `${l.name} only has ${format(balances[l.id]!)} but ${format(l.total_amount)} was requested.`);
+			
+		if (short.length > 0) throw APIError.warning("INSUFFICIENT_BALANCE", short.join("\n"));
 	}
 
 	static resolveAccountingSide(type: AccountType, cashflow_direction: CashflowDirection): AccountingSide {

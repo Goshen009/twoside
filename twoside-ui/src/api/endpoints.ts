@@ -1,5 +1,5 @@
 import { APIClient } from "@/api/client";
-import type { TransactionEntry } from "@/stores/useTransactionsStore";
+import type { TransactionEntry, TransactionLogType } from "@/stores/useTransactionsStore";
 import type { InfoData } from "@/stores/useUserStore";
 
 export class Endpoints {
@@ -118,34 +118,23 @@ export class Endpoints {
    	return data;
   }
 
-  static async logExpense(payload: LogExpensePayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/expense", { method: "POST", body: payload });
+  static async log<T extends TransactionLogType>(type: T, payload: LogPayloadByType[T], bypass_warnings: string[]): Promise<void> {
+		await APIClient.request<{ message: string }>(LOG_PATHS[type], {
+			method: "POST",
+			body: { ...payload, bypass_warnings },
+		});
   }
-  
-  static async logIncome(payload: LogIncomePayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/income", { method: "POST", body: payload });
-  }
-  
-  static async logTransfer(payload: LogTransferPayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/transfer", { method: "POST", body: payload });
-  }
-  
-  static async logGiveLoan(payload: LogGiveLoanPayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/loan", { method: "POST", body: payload });
-  }
-  
-  static async logBorrow(payload: LogBorrowPayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/borrow", { method: "POST", body: payload });
-  }
-  
-  static async logRepayLoan(payload: LogRepayLoanPayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/loan-repayed", { method: "POST", body: payload });
-  }
-  
-  static async logReceiveRepayment(payload: LogReceiveRepaymentPayload): Promise<void> {
-    await APIClient.request<{ message: string }>("/log/borrow-returned", { method: "POST", body: payload });
-  }   
 }
+
+const LOG_PATHS: Record<TransactionLogType, string> = {
+	EXPENSE: "/log/expense",
+	INCOME: "/log/income",
+	TRANSFER: "/log/transfer",
+	GIVE_LOAN: "/log/loan",
+	BORROW: "/log/borrow",
+	REPAY_LOAN: "/log/loan-repayed",
+	RECEIVE_REPAYMENT: "/log/borrow-returned",
+};
 
 export interface AccountAllocation {
   account_id: string;
@@ -158,13 +147,51 @@ interface CommonPayload {
   transaction_date: string; // UTC ISO
 }
 
-export interface LogExpensePayload extends CommonPayload { category_name: string | null; sources: AccountAllocation[]; }
-export interface LogIncomePayload extends CommonPayload { destinations: AccountAllocation[]; }
-export interface LogTransferPayload extends CommonPayload { amount: number; charge: number; from_account_id: string; to_account_id: string; }
-export interface LogGiveLoanPayload extends CommonPayload { counterparty_name: string; sources: AccountAllocation[]; }
-export interface LogBorrowPayload extends CommonPayload { counterparty_name: string; destinations: AccountAllocation[]; }
-export interface LogRepayLoanPayload extends CommonPayload { loan_id: string; sources: AccountAllocation[]; }
-export interface LogReceiveRepaymentPayload extends CommonPayload { loan_id: string; destinations: AccountAllocation[]; }
+export interface LogExpensePayload extends CommonPayload {
+  category_name: string | null;
+  sources: AccountAllocation[];
+}
+
+export interface LogIncomePayload extends CommonPayload {
+  destinations: AccountAllocation[];
+}
+
+export interface LogTransferPayload extends CommonPayload {
+  amount: number;
+  charge: number;
+  from_account_id: string;
+  to_account_id: string;
+}
+
+export interface LogGiveLoanPayload extends CommonPayload {
+  counterparty_name: string;
+  sources: AccountAllocation[];
+}
+
+export interface LogBorrowPayload extends CommonPayload {
+  counterparty_name: string;
+  destinations: AccountAllocation[];
+}
+
+export interface LogRepayLoanPayload extends CommonPayload {
+  loan_id: string;
+  sources: AccountAllocation[];
+}
+
+export interface LogReceiveRepaymentPayload extends CommonPayload {
+  loan_id: string;
+  destinations: AccountAllocation[];
+}
+
+export type LogPayloadByType = {
+  EXPENSE: LogExpensePayload;
+  INCOME: LogIncomePayload;
+  TRANSFER: LogTransferPayload;
+  GIVE_LOAN: LogGiveLoanPayload;
+  BORROW: LogBorrowPayload;
+  REPAY_LOAN: LogRepayLoanPayload;
+  RECEIVE_REPAYMENT: LogReceiveRepaymentPayload;
+};
 
 export interface ListTransactionsResponse {
 	entries: TransactionEntry[],

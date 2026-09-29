@@ -8,15 +8,18 @@ import Calc from "#/libs/calc.js";
 
 const schema = z.object({
 	...TransactionSchemas.commonFields(),
-	amount: z.number("Amount must be a number").positive("Amount must be greater than 0").multipleOf(0.01, "Amount must be in 2dp"),
-	charge: z.number("Charge must be a number").nonnegative("Charge cannot be negative").multipleOf(0.01, "Charge must be in 2dp").default(0),
+	amount: z.number("Amount must be a number").positive("Amount must be greater than 0").multipleOf(0.01, "Amount must be in 2dp").max(TransactionSchemas.MAX_AMOUNT, TransactionSchemas.TOO_LARGE),
+	charge: z.number("Charge must be a number").nonnegative("Charge cannot be negative").multipleOf(0.01, "Charge must be in 2dp").max(TransactionSchemas.MAX_AMOUNT, TransactionSchemas.TOO_LARGE).default(0),
 	from_account_id: z.uuid("from_account_id is required and must be a valid UUID"),
 	to_account_id: z.uuid("to_account_id is required and must be a valid UUID"),
 	bypass_warnings: TransactionSchemas.bypassWarnings(['INSUFFICIENT_BALANCE']),
 }).refine(data => data.from_account_id !== data.to_account_id, {
 	error: "You cannot transfer money into the same account",
 	path: ['to_account_id']
-});
+}).refine(
+  (data) => Math.round(data.amount * 100) + Math.round(data.charge * 100) <= Math.round(TransactionSchemas.MAX_AMOUNT * 100),
+  { error: TransactionSchemas.TOO_LARGE, path: ['amount'] },
+);
 
 async function handler(
   this: FastifyInstance,

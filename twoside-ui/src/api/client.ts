@@ -21,9 +21,18 @@ export class ApiError extends Error {
      	if (error.status === 400 && error.fields && error.fields.length > 0) {
        	return error.fields[0].message;
       }
+      if (error.status >= 500) {
+      	return "Well, that's embarrassing. Something broke on my end — try again?";
+      }
       return error.message;
     }
     return "Well, that's embarrassing. Something broke on my end — try again?";
+  }
+
+  static getWarning(error: unknown): { code: string; message: string } | null {
+		if (!(error instanceof ApiError)) return null;
+		if (error.status !== 409 || error.extensions?.type !== "WARNING") return null;
+		return { code: String(error.extensions.code), message: error.message };
   }
 }
 
