@@ -25,7 +25,7 @@ export function MoneyInput({ value, onChange, currency_symbol, size = "lg", plac
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(sanitize(e.target.value))}
-        className={`w-full rounded-xl border border-border bg-background pl-8 pr-3.5 tracking-tight text-foreground outline-none text-sm placeholder:text-muted/50 placeholder:text-sm focus:border-primary focus:ring-1 focus:ring-primary ${
+        className={`w-full rounded-xl border border-border bg-background pl-8 pr-3.5 tracking-tight text-foreground outline-none text-sm placeholder:text-muted/50 placeholder:text-sm focus:border-(--form-accent) focus:ring-1 focus:ring-(--form-accent) ${
           is_lg ? "h-10 text-sm font-bold" : "h-9 text-xs placeholder:text-xs"
         }`}
       />

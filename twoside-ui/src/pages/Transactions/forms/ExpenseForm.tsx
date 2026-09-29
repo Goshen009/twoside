@@ -13,12 +13,11 @@ import TransactionPayload from "@/lib/TransactionPayload";
 
 export function ExpenseForm() {
   const accounts = useUserStore((s) => s.data?.accounts);
-  const categories = useUserStore((s) => s.data?.categories) ?? [];
   const timezone = useUserStore((s) => s.data?.iana_timezone) ?? "Africa/Lagos";
   const currency_symbol = useUserStore((s) => s.data?.currency_symbol) ?? "₦";
 
   const [description, setDescription] = useState("");
-  const [category_id, setCategoryId] = useState<string | null>(null);
+  const [category_name, setCategoryName] = useState<string | null>(null);
   const [date_iso, setDateIso] = useState(() => new Date().toISOString());
   const [splits, setSplits] = useState<AccountSplit[]>(() => [
     { id: Math.random().toString(36).slice(2), account_id: accounts?.[0]?.id ?? "", amount: "", fee: "" },
@@ -29,8 +28,7 @@ export function ExpenseForm() {
   const can_submit =
 		description.trim().length > 0 &&
 		splits.every((s) => s.account_id && Money.parse(s.amount) > 0);
-
-  const category_name = categories.find((c) => c.id === category_id)?.name ?? null;
+  
   const sources = TransactionPayload.toAllocations(splits);
   
   return (
@@ -44,7 +42,7 @@ export function ExpenseForm() {
 		>
       <DescriptionField value={description} onChange={setDescription} />
       <DateTimeField value={date_iso} timezone={timezone} onChange={setDateIso} />
-      <CategoryField value={category_id} onChange={setCategoryId} />
+      <CategoryField value={category_name} onChange={setCategoryName} />
       <AccountSplitSection label="Paid From" splits={splits} onChange={setSplits} currency_symbol={currency_symbol} />
       <TotalSummary total={total} currency_symbol={currency_symbol} />
     </TransactionFormShell>

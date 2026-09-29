@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Check, ChevronDown, Trash2 } from "lucide-react";
 import { FIELD_LABEL } from "./fields/FormField";
 import { MoneyInput } from "./fields/MoneyInput";
-
+import { AccountPickerSheet } from "./pickers/AccountPickerSheet";
 import Format from "@/lib/Format";
 
 export interface AccountSplit {
@@ -13,7 +14,8 @@ export interface AccountSplit {
 
 interface AccountSplitRowProps {
   split: AccountSplit;
-  options: { id: string; name: string; balance: number }[];
+  accounts: { id: string; name: string; balance: number }[];
+  disabled_ids: string[];
   currency_symbol: string;
   can_remove: boolean;
   onChange: (patch: Partial<AccountSplit>) => void;
@@ -21,8 +23,18 @@ interface AccountSplitRowProps {
   onDone: () => void;
 }
 
-export function AccountSplitRow({split, options, currency_symbol, can_remove, onChange, onRemove, onDone}: AccountSplitRowProps) {
-  const selected = options.find((o) => o.id === split.account_id);
+export function AccountSplitRow({
+  split,
+  accounts,
+  disabled_ids,
+  currency_symbol,
+  can_remove,
+  onChange,
+  onRemove,
+  onDone,
+}: AccountSplitRowProps) {
+  const [picking, setPicking] = useState(false);
+  const selected = accounts.find((a) => a.id === split.account_id);
 
   return (
     <div className="space-y-2.5 rounded-xl border border-border bg-surface p-2.5">
@@ -36,36 +48,49 @@ export function AccountSplitRow({split, options, currency_symbol, can_remove, on
                 Bal: {Format.money(selected.balance, currency_symbol).full}
               </span>
             )}
-          
+
             {can_remove && (
-              <button type="button" aria-label="Remove account" onClick={onRemove}
-                className="flex h-5 w-5 items-center justify-center rounded-md bg-white/5 text-muted transition-colors hover:text-rose">
+              <button
+                type="button"
+                aria-label="Remove account"
+                onClick={onRemove}
+                className="flex h-5 w-5 items-center justify-center rounded-md bg-white/5 text-muted transition-colors hover:text-rose"
+              >
                 <Trash2 className="h-3 w-3" />
               </button>
             )}
-          
-            <button type="button" aria-label="Done" onClick={onDone}
-              className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/15 text-primary transition-colors">
+
+            <button
+              type="button"
+              aria-label="Done"
+              onClick={onDone}
+              className="flex h-5 w-5 items-center justify-center rounded-md bg-(--form-accent)/15 text-(--form-accent) transition-colors"
+            >
               <Check className="h-3 w-3" strokeWidth={2.5} />
             </button>
           </div>
         </div>
 
-        <div className="relative flex h-10 items-center rounded-lg border border-border bg-background px-3">
-          <select
-            value={split.account_id}
-            onChange={(e) => onChange({ account_id: e.target.value })}
-            className="w-full appearance-none bg-transparent pr-6 text-xs font-medium text-foreground outline-none"
-          >
-            {options.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
-          </select>
+        <button
+          type="button"
+          onClick={() => setPicking(true)}
+          className="flex h-10 w-full items-center justify-between rounded-lg border border-border bg-background px-3 text-left"
+        >
+          <span className="truncate text-xs font-medium text-foreground">
+            {selected?.name ?? "Select account"}
+          </span>
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted" />
+        </button>
 
-          <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-muted" />
-        </div>
+        <AccountPickerSheet
+          open={picking}
+          onClose={() => setPicking(false)}
+          accounts={accounts}
+          selected_id={split.account_id}
+          disabled_ids={disabled_ids}
+          currency_symbol={currency_symbol}
+          onSelect={(account_id) => onChange({ account_id })}
+        />
       </div>
 
       <div className="border-t border-border pt-1.5">

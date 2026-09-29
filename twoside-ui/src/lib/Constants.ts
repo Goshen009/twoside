@@ -8,6 +8,7 @@ export interface TransactionTypeMeta {
   bg: string,
   text: string,
   group: "core" | "loans",
+  accent_colour: string
 }
 
 class Constants {
@@ -21,6 +22,7 @@ class Constants {
 	    bg: "bg-expense/15",
 	    text: "text-expense",
 	    group: "core",
+			accent_colour: "var(--color-expense)",
 	  },
 	  INCOME: {
 	    icon: TrendingUp,
@@ -29,6 +31,7 @@ class Constants {
 	    bg: "bg-income/15",
 	    text: "text-income",
 	    group: "core",
+			accent_colour: "var(--color-income)",
 	  },
 	  TRANSFER: {
 	    icon: ArrowLeftRight,
@@ -37,6 +40,7 @@ class Constants {
 	    bg: "bg-transfer/15",
 	    text: "text-transfer",
 	    group: "core",
+			accent_colour: "var(--color-transfer)",
 	  },
 	  GIVE_LOAN: {
 	    icon: HandCoins,
@@ -45,6 +49,7 @@ class Constants {
 	    bg: "bg-give-loan/15",
 	    text: "text-give-loan",
 	    group: "loans",
+			accent_colour: "var(--color-give-loan)",
 	  },
 	  BORROW: {
 	    icon: Handshake,
@@ -53,6 +58,7 @@ class Constants {
 	    bg: "bg-borrow/15",
 	    text: "text-borrow",
 	    group: "loans",
+			accent_colour: "var(--color-borrow)",
 	  },
 	  REPAY_LOAN: {
 	    icon: BanknoteArrowUp,
@@ -61,6 +67,7 @@ class Constants {
 	    bg: "bg-repay-loan/15",
 	    text: "text-repay-loan",
 	    group: "loans",
+			accent_colour: "var(--color-repay-loan)",
 	  },
 	  RECEIVE_REPAYMENT: {
 	    icon: BanknoteArrowDown,
@@ -69,6 +76,7 @@ class Constants {
 	    bg: "bg-receive-repayment/15",
 	    text: "text-receive-repayment",
 	    group: "loans",
+			accent_colour: "var(--color-receive-repayment)",
 	  },
 	}
 }

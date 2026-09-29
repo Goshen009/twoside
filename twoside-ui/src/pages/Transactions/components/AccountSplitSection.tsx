@@ -1,5 +1,5 @@
-import { Plus } from "lucide-react";
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import { FormField } from "./fields/FormField";
 import { useUserStore } from "@/stores/useUserStore";
 import { AccountSplitRow, type AccountSplit } from "./AccountSplitRow";
@@ -11,6 +11,7 @@ interface AccountSplitSectionProps {
   onChange: (splits: AccountSplit[]) => void;
   currency_symbol: string;
 }
+
 export function AccountSplitSection({ label, splits, onChange, currency_symbol }: AccountSplitSectionProps) {
   const accounts = useUserStore((s) => s.data?.accounts) ?? [];
   const [editing_id, setEditingId] = useState<string | null>(() => splits[0]?.id ?? null);
@@ -20,7 +21,7 @@ export function AccountSplitSection({ label, splits, onChange, currency_symbol }
 
   const update = (id: string, patch: Partial<AccountSplit>) => {
     onChange(splits.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-  }
+  };
 
   const remove = (id: string) => {
     onChange(splits.filter((s) => s.id !== id));
@@ -43,7 +44,8 @@ export function AccountSplitSection({ label, splits, onChange, currency_symbol }
             <AccountSplitRow
               key={split.id}
               split={split}
-              options={accounts.filter((a) => a.id === split.account_id || !used.has(a.id))}
+              accounts={accounts}
+              disabled_ids={splits.filter((s) => s.id !== split.id).map((s) => s.account_id)}
               currency_symbol={currency_symbol}
               can_remove={splits.length > 1}
               onChange={(patch) => update(split.id, patch)}
@@ -62,15 +64,16 @@ export function AccountSplitSection({ label, splits, onChange, currency_symbol }
             />
           ),
         )}
+
         {can_add && (
-	        <button
-	          type="button"
-	          onClick={add}
-	          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 py-2.5 text-xs font-semibold text-primary transition-colors"
-	        >
-	          <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-	          Split With Another Account
-	        </button>
+          <button
+            type="button"
+            onClick={add}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-(--form-accent)/30 bg-(--form-accent)/5 py-2.5 text-xs font-semibold text-(--form-accent) transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+            Split With Another Account
+          </button>
         )}
       </div>
     </FormField>

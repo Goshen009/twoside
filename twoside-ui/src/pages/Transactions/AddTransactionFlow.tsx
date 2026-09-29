@@ -2,11 +2,19 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
 import { TransactionTypePicker } from "./components/TransactionTypePicker";
 import { ExpenseForm } from "./forms/ExpenseForm";
+import { TransferForm } from "./forms/TransferForm";
+import type { TransactionLogType } from "@/stores/useTransactionsStore";
+import type { ReactNode } from "react";
 
 const panelVariants = {
   enter: (dir: 1 | -1) => ({ x: dir * 50, opacity: 0 }),
   center: { x: 0, opacity: 1 },
   exit: (dir: 1 | -1) => ({ x: dir * -50, opacity: 0 }),
+};
+
+const FORMS: Partial<Record<TransactionLogType, ReactNode>> = {
+  EXPENSE: <ExpenseForm />,
+  TRANSFER: <TransferForm />,
 };
 
 export function AddTransactionFlow() {
@@ -57,22 +65,13 @@ export function AddTransactionFlow() {
                 transition={{ duration: 0.16, ease: "easeOut" }}
                 className="flex min-h-0 flex-1 flex-col"
               >
-                {selected_type === null ? (
-                  <TransactionTypePicker />
-                ) : selected_type === "EXPENSE" ? (
-                  <ExpenseForm />
-                ) : (
-                  // <TransactionFormShell
-                  //   log_type={selected_type}
-                  //   title={Constants.TRANSACTION_TYPE_META[selected_type].label}
-                  //   submit_label="Save"
-                  //   can_submit={false}
-                  //   onSubmit={() => {}}
-                  // >
-                  //   <p className="py-10 text-center text-sm text-muted">This form isn't built yet.</p>
-                  // </TransactionFormShell>
-                    <p className="py-10 text-center text-sm text-muted">This form isn't built yet.</p>
-                )}
+	              {selected_type === null ? (
+	                <TransactionTypePicker />
+	              ) : (
+	                FORMS[selected_type] ?? (
+	                  <p className="py-10 text-center text-sm text-muted">This form isn't built yet.</p>
+	                )
+	              )}
               </motion.div>
             </AnimatePresence>
           </motion.div>
