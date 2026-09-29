@@ -1,10 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
 import { TransactionTypePicker } from "./components/TransactionTypePicker";
-import { TransactionFormShell } from "./components/TransactionFormShell";
 import { ExpenseForm } from "./forms/ExpenseForm";
-
-import Constants from "@/lib/Constants";
 
 const panelVariants = {
   enter: (dir: 1 | -1) => ({ x: dir * 50, opacity: 0 }),
@@ -65,15 +62,16 @@ export function AddTransactionFlow() {
                 ) : selected_type === "EXPENSE" ? (
                   <ExpenseForm />
                 ) : (
-                  <TransactionFormShell
-                    log_type={selected_type}
-                    title={Constants.TRANSACTION_TYPE_META[selected_type].label}
-                    submit_label="Save"
-                    can_submit={false}
-                    onSubmit={() => {}}
-                  >
+                  // <TransactionFormShell
+                  //   log_type={selected_type}
+                  //   title={Constants.TRANSACTION_TYPE_META[selected_type].label}
+                  //   submit_label="Save"
+                  //   can_submit={false}
+                  //   onSubmit={() => {}}
+                  // >
+                  //   <p className="py-10 text-center text-sm text-muted">This form isn't built yet.</p>
+                  // </TransactionFormShell>
                     <p className="py-10 text-center text-sm text-muted">This form isn't built yet.</p>
-                  </TransactionFormShell>
                 )}
               </motion.div>
             </AnimatePresence>

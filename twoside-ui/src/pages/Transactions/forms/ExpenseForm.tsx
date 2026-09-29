@@ -7,8 +7,6 @@ import { CategoryField } from "../components/fields/CategoryField";
 import { AccountSplitSection } from "../components/AccountSplitSection";
 import type { AccountSplit } from "../components/AccountSplitRow";
 import { TotalSummary } from "../components/fields/TotalSummary";
-import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
-import { Endpoints } from "@/api/endpoints";
 
 import Money from "@/lib/Money";
 import TransactionPayload from "@/lib/TransactionPayload";
@@ -18,8 +16,6 @@ export function ExpenseForm() {
   const categories = useUserStore((s) => s.data?.categories) ?? [];
   const timezone = useUserStore((s) => s.data?.iana_timezone) ?? "Africa/Lagos";
   const currency_symbol = useUserStore((s) => s.data?.currency_symbol) ?? "₦";
-  
-  const submit = useAddTransactionStore((s) => s.submit);
 
   const [description, setDescription] = useState("");
   const [category_id, setCategoryId] = useState<string | null>(null);
@@ -33,31 +29,19 @@ export function ExpenseForm() {
   const can_submit =
 		description.trim().length > 0 &&
 		splits.every((s) => s.account_id && Money.parse(s.amount) > 0);
-  
-  const handleSubmit = () => {
-    submit(
-      () => Endpoints.logExpense({
-        description: description.trim(),
-        transaction_date: date_iso,
-        category_name: categories.find((c) => c.id === category_id)?.name ?? null,
-        sources: TransactionPayload.toAllocations(splits),
-      }),
-      splits.map((s) => s.account_id),
-    );
-  }
 
   const category_name = categories.find((c) => c.id === category_id)?.name ?? null;
   const sources = TransactionPayload.toAllocations(splits);
   
   return (
-    <TransactionFormShell
-      log_type="EXPENSE"
-      payload={{ description: description.trim(), transaction_date: date_iso, category_name, sources }}
-      touched_account_ids={sources.map((s) => s.account_id)}
-      title="Log Expense"
-      submit_label="Save Expense"
-      can_submit={can_submit}
-    >
+	  <TransactionFormShell
+			log_type="EXPENSE"
+			payload={{ description: description.trim(), transaction_date: date_iso, category_name, sources }}
+			touched_account_ids={sources.map((s) => s.account_id)}
+			title="Log Expense"
+			submit_label="Save Expense"
+			can_submit={can_submit}
+		>
       <DescriptionField value={description} onChange={setDescription} />
       <DateTimeField value={date_iso} timezone={timezone} onChange={setDateIso} />
       <CategoryField value={category_id} onChange={setCategoryId} />
