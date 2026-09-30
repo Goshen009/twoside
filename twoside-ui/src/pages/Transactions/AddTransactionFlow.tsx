@@ -1,15 +1,17 @@
+import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+
+import type { TransactionLogType } from "@/stores/useTransactionsStore";
 import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
-import { TransactionTypePicker } from "./components/TransactionTypePicker";
+
+import { IncomeForm } from "./forms/IncomeForm";
+import { BorrowForm } from "./forms/BorrowForm";
 import { ExpenseForm } from "./forms/ExpenseForm";
 import { TransferForm } from "./forms/TransferForm";
-import { IncomeForm } from "./forms/IncomeForm";
 import { GiveLoanForm } from "./forms/GiveLoanForm";
-import { BorrowForm } from "./forms/BorrowForm";
 import { RepayLoanForm } from "./forms/RepayLoanForm";
 import { ReceiveRepaymentForm } from "./forms/ReceiveRepaymentForm";
-import type { TransactionLogType } from "@/stores/useTransactionsStore";
-import type { ReactNode } from "react";
+import { TransactionTypePicker } from "./components/TransactionTypePicker";
 
 const panelVariants = {
   enter: (dir: 1 | -1) => ({ x: dir * 50, opacity: 0 }),
@@ -58,7 +60,7 @@ export function AddTransactionFlow() {
                 close();
               }
             }}
-            className="relative flex w-full max-w-md max-h-[92dvh] flex-col overflow-hidden rounded-t-[32px] border-t border-border bg-background shadow-[0_-12px_32px_rgba(0,0,0,0.7)]"
+            className="relative flex w-full max-w-md max-h-[92dvh] flex-col overflow-hidden rounded-t-4xl border-t border-border bg-background shadow-[0_-12px_32px_rgba(0,0,0,0.7)]"
           >
             <div className="flex shrink-0 justify-center pb-1 pt-3">
               <div className="h-1 w-10 rounded-full bg-white/20" />

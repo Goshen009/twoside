@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useUserStore } from "@/stores/useUserStore";
-import { TransactionFormShell } from "../components/TransactionFormShell";
-import { DescriptionField } from "../components/fields/DescriptionField";
-import { DateTimeField } from "../components/fields/DateTimeField";
+
 import { PersonField } from "../components/fields/PersonField";
-import { AccountSplitSection } from "../components/AccountSplitSection";
-import type { AccountSplit } from "../components/AccountSplitRow";
 import { TotalSummary } from "../components/fields/TotalSummary";
+import { DateTimeField } from "../components/fields/DateTimeField";
+import { DescriptionField } from "../components/fields/DescriptionField";
+
+import type { AccountSplit } from "../components/AccountSplitRow";
+import { AccountSplitSection } from "../components/AccountSplitSection";
+import { TransactionFormShell } from "../components/TransactionFormShell";
+
 import TransactionPayload from "@/lib/TransactionPayload";
 import Money from "@/lib/Money";
 

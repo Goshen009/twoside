@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
 
 import { TopographicHeader } from "@/pages/Auth/TopographicHeader";
-import { BrandEmblem } from "@/components/shared/BrandEmblem";
+import { BrandEmblem } from "@/pages/Auth/BrandEmblem";
 import { ErrorToast } from "@/components/shared/ErrorToast";
 
 interface AuthShellProps {

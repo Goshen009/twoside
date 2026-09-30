@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useUserStore } from "@/stores/useUserStore";
-import { TransactionFormShell } from "../components/TransactionFormShell";
-import { DescriptionField } from "../components/fields/DescriptionField";
+
+import { TotalSummary } from "../components/fields/TotalSummary";
 import { DateTimeField } from "../components/fields/DateTimeField";
 import { CategoryField } from "../components/fields/CategoryField";
-import { AccountSplitSection } from "../components/AccountSplitSection";
-import type { AccountSplit } from "../components/AccountSplitRow";
-import { TotalSummary } from "../components/fields/TotalSummary";
+import { DescriptionField } from "../components/fields/DescriptionField";
 
-import Money from "@/lib/Money";
+import type { AccountSplit } from "../components/AccountSplitRow";
+import { AccountSplitSection } from "../components/AccountSplitSection";
+import { TransactionFormShell } from "../components/TransactionFormShell";
+
 import TransactionPayload from "@/lib/TransactionPayload";
+import Money from "@/lib/Money";
 
 export function ExpenseForm() {
   const timezone = useUserStore((s) => s.data?.iana_timezone) ?? "Africa/Lagos";

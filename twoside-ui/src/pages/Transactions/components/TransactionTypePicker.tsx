@@ -1,8 +1,8 @@
-import { ChevronRight } from "lucide-react";
-import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
-
 import type { TransactionLogType } from "@/stores/useTransactionsStore";
+import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
+import { ChevronRight } from "lucide-react";
 import Constants from "@/lib/Constants";
+
 
 const OPTION_STYLES: Record<TransactionLogType, { label: string; box: string }> = {
   EXPENSE: { label: "Expense", box: "bg-expense/10 border-expense/20 text-expense" },

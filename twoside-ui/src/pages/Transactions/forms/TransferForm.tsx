@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useUserStore } from "@/stores/useUserStore";
-import { TransactionFormShell } from "../components/TransactionFormShell";
-import { DescriptionField } from "../components/fields/DescriptionField";
-import { DateTimeField } from "../components/fields/DateTimeField";
+
 import { FormField } from "../components/fields/FormField";
-import { AccountPickerRow } from "../components/fields/AccountPickerRow";
-import { AmountFeeCard } from "../components/fields/AmountFeeCard";
 import { TotalSummary } from "../components/fields/TotalSummary";
+import { AmountFeeCard } from "../components/fields/AmountFeeCard";
+import { DateTimeField } from "../components/fields/DateTimeField";
+import { DescriptionField } from "../components/fields/DescriptionField";
+import { AccountPickerRow } from "../components/fields/AccountPickerRow";
+
+import { TransactionFormShell } from "../components/TransactionFormShell";
 import Money from "@/lib/Money";
 
 export function TransferForm() {
@@ -24,13 +26,7 @@ export function TransferForm() {
 	const from_account = accounts.find((a) => a.id === from_id);
 	const total = Money.sum([Money.parse(amount), Money.parse(fee)]);
 
-	const can_submit =
-		description.trim().length > 0 &&
-		from_id !== "" &&
-		to_id !== "" &&
-		from_id !== to_id &&
-		Money.parse(amount) > 0;
-
+	const can_submit = description.trim().length > 0 && from_id !== "" && to_id !== "" && from_id !== to_id && Money.parse(amount) > 0;
 	const same_account = from_id !== "" && from_id === to_id;
 
 	return (
