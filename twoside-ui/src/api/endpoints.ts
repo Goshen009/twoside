@@ -104,8 +104,8 @@ export class Endpoints {
   	cursor?: string,
     account_id?: string,
     category_id?: string,
-    start_date?: string,
-    end_date?: string
+    jump_to_date?: string,
+    log_types?: string
   }, limit?: number): Promise<ListTransactionsResponse> {
   	const query_params = new URLSearchParams();
     if (limit) query_params.set("limit", String(limit));

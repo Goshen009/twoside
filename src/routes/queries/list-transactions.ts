@@ -11,11 +11,14 @@ const query_schema = z.object({
 	    return { transaction_date: new Date(transaction_date_str!), posted_at: new Date(posted_at_str!), id: id! };
 	  })
 	  .optional(),
+	log_types: z.string()
+		.transform((val) => val.split(",").filter(Boolean))
+		.pipe(z.array(z.enum(["INCOME", "EXPENSE", "TRANSFER", "GIVE_LOAN", "BORROW", "RECEIVE_REPAYMENT", "REPAY_LOAN"], "Unknown log type")))
+		.optional(),
   limit: z.coerce.number().int().positive().max(100).default(25),
   category_id: z.uuid("category_id must be a valid UUID").optional(),
   account_id: z.uuid("account_id must be a valid UUID").optional(),
-  start_date: z.iso.date("start_date must be in the format YYYY-MM-DD").transform((val) => new Date(`${val}T00:00:00.000Z`)).optional(),
-  end_date: z.iso.date("end_date must be in the format YYYY-MM-DD").transform((val) => new Date(`${val}T23:59:59.999Z`)).optional(),
+  jump_to_date: z.iso.datetime("jump_to_date must be in the format 2020-01-01T00:00:00Z").transform((val) => new Date(val)).optional(),
 });
 
 async function handler(
@@ -25,7 +28,7 @@ async function handler(
 ) {
 	const user = await request.requireAuth();
 
-  const { cursor, limit, category_id, account_id, start_date, end_date } = request.query;
+  const { cursor, log_types, limit, category_id, account_id, jump_to_date } = request.query;
 
   if (account_id && !user.accounts.find(a => a.id === account_id))
     throw APIError.custom({ status: 400, message: "This account does not exist" });
@@ -35,25 +38,15 @@ async function handler(
     account: { system_role: null },
     ...(account_id && { account_id }),
     ...(category_id && { category_id }),
-    AND: [
-      ...(start_date || end_date
-        ? [{
-            transaction_date: {
-              ...(start_date && { gte: start_date }),
-              ...(end_date && { lte: end_date }),
-            },
-          }]
-        : []),
-      ...(cursor
-        ? [{
-            OR: [
-              { transaction_date: { lt: cursor.transaction_date } },
-              { transaction_date: cursor.transaction_date, posted_at: { lt: cursor.posted_at } },
-              { transaction_date: cursor.transaction_date, posted_at: cursor.posted_at, id: { lt: cursor.id } },
-            ],
-          }]
-        : []),
-    ],
+    ...(log_types && log_types.length > 0 && { log_type: { in: log_types } }),
+    ...(jump_to_date && { transaction_date: { lte: jump_to_date } }),
+    ...(cursor && {
+			OR: [
+				{ transaction_date: { lt: cursor.transaction_date } },
+				{ transaction_date: cursor.transaction_date, posted_at: { lt: cursor.posted_at } },
+				{ transaction_date: cursor.transaction_date, posted_at: cursor.posted_at, id: { lt: cursor.id } },
+			],
+		}),
   };
   
   const entries = await this.prisma.journalEntry.findMany({
@@ -85,7 +78,16 @@ async function handler(
             		}
            		}
            	}
-          }
+          },
+          loan_repayments: {
+						select: {
+							loan: {
+								select: {
+									counterparty: { select: { id: true, name: true } },
+								},
+							},
+						},
+          },
        	}
       }
     },
@@ -100,31 +102,35 @@ async function handler(
     : null;
 
   return reply.code(200).send({
-    entries: page_entries.map((e) => ({
-	   	account_id: e.account.id,
-	    account_name: e.account.name,
-	    is_active: e.account.is_active,
-    	entry_id: e.id,
-    	side: e.side,
-      amount: Number(e.amount),
-      charge_amount: e.charge_amount ? Number(e.charge_amount) : null,
-      log_type: e.log_type,
-      transaction_date: e.transaction_date,
-      date_logged: e.posted_at,
-      description: e.description,
-      category_id: e.category_id,
-      category_name: e.category?.name ?? null,
-      is_category_active: e.category?.is_active ?? null,
-      transaction_group_id: e.transaction_group_id,
-      ...(e.log_type === 'TRANSFER' && { 
-      	related_account: e.transaction_group.journal_entries
-     			.filter(a => a.account.id !== e.account.id)
-      		.map(a => ({ id: a.account.id, name: a.account.name }))[0]
-      }),
-      ...(e.transaction_group.loans.length > 0 && {
-      	related_counterparty: e.transaction_group.loans[0]?.counterparty
-      })
-    })),
+    entries: page_entries.map((e) => {
+	   	const counterparty =
+				e.transaction_group.loans[0]?.counterparty ??
+				e.transaction_group.loan_repayments[0]?.loan.counterparty;
+    
+		  return {
+				account_id: e.account.id,
+		    account_name: e.account.name,
+		    is_active: e.account.is_active,
+	    	entry_id: e.id,
+	    	side: e.side,
+	      amount: Number(e.amount),
+	      charge_amount: e.charge_amount ? Number(e.charge_amount) : null,
+	      log_type: e.log_type,
+	      transaction_date: e.transaction_date,
+	      date_logged: e.posted_at,
+	      description: e.description,
+	      category_id: e.category_id,
+	      category_name: e.category?.name ?? null,
+	      is_category_active: e.category?.is_active ?? null,
+	      transaction_group_id: e.transaction_group_id,
+	      ...(e.log_type === 'TRANSFER' && { 
+	      	related_account: e.transaction_group.journal_entries
+	     			.filter(a => a.account.id !== e.account.id)
+	      		.map(a => ({ id: a.account.id, name: a.account.name }))[0]
+	      }),
+	      ...(counterparty && { related_counterparty: counterparty }),
+			};
+    }),
     next_cursor,
     has_next,
   });

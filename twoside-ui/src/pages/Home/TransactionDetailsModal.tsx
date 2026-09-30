@@ -37,21 +37,10 @@ function buildExtraRows(entry: TransactionEntry): DetailRow[] {
       return [{ label: "Borrowed From", value: entry.related_counterparty?.name ?? "—" }];
 
     case "REPAY_LOAN":
-      return [
-        { label: "Paid To", value: entry.related_counterparty?.name ?? "—" },
-        // TODO: backend doesn't currently return loan total / remaining balance
-        // on this entry — add e.g. `loan_total_amount` and `loan_remaining_amount`
-        // to the /transactions response + TransactionEntry type, then replace
-        // this row with real values.
-        { label: "Remaining Balance", value: "Not available yet" },
-      ];
-
+    	return [{ label: "Paid To", value: entry.related_counterparty?.name ?? "—" }];
+      
     case "RECEIVE_REPAYMENT":
-      return [
-        { label: "Repaid By", value: entry.related_counterparty?.name ?? "—" },
-        // TODO: same gap as above.
-        { label: "Remaining Balance", value: "Not available yet" },
-      ];
+    	return [{ label: "Repaid By", value: entry.related_counterparty?.name ?? "—" }];
 
     case "INCOME":
     default:
@@ -94,7 +83,7 @@ export function TransactionDetailsModal({ entry, currency_symbol, timezone, onCl
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="fixed inset-x-0 bottom-0 z-50 bg-surface border-t border-border rounded-t-[32px] shadow-2xl px-5 pt-3 pb-8 flex flex-col gap-4 max-w-md mx-auto"
+        className="fixed inset-x-0 bottom-0 z-50 bg-surface border-t border-border rounded-t-4xl shadow-2xl px-5 pt-3 pb-8 flex flex-col gap-4 max-w-md mx-auto"
       >
         <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-1" />
 

@@ -1,4 +1,4 @@
-import { useTransactionsStore, type TransactionEntry } from "@/stores/useTransactionsStore";
+import { useTransactionsStore, type TransactionEntry, type TransactionFilters, type TransactionLogType } from "@/stores/useTransactionsStore";
 import { useScrolledPast } from "@/hooks/useScrolledPast";
 import { useUserStore } from "@/stores/useUserStore";
 import { useIsInView } from "@/hooks/useIsInView";
@@ -9,10 +9,12 @@ import { TransactionDetailsModal } from "./TransactionDetailsModal";
 import { StickyAccountPill } from "./componenets/StickyAccountPill";
 import { TransactionGroup } from "./componenets/TransactionGroup";
 import { AccountBalanceCard } from "./AccountBalanceCard";
+import { JumpToDate } from "./componenets/JumpToDate";
 import { HomeHeader } from "./componenets/HomeHeader";
+import { TypeFilter } from "./componenets/TypeFilter";
 
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { useEffect, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { DateTime } from "luxon";
 
@@ -37,6 +39,7 @@ const group_by_date = (entries: TransactionEntry[], timezone: string): { label: 
 export function HomePage() {
 	const [selected_account_id, setSelectedAccountId] = useState<string | null>(null);
 	const [selected_entry, setSelectedEntry] = useState<TransactionEntry | null>(null);
+	const [log_types, setLogTypes] = useState<TransactionLogType[]>([]);
 
 	const currency_symbol = useUserStore((state) => state.data?.currency_symbol);
 	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
@@ -44,36 +47,40 @@ export function HomePage() {
 	const accounts = useUserStore((state) => state.data?.accounts);
 	const fetch = useTransactionsStore((state) => state.fetch);
 
-	const window = useTransactionsStore((state) => state.get_window({
+	const [jump_date, setJumpDate] = useState<string | null>(null); // YYYY-MM-DD, user's timezone
+	const timezone = iana_timezone ?? "Africa/Lagos";
+
+	const filters = useMemo<TransactionFilters>(() => ({
 		account_id: selected_account_id,
-		category_id: null
-	}));
+		category_id: null,
+		jump_to_date: jump_date ? DateTime.fromISO(jump_date, { zone: timezone }).endOf("day").toUTC().toISO() : null,
+		log_types
+	}), [selected_account_id, jump_date, timezone, log_types]);
+
+	const window = useTransactionsStore((state) => state.get_window(filters));
 	
 	const has_window = !!window;
 
 	useEffect(() => {
-		const key_filters = { account_id: selected_account_id, category_id: null };
-	  const existing = useTransactionsStore.getState().get_window(key_filters);
-	  if (existing && !existing.error) return; // cache hit, skip
-	  fetch(key_filters);
-  }, [selected_account_id, fetch, has_window]);
+		const existing = useTransactionsStore.getState().get_window(filters);
+		if (existing && !existing.error) return; // cache hit, skip
+		fetch(filters);
+	}, [filters, fetch, has_window]);
 
 	const { ref: balance_sentinel_ref, is_in_view } = useIsInView<HTMLDivElement>();
 	const scrolled_past_threshold = useScrolledPast(400);
 	
-	const account_name = selected_account_id === null
-    ? "All Accounts"
-    : accounts?.find((a) => a.id === selected_account_id)?.name ?? "";
+	const account_name = selected_account_id === null ? "All Accounts" : accounts?.find((a) => a.id === selected_account_id)?.name ?? "";
 
 	const can_load_more = !!window?.has_next && !window?.loading_more && !window?.load_more_error;
 
 	const handleLoadMore = useCallback(() => {
-  	load_more({ account_id: selected_account_id, category_id: null });
-	}, [load_more, selected_account_id]);
+		load_more(filters);
+	}, [load_more, filters]);
 	
 	const sentinel_ref = useInfiniteScroll(handleLoadMore, can_load_more);
 	
-	const groups = group_by_date(window?.entries ?? [], iana_timezone ?? "Africa/Lagos")
+	const groups = group_by_date(window?.entries ?? [], timezone);
 
   return (
   	<>
@@ -85,6 +92,11 @@ export function HomePage() {
 	      <div className="px-5 space-y-5">
 	        <AccountBalanceCard onAccountChange={setSelectedAccountId} />
 	        <div ref={balance_sentinel_ref} />
+
+					<div className="flex gap-1 justify-end">
+						<TypeFilter value={log_types} onChange={setLogTypes} />
+						<JumpToDate value={jump_date} timezone={timezone} onChange={setJumpDate} />
+					</div>
 	
 	        <section aria-label="Recent Transactions" className="space-y-6">
 	          {window?.is_fetching && (window?.entries.length ?? 0) === 0 ? (
@@ -94,7 +106,7 @@ export function HomePage() {
 	              <p className="text-sm text-muted">{window.error}</p>
 	              <button
 	                type="button"
-	                onClick={() => fetch({ account_id: selected_account_id, category_id: null })}
+	                onClick={() => fetch(filters)}
 	                className="text-sm font-semibold text-primary hover:underline cursor-pointer"
 	              >
 	                Retry
@@ -102,7 +114,7 @@ export function HomePage() {
 	            </div>
 	          ) : window && groups.length === 0 ? (
 	            <p className="text-sm text-muted text-center py-8">
-	              No transactions found. Add some
+	              {jump_date || log_types.length > 0 ? "Nothing matches these filters." : "No transactions found. Add some"}
 	            </p>
 	          ) : (
 	         		<>

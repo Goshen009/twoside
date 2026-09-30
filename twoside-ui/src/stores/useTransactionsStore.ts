@@ -15,9 +15,8 @@ export type TransactionLogType =
 export interface TransactionFilters {
   account_id: string | null,
   category_id: string | null,
-  // start_date: string | null, // YYYY-MM-DD
-  // end_date: string | null, // YYYY-MM-DD
-  // // TODO: include start_date/end_date in get_key when added
+  jump_to_date: string | null, // UTC ISO datetime
+  log_types: TransactionLogType[], // empty = all; keep it sorted
 };
 
 export interface TransactionEntry {
@@ -70,7 +69,9 @@ const next_seq = (filters: TransactionFilters): number => {
 const get_key = (filters: TransactionFilters): string => {
 	return JSON.stringify([
 		filters.account_id,
-		filters.category_id
+		filters.category_id,
+		filters.jump_to_date,
+		filters.log_types
 	]);
 }
 
@@ -78,6 +79,8 @@ const to_query = (filters: TransactionFilters) => {
   return {
     account_id: filters.account_id ?? undefined,
     category_id: filters.category_id ?? undefined,
+    jump_to_date: filters.jump_to_date ?? undefined,
+    log_types: filters.log_types.length ? filters.log_types.join(",") : undefined,
   };
 }
 
