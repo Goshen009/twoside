@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown, Trash2 } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { FIELD_LABEL } from "./fields/FormField";
 import { MoneyInput } from "./fields/MoneyInput";
 import { AccountPickerSheet } from "./pickers/AccountPickerSheet";
@@ -28,9 +28,7 @@ export function AccountSplitRow({
   accounts,
   disabled_ids,
   currency_symbol,
-  can_remove,
   onChange,
-  onRemove,
   onDone,
 }: AccountSplitRowProps) {
   const [picking, setPicking] = useState(false);
@@ -49,7 +47,7 @@ export function AccountSplitRow({
               </span>
             )}
 
-            {can_remove && (
+            {/*{can_remove && (
               <button
                 type="button"
                 aria-label="Remove account"
@@ -58,7 +56,7 @@ export function AccountSplitRow({
               >
                 <Trash2 className="h-3 w-3" />
               </button>
-            )}
+            )}*/}
 
             <button
               type="button"

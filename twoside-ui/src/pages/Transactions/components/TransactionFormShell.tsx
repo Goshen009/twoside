@@ -14,6 +14,7 @@ interface TransactionFormShellProps<T extends TransactionLogType> {
 	payload: LogPayloadByType[T];
 	touched_account_ids: string[];
 	title: string;
+	hint?: string | null;
 	submit_label: string;
 	can_submit: boolean;
 	children: ReactNode;
@@ -31,6 +32,7 @@ export function TransactionFormShell<T extends TransactionLogType>({
 	payload,
 	touched_account_ids,
 	title,
+	hint,
 	submit_label,
 	can_submit,
 	children,
@@ -100,6 +102,10 @@ export function TransactionFormShell<T extends TransactionLogType>({
 					<div className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 pb-4 pt-3.5">{children}</div>
 	
 					<div className="shrink-0 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2">
+						{hint && (
+							<p className="mb-2 text-center text-xs font-medium text-muted">{hint}</p>
+						)}
+						
 						{error && (
 							<p role="alert" className="mb-2 rounded-xl border border-rose/30 bg-rose/10 px-3 py-2 text-xs font-medium text-rose">
 								{error}

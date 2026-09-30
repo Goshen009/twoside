@@ -16,8 +16,7 @@ export function AccountSplitSection({ label, splits, onChange, currency_symbol }
   const accounts = useUserStore((s) => s.data?.accounts) ?? [];
   const [editing_id, setEditingId] = useState<string | null>(() => splits[0]?.id ?? null);
 
-  const used = new Set(splits.map((s) => s.account_id));
-  const can_add = splits.length < accounts.length;
+  const can_add = splits.length < accounts.length && splits.every((s) => s.account_id);
 
   const update = (id: string, patch: Partial<AccountSplit>) => {
     onChange(splits.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -29,10 +28,8 @@ export function AccountSplitSection({ label, splits, onChange, currency_symbol }
   };
 
   const add = () => {
-    const next = accounts.find((a) => !used.has(a.id));
-    if (!next) return;
     const id = Math.random().toString(36).slice(2);
-    onChange([...splits, { id, account_id: next.id, amount: "", fee: "" }]);
+    onChange([...splits, { id, account_id: "", amount: "", fee: "" }]);
     setEditingId(id);
   };
 

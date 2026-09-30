@@ -76,7 +76,7 @@ function PickerBody({ items, selected_id, onSelect, onClose, accent, none_label,
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && confirmCreate()}
             placeholder={create.placeholder}
-            className="w-full rounded-xl border border-border bg-surface px-3.5 py-3 text-base font-medium text-foreground outline-none placeholder:text-muted/60 focus:border-(--form-accent)"
+            className="w-full rounded-xl border border-border bg-surface px-3.5 py-3 text-xs font-medium text-foreground outline-none placeholder:text-muted/60 focus:border-(--form-accent)"
           />
           <div className="flex gap-2">
             <button

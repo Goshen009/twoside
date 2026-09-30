@@ -3,6 +3,11 @@ import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
 import { TransactionTypePicker } from "./components/TransactionTypePicker";
 import { ExpenseForm } from "./forms/ExpenseForm";
 import { TransferForm } from "./forms/TransferForm";
+import { IncomeForm } from "./forms/IncomeForm";
+import { GiveLoanForm } from "./forms/GiveLoanForm";
+import { BorrowForm } from "./forms/BorrowForm";
+import { RepayLoanForm } from "./forms/RepayLoanForm";
+import { ReceiveRepaymentForm } from "./forms/ReceiveRepaymentForm";
 import type { TransactionLogType } from "@/stores/useTransactionsStore";
 import type { ReactNode } from "react";
 
@@ -14,7 +19,12 @@ const panelVariants = {
 
 const FORMS: Partial<Record<TransactionLogType, ReactNode>> = {
   EXPENSE: <ExpenseForm />,
+  INCOME: <IncomeForm />,
   TRANSFER: <TransferForm />,
+  GIVE_LOAN: <GiveLoanForm />,
+  BORROW: <BorrowForm />,
+  REPAY_LOAN: <RepayLoanForm />,
+  RECEIVE_REPAYMENT: <ReceiveRepaymentForm />,
 };
 
 export function AddTransactionFlow() {

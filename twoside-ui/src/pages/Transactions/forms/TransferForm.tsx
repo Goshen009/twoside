@@ -16,8 +16,8 @@ export function TransferForm() {
 
 	const [description, setDescription] = useState("");
 	const [date_iso, setDateIso] = useState(() => new Date().toISOString());
-	const [from_id, setFromId] = useState(accounts[0]?.id ?? "");
-	const [to_id, setToId] = useState(accounts[1]?.id ?? "");
+	const [from_id, setFromId] = useState("");
+	const [to_id, setToId] = useState("");
 	const [amount, setAmount] = useState("");
 	const [fee, setFee] = useState("");
 
@@ -30,6 +30,8 @@ export function TransferForm() {
 		to_id !== "" &&
 		from_id !== to_id &&
 		Money.parse(amount) > 0;
+
+	const same_account = from_id !== "" && from_id === to_id;
 
 	return (
 		<TransactionFormShell
@@ -46,6 +48,7 @@ export function TransferForm() {
 			title="Log Transfer"
 			submit_label="Save Transfer"
 			can_submit={can_submit}
+			hint={same_account ? "From and To can't be the same account." : null}
 		>
 			<DescriptionField value={description} onChange={setDescription} />
 			<DateTimeField value={date_iso} timezone={timezone} onChange={setDateIso} />

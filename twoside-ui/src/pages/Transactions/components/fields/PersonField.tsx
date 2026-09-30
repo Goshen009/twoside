@@ -6,13 +6,13 @@ import { FormField } from "./FormField";
 import { PickerTrigger } from "./PickerTrigger";
 import { PickerSheet } from "../pickers/PickerSheet";
 
-interface CounterpartyFieldProps {
+interface PersonFieldProps {
   label: string; // "Lent To" | "Borrowed From"
-  value: string | null; // counterparty NAME
+  value: string | null; // the person's NAME
   onChange: (name: string) => void;
 }
 
-export function CounterpartyField({ label, value, onChange }: CounterpartyFieldProps) {
+export function PersonField({ label, value, onChange }: PersonFieldProps) {
   const [open, setOpen] = useState(false);
   const accent = useFormAccent();
   const people = useUserStore((s) => s.data?.counterparties)?.filter((c) => c.is_active) ?? [];

@@ -39,7 +39,7 @@ export function AccountPickerRow({ tag, value, accounts, disabled_id, currency_s
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1.5 text-muted">
-          <span className="text-xs font-medium">Change</span>
+          {/*<span className="text-xs font-medium">Change</span>*/}
           <ChevronDown className="h-4 w-4" />
         </div>
       </button>
