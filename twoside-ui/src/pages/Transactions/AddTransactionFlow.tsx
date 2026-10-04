@@ -1,39 +1,11 @@
-import type { ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-
-import type { TransactionLogType } from "@/stores/useTransactionsStore";
+import { AnimatePresence, motion, useDragControls } from "framer-motion";
 import { useAddTransactionStore } from "@/stores/useAddTransactionStore";
-
-import { IncomeForm } from "./forms/IncomeForm";
-import { BorrowForm } from "./forms/BorrowForm";
-import { ExpenseForm } from "./forms/ExpenseForm";
-import { TransferForm } from "./forms/TransferForm";
-import { GiveLoanForm } from "./forms/GiveLoanForm";
-import { RepayLoanForm } from "./forms/RepayLoanForm";
-import { ReceiveRepaymentForm } from "./forms/ReceiveRepaymentForm";
-import { TransactionTypePicker } from "./components/TransactionTypePicker";
-
-const panelVariants = {
-  enter: (dir: 1 | -1) => ({ x: dir * 50, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: 1 | -1) => ({ x: dir * -50, opacity: 0 }),
-};
-
-const FORMS: Partial<Record<TransactionLogType, ReactNode>> = {
-  EXPENSE: <ExpenseForm />,
-  INCOME: <IncomeForm />,
-  TRANSFER: <TransferForm />,
-  GIVE_LOAN: <GiveLoanForm />,
-  BORROW: <BorrowForm />,
-  REPAY_LOAN: <RepayLoanForm />,
-  RECEIVE_REPAYMENT: <ReceiveRepaymentForm />,
-};
+import { NoteComposer } from "./NoteComposer";
 
 export function AddTransactionFlow() {
   const is_open = useAddTransactionStore((s) => s.is_open);
-  const selected_type = useAddTransactionStore((s) => s.selected_type);
   const close = useAddTransactionStore((s) => s.close);
-  const direction: 1 | -1 = selected_type ? 1 : -1;
+  const controls = useDragControls();
 
   return (
     <AnimatePresence>
@@ -53,39 +25,23 @@ export function AddTransactionFlow() {
             exit={{ y: "100%" }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             drag="y"
+            dragControls={controls}
+            dragListener={false}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={0.5}
             onDragEnd={(_, info) => {
-              if (info.offset.y > 100 || info.velocity.y > 500) {
-                close();
-              }
+              if (info.offset.y > 100 || info.velocity.y > 500) close();
             }}
-            className="relative flex w-full max-w-md max-h-[92dvh] flex-col overflow-hidden rounded-t-4xl border-t border-border bg-background shadow-[0_-12px_32px_rgba(0,0,0,0.7)]"
+            className="relative flex h-[88dvh] w-full max-w-md flex-col overflow-hidden rounded-t-4xl border-t border-border bg-background shadow-[0_-12px_32px_rgba(0,0,0,0.7)]"
           >
-            <div className="flex shrink-0 justify-center pb-1 pt-3">
+            {/* drag only from the handle, so the text input and scrolling don't fight the sheet */}
+            <div
+              className="flex shrink-0 cursor-grab touch-none justify-center pb-2 pt-3"
+              onPointerDown={(e) => controls.start(e)}
+            >
               <div className="h-1 w-10 rounded-full bg-white/20" />
             </div>
-
-            <AnimatePresence mode="wait" custom={direction} initial={false}>
-              <motion.div
-                key={selected_type ?? "picker"}
-                custom={direction}
-                variants={panelVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.16, ease: "easeOut" }}
-                className="flex min-h-0 flex-1 flex-col"
-              >
-	              {selected_type === null ? (
-	                <TransactionTypePicker />
-	              ) : (
-	                FORMS[selected_type] ?? (
-	                  <p className="py-10 text-center text-sm text-muted">This form isn't built yet.</p>
-	                )
-	              )}
-              </motion.div>
-            </AnimatePresence>
+            <NoteComposer />
           </motion.div>
         </div>
       )}
