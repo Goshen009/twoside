@@ -12,6 +12,7 @@ export default fp(async (fastify) => {
 			where: { id },
 			select: {
 				id: true,
+				name: true,
 				timezone: true,
 				accounts: {
 					select: { id: true, type: true, name: true }
@@ -32,6 +33,7 @@ export default fp(async (fastify) => {
 export type AuthenticatedUser = Prisma.UserGetPayload<{
 	select: {
 		id: true,
+		name: true,
 		timezone: true,
 		accounts: {
 			select: { id: true, type: true, name: true }

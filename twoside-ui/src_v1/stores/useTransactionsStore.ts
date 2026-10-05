@@ -1,0 +1,234 @@
+import { create } from "zustand";
+import { ApiError } from "@/api/client";
+import { useAuthStore } from "./useAuthStore";
+import { Endpoints, type ListTransactionsResponse } from "@/api/endpoints";
+
+export type TransactionLogType = 
+	| "INCOME"
+	| "EXPENSE"
+	| "TRANSFER"
+	| "GIVE_LOAN"
+	| "BORROW"
+	| "RECEIVE_REPAYMENT"
+	| "REPAY_LOAN";
+
+export interface TransactionFilters {
+  account_id: string | null,
+  category_id: string | null,
+  jump_to_date: string | null, // UTC ISO datetime
+  log_types: TransactionLogType[], // empty = all; keep it sorted
+};
+
+export interface TransactionEntry {
+	entry_id: string,
+	account_id: string,
+	account_name: string,
+	is_active: boolean,
+	side: 'DEBIT' | 'CREDIT',
+	amount: number,
+	charge_amount: number | null,
+	log_type: TransactionLogType,
+	transaction_date: string,
+	date_logged: string,
+	description: string,
+	category_id: string | null,
+	category_name: string | null,
+	is_category_active: boolean | null,
+	transaction_group_id: string,
+	related_account?: { id: string, name: string },
+	related_counterparty?: { id: string, name: string } | null
+}
+
+interface CachedTransactionWindow extends ListTransactionsResponse {
+	filters: TransactionFilters,
+	error: string | null,
+	load_more_error: string | null,
+	is_fetching: boolean,
+	loading_more: boolean,
+}
+
+interface TransactionsState {
+	data: Record<string, CachedTransactionWindow>,
+	get_window: (filters: TransactionFilters) => CachedTransactionWindow,
+	invalidate: (touched_account_ids: string[]) => void;
+	
+	fetch: (filters: TransactionFilters) => Promise<void>,
+	load_more: (filters: TransactionFilters) => Promise<void>,
+	reset: () => void;
+}
+
+const request_seq = new Map<string, number>();   
+
+const next_seq = (filters: TransactionFilters): number => {
+	const key = get_key(filters);
+	const seq = (request_seq.get(key) ?? 0) + 1;
+	request_seq.set(key, seq);
+	return seq;
+};
+
+const get_key = (filters: TransactionFilters): string => {
+	return JSON.stringify([
+		filters.account_id,
+		filters.category_id,
+		filters.jump_to_date,
+		filters.log_types
+	]);
+}
+
+const to_query = (filters: TransactionFilters) => {
+  return {
+    account_id: filters.account_id ?? undefined,
+    category_id: filters.category_id ?? undefined,
+    jump_to_date: filters.jump_to_date ?? undefined,
+    log_types: filters.log_types.length ? filters.log_types.join(",") : undefined,
+  };
+}
+
+export const useTransactionsStore = create<TransactionsState>((set, get) => ({
+	data: {},
+
+	get_window: (filters: TransactionFilters): CachedTransactionWindow => {
+		const key = get_key(filters);
+		return get().data[key];
+	},
+
+	invalidate: (touched_account_ids) => {
+  	const touched = new Set(touched_account_ids);
+	  set((state) => {
+	    const next = { ...state.data };
+	    for (const [key, w] of Object.entries(state.data)) {
+	      const id = w.filters.account_id;
+	      if (id === null || touched.has(id)) {
+	        delete next[key];
+	        request_seq.set(key, (request_seq.get(key) ?? 0) + 1); // in-flight responses for it now get dropped
+	      }
+	    }
+	    return { data: next };
+	  });
+	},
+
+	fetch: async (filters: TransactionFilters) => {
+		const key = get_key(filters);
+		const seq = next_seq(filters);
+
+		set((state) => {
+			return {
+				data: {
+					...state.data,
+					[key]: {
+						entries: [],
+						filters,
+						next_cursor: null,
+						has_next: false,
+						error: null,
+						is_fetching: true,
+						loading_more: false,
+						load_more_error: null
+					}
+				}
+			}
+		});
+
+		try {
+			const data = await Endpoints.listTransactions({ ...to_query(filters) });
+			if (seq !== request_seq.get(key)) return;
+			set((state) => ({
+			  data: {
+			    ...state.data,
+			    [key]: {
+			      entries: data.entries,
+						filters,
+			      next_cursor: data.next_cursor,
+			      has_next: data.has_next,
+			      is_fetching: false,
+			      error: null,
+						loading_more: false,
+						load_more_error: null
+			    },
+			  },
+			}));
+		} catch (err) {
+			if (seq !== request_seq.get(key)) return;
+			set((state) => {
+				return {
+					data: {
+						...state.data,
+						[key]: {
+							...state.data[key],
+							is_fetching: false,
+							error: ApiError.getErrorMessage(err)
+						}
+					}
+				}
+			});
+		}
+	},
+
+	load_more: async (filters: TransactionFilters) => {
+		const key = get_key(filters);
+		const existing = get().data[key];
+		
+		if (!existing) {
+			console.warn("load_more called with no existing window for key", key);
+			return;
+		}
+		
+		if (existing.loading_more) return;
+		if (!existing.has_next || !existing.next_cursor) return;
+		
+		const seq = next_seq(filters);
+
+		set((state) => ({
+			data: { 
+				...state.data,
+				[key]: { 
+					...existing,
+					loading_more: true,
+					load_more_error: null
+				}
+			}
+		}));
+
+		try {
+			const data = await Endpoints.listTransactions({
+				...to_query(filters),
+				cursor: existing.next_cursor
+			});
+			
+			if (seq !== request_seq.get(key)) return;
+			
+			set((state) => ({
+				data: { ...state.data, [key]: {
+					entries: [...existing.entries, ...data.entries],
+					filters,
+					next_cursor: data.next_cursor,
+					has_next: data.has_next,
+					is_fetching: false,
+					error: null,
+					loading_more: false,
+					load_more_error: null
+				}}
+			}));
+		} catch (err) {
+			if (seq !== request_seq.get(key)) return;
+			set((state) => ({
+				data: { ...state.data, [key]: {
+					...existing,
+					loading_more: false,
+					load_more_error: ApiError.getErrorMessage(err)
+				}}
+			}));
+		}
+	},
+
+	reset: () => {
+	  for (const key of Object.keys(get().data)) request_seq.set(key, (request_seq.get(key) ?? 0) + 1);
+	  set({ data: {} });
+	},
+}));
+
+useAuthStore.subscribe((state, prev_state) => {
+  if (state.is_authenticated !== prev_state.is_authenticated && !state.is_authenticated) {
+    useTransactionsStore.getState().reset();
+  }
+});

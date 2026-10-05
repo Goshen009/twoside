@@ -25,6 +25,13 @@ Double entry, two accounts: **Expenses** and **Wallet**. Each transaction debits
 7. **Manage tags.** Rename, merge, and delete.
 8. **Set a daily limit (optional).** One **global** daily limit, stored locally. Today's total turns red when it's exceeded. There is no per-tag limit.
 
+## Important
+- I am not adding in a date range for the time being. Instead, we'll give users the ability to collapse the days in the UI so that they can see at a glance how much was spent in each day without having to scroll to see each day.
+- No date range or pagination in v1. All transactions load at once.
+- Days are collapsible; each collapsed day shows its total and entry count.
+- With a tag filter on, day totals and the headline total reflect that tag only.
+- Revisit date range and pagination when any user passes a month of data or ~500 rows.
+
 ## Rules
 - Parsing: the last number is the amount, `k` and `m` suffixes are allowed, `#` forces an amount, and the rest is the description.
 - A day boundary is midnight in the user's timezone.

@@ -20,7 +20,7 @@ async function handler(
 	    accounts: {
 				createMany: {
 					data: [
-						{ name: "Wallets", type: "ASSET" },
+						{ name: "Wallet", type: "ASSET" },
 						{ name: "Expense", type: "EXPENSE" }
 					]
 				}

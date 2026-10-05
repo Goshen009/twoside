@@ -1,0 +1,26 @@
+info:
+  name: edit
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: http://localhost:8080/edit
+  body:
+    type: json
+    data: |-
+      {
+        "transaction_id": "c2502677-3fcf-4184-8363-3dcf154e5846",
+        "description": "Does it change?",
+        "transaction_date": "2026-10-04T22:30:00Z",
+        "tag": "Transport",
+        "amount": 50
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

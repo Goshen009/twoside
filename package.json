@@ -54,5 +54,9 @@
     "prisma": "^7.9.1",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.3"
+  },
+  "allowScripts": {
+    "prisma@7.10.0": true,
+    "@prisma/engines@7.10.0": true
   }
 }

@@ -1,0 +1,149 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+@theme {
+  /* Stitch Palette */
+  --color-background: #121212;
+  --color-surface: #1e232a;
+  --color-surface-hover: #282f38;
+  --color-border: rgba(156, 163, 175, 0.2); /* secondaryText @ 20% */
+  --color-muted: #9ca3af;
+  --color-foreground: #f3f4f6;
+  --color-ring: #10b981;
+
+  --color-primary: #10b981;
+  --color-primary-hover: #0ea572;
+  --color-primary-muted: rgba(16, 185, 129, 0.15);
+
+  --color-rose: #f87171;
+  --color-steel-blue: #60a5fa;
+
+  /* Tiny font system for that crisp "pop" look */
+  --text-2xs: 0.625rem; /* 10px */
+  --text-2xs--line-height: 0.875rem;
+  --text-xs: 0.6875rem; /* 11px */
+  --text-xs--line-height: 1rem;
+
+  /*--font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;*/
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Money/numerals render in the UI sans (with tabular figures where marked),
+     not a terminal mono — amounts should read like the rest of the app. */
+  --font-mono: var(--font-sans);
+
+  --color-expense: #fb7185;
+  --color-income: #4ade80;
+  --color-transfer: #60a5fa;
+  --color-give-loan: #fbbf24;
+  --color-borrow: #a78bfa;
+  --color-repay-loan: #fb923c;
+  --color-receive-repayment: #34d399;
+
+  /* Transaction picker */
+  --color-picker-background: #0f1115;
+  --color-picker-surface: #191c24;
+  --color-picker-surface-hover: #20242d;
+  --color-picker-border: rgba(156, 163, 175, 0.12);
+}
+
+@layer components {
+  .app-container {
+    @apply max-w-[345px] mx-auto;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html, body {
+    overscroll-behavior-y: contain;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-surface) inset;
+  -webkit-text-fill-color: var(--color-foreground);
+  caret-color: var(--color-foreground);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+
+/* Subtle decorative grid */
+.twoside-grid {
+  background-size: 32px 32px;
+  background-image: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px
+    );
+}
+
+.twoside-radial-glow {
+  background: radial-gradient(
+    circle 400px at 50% 30%,
+    rgba(16, 185, 129, 0.08),
+    transparent 80%
+  );
+}
+
+@keyframes float-subtle {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+.animate-float-subtle {
+  animation: float-subtle 6s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

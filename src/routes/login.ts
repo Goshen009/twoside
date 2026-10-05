@@ -16,7 +16,7 @@ async function handler(
 
   const user = await this.prisma.user.findUnique({
   	where: { name },
-   	select: { id: true }
+    include: { tags: true }
   });
 
   if (!user)
@@ -24,7 +24,7 @@ async function handler(
 
   const access_token = Tokens.generateAccessToken(this.config, { id: user.id });
 
-  return reply.code(200).send({ access_token });
+  return reply.code(200).send({ access_token, user });
 }
 
 export const login = { handler, schema: { body: schema } };

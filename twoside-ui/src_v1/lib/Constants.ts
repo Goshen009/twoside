@@ -1,4 +1,5 @@
 import { ArrowLeftRight, BanknoteArrowDown, BanknoteArrowUp, HandCoins, Handshake, Receipt, TrendingUp, type LucideIcon } from "lucide-react";
+import type { TransactionLogType } from "@/types/types";
 
 export interface TransactionTypeMeta {
   icon: LucideIcon,
@@ -10,16 +11,7 @@ export interface TransactionTypeMeta {
   accent_colour: string
 }
 
-export type TransactionLogType =
-  | "INCOME"
-  | "EXPENSE"
-  | "TRANSFER"
-  | "GIVE_LOAN"
-  | "BORROW"
-  | "RECEIVE_REPAYMENT"
-  | "REPAY_LOAN";
-
-export class Constants {
+class Constants {
 	static ALL_ACCOUNTS_ID = "__all__";
 
 	static TRANSACTION_TYPE_META: Record<TransactionLogType, TransactionTypeMeta> = {
@@ -88,3 +80,5 @@ export class Constants {
 	  },
 	}
 }
+
+export default Constants;

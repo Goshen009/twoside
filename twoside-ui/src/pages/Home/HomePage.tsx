@@ -1,164 +1,136 @@
-import { useTransactionsStore, type TransactionEntry, type TransactionFilters, type TransactionLogType } from "@/stores/useTransactionsStore";
-import { useScrolledPast } from "@/hooks/useScrolledPast";
+import { useEffect, useState } from "react";
+import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
-import { useIsInView } from "@/hooks/useIsInView";
+import { useTransactionsStore } from "@/stores/useTransactionsStore";
+import { useUIStore } from "@/stores/useUIStore";
+import { Money } from "@/lib/money";
+import { Dates } from "@/lib/dates";
+import { HomeHeader } from "./components/HomeHeader";
+import { TodayCard } from "./components/TodayCard";
+import { TagFilter } from "./components/TagFilter";
+import { TransactionGroup } from "./components/TransactionGroup";
+import { TransactionSkeletonList } from "./components/TransactionRow";
 
-import { TransactionSkeletonList } from "./componenets/TransactionSkeletonList";
-import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
-import { TransactionDetailsModal } from "./TransactionDetailsModal";
-import { StickyAccountPill } from "./componenets/StickyAccountPill";
-import { TransactionGroup } from "./componenets/TransactionGroup";
-import { AccountBalanceCard } from "./AccountBalanceCard";
-import { JumpToDate } from "./componenets/JumpToDate";
-import { HomeHeader } from "./componenets/HomeHeader";
-import { TypeFilter } from "./componenets/TypeFilter";
+// TODO: wire to localStorage when the daily-limit feature lands.
+const DAILY_LIMIT = null as number | null;
 
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { Loader2 } from "lucide-react";
-import { DateTime } from "luxon";
+export default function HomePage() {
+  const info = useUserStore((s) => s.data);
+  const user_error = useUserStore((s) => s.error);
+  const fetchInfo = useUserStore((s) => s.fetch);
 
-const group_by_date = (entries: TransactionEntry[], timezone: string): { label: string; entries: TransactionEntry[] }[] => {
-	const get_label = (iso: string, timezone: string): string => {
-		const dt = DateTime.fromISO(iso, { zone: 'utc' }).setZone(timezone);
-		const now = DateTime.now().setZone(timezone);
+  const days = useTransactionsStore((s) => s.days);
+  const tag_id = useTransactionsStore((s) => s.tag_id);
+  const is_fetching = useTransactionsStore((s) => s.is_fetching);
+  const txn_error = useTransactionsStore((s) => s.error);
+  const fetchTransactions = useTransactionsStore((s) => s.fetch);
 
-		if (dt.hasSame(now, 'day')) return 'Today';
-		if (dt.hasSame(now.minus({ days: 1 }), 'day')) return 'Yesterday';
-		return dt.toFormat("MMMM d, yyyy");
-	};
-	
-	const buckets = new Map<string, TransactionEntry[]>();
-	entries.forEach(e => {
-		const label = get_label(e.transaction_date, timezone);
-		buckets.set(label, [...(buckets.get(label) ?? []), e]);
-	});
-	return Array.from(buckets, ([label, entries]) => ({ label, entries }));
-}
+  const is_hidden = useUIStore((s) => s.is_amounts_hidden);
 
-export function HomePage() {
-	const [selected_account_id, setSelectedAccountId] = useState<string | null>(null);
-	const [selected_entry, setSelectedEntry] = useState<TransactionEntry | null>(null);
-	const [log_types, setLogTypes] = useState<TransactionLogType[]>([]);
+  // Only explicit user toggles are stored; everything else defaults to open.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
 
-	const currency_symbol = useUserStore((state) => state.data?.currency_symbol);
-	const iana_timezone = useUserStore((state) => state.data?.iana_timezone);
-	const load_more = useTransactionsStore((state) => state.load_more);
-	const accounts = useUserStore((state) => state.data?.accounts);
-	const fetch = useTransactionsStore((state) => state.fetch);
+  useEffect(() => {
+    fetchInfo();
+    fetchTransactions();
+  }, [fetchInfo, fetchTransactions]);
 
-	const [jump_date, setJumpDate] = useState<string | null>(null); // YYYY-MM-DD, user's timezone
-	const timezone = iana_timezone ?? "Africa/Lagos";
+  const retry = () => {
+    fetchInfo();
+    fetchTransactions(tag_id);
+  };
 
-	const filters = useMemo<TransactionFilters>(() => ({
-		account_id: selected_account_id,
-		category_id: null,
-		jump_to_date: jump_date ? DateTime.fromISO(jump_date, { zone: timezone }).endOf("day").toUTC().toISO() : null,
-		log_types
-	}), [selected_account_id, jump_date, timezone, log_types]);
+  const error = user_error ?? txn_error;
+  const currency_symbol = info?.currency_symbol ?? "₦";
 
-	const window = useTransactionsStore((state) => state.get_window(filters));
-	
-	const has_window = !!window;
+  const isOpen = (date: string) => overrides[date] ?? true;
+  const all_open = !!days?.length && days.every((d) => isOpen(d.date));
 
-	useEffect(() => {
-		const existing = useTransactionsStore.getState().get_window(filters);
-		if (existing && !existing.error) return; // cache hit, skip
-		fetch(filters);
-	}, [filters, fetch, has_window]);
+  const toggleDay = (date: string) =>
+    setOverrides((prev) => ({ ...prev, [date]: !(prev[date] ?? true) }));
 
-	const { ref: balance_sentinel_ref, is_in_view } = useIsInView<HTMLDivElement>();
-	const scrolled_past_threshold = useScrolledPast(400);
-	
-	const account_name = selected_account_id === null ? "All Accounts" : accounts?.find((a) => a.id === selected_account_id)?.name ?? "";
+  const setAll = (open: boolean) =>
+    setOverrides(Object.fromEntries((days ?? []).map((d) => [d.date, open])));
 
-	const can_load_more = !!window?.has_next && !window?.loading_more && !window?.load_more_error;
-
-	const handleLoadMore = useCallback(() => {
-		load_more(filters);
-	}, [load_more, filters]);
-	
-	const sentinel_ref = useInfiniteScroll(handleLoadMore, can_load_more);
-	
-	const groups = group_by_date(window?.entries ?? [], timezone);
+  const active_tag = info?.tags.find((t) => t.id === tag_id);
+  const filtered_total = days && tag_id ? Money.sumAmounts(days.map((d) => d.total)) : null;
 
   return (
-  	<>
-	    <div className="min-h-screen pb-28">
-	      <div className="px-5">
-	        <HomeHeader/>
-	      </div>
-	
-	      <div className="px-5 space-y-5">
-	        <AccountBalanceCard onAccountChange={setSelectedAccountId} />
-	        <div ref={balance_sentinel_ref} />
+    <div className="min-h-screen pb-28">
+      <div className="px-5">
+        <HomeHeader />
+      </div>
 
-					<div className="flex gap-1 justify-end">
-						<TypeFilter value={log_types} onChange={setLogTypes} />
-						<JumpToDate value={jump_date} timezone={timezone} onChange={setJumpDate} />
-					</div>
-	
-	        <section aria-label="Recent Transactions" className="space-y-6">
-	          {window?.is_fetching && (window?.entries.length ?? 0) === 0 ? (
-	            <TransactionSkeletonList />
-	          ) : window?.error ? (
-	            <div className="flex flex-col items-center gap-3 py-8 text-center">
-	              <p className="text-sm text-muted">{window.error}</p>
-	              <button
-	                type="button"
-	                onClick={() => fetch(filters)}
-	                className="text-sm font-semibold text-primary hover:underline cursor-pointer"
-	              >
-	                Retry
-	              </button>
-	            </div>
-	          ) : window && groups.length === 0 ? (
-	            <p className="text-sm text-muted text-center py-8">
-	              {jump_date || log_types.length > 0 ? "Nothing matches these filters." : "No transactions found. Add some"}
-	            </p>
-	          ) : (
-	         		<>
-	              {groups.map((group) => (
-	                <TransactionGroup
-	                  key={group.label}
-	                  label={group.label}
-	                  entries={group.entries}
-	                  currency_symbol={currency_symbol ?? "₦"}
-	                  onEntryClick={setSelectedEntry}
-	                />
-	              ))}
-	              {window && groups.length > 0 && (
-	                <div ref={sentinel_ref} className="py-4 flex items-center justify-center">
-	                  {window.loading_more && <Loader2 className="w-5 h-5 text-muted animate-spin" />}
-	                  {window.load_more_error && !window.loading_more && (
-	                    <div className="flex items-center gap-2">
-	                      <p className="text-xs text-muted">Little error while loading more.</p>
-	                      <button
-	                        type="button"
-	                        onClick={handleLoadMore}
-	                        className="text-xs font-semibold text-primary hover:underline cursor-pointer"
-	                      >
-	                        Retry
-	                      </button>
-	                    </div>
-	                  )}
-	                </div>
-	              )}
-	            </>
-	          )}
-	        </section>
-	
-	        <StickyAccountPill visible={!is_in_view} account_name={account_name} />
-	        <ScrollToTopButton visible={scrolled_past_threshold} />
-	      </div>
-	    </div>
+      <div className="px-5 space-y-5">
+        <TodayCard
+          total={info?.total_spent_today ?? "0.00"}
+          currency_symbol={currency_symbol}
+          daily_limit={DAILY_LIMIT}
+          is_loading={!info}
+        />
 
-			<TransactionDetailsModal
-	     entry={selected_entry}
-	     currency_symbol={currency_symbol ?? "₦"}
-	     timezone={iana_timezone ?? "Africa/Lagos"}
-	     onClose={() => setSelectedEntry(null)}
-	     />
-   </>
+        {info && (
+          <div className="flex items-center justify-between gap-2">
+            <p className="min-w-0 truncate text-2xs font-semibold text-muted">
+              {active_tag && filtered_total !== null && !is_fetching && (
+                <>
+                  {active_tag.name} total:{" "}
+                  <span className="tabular-nums text-foreground">
+                    {is_hidden ? "••••" : Money.formatAmount(filtered_total, currency_symbol)}
+                  </span>
+                </>
+              )}
+            </p>
+
+            <div className="flex gap-1 shrink-0">
+              <TagFilter tags={info.tags} value={tag_id} onChange={(id) => fetchTransactions(id)} />
+              {!!days?.length && (
+                <button
+                  type="button"
+                  onClick={() => setAll(!all_open)}
+                  className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-2xs font-semibold text-muted transition-colors"
+                >
+                  {all_open ? <ChevronsDownUp className="h-3 w-3" /> : <ChevronsUpDown className="h-3 w-3" />}
+                  {all_open ? "Collapse all" : "Expand all"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <section aria-label="Transactions" className="space-y-6">
+          {error && !is_fetching ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <p className="text-sm text-muted">{error}</p>
+              <button
+                type="button"
+                onClick={retry}
+                className="text-sm font-semibold text-primary hover:underline cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
+          ) : !days || !info || is_fetching ? (
+            <TransactionSkeletonList />
+          ) : days.length === 0 ? (
+            <p className="text-sm text-muted text-center py-8">
+              {tag_id ? "Nothing matches this filter." : "No transactions found. Add some"}
+            </p>
+          ) : (
+            days.map((day) => (
+              <TransactionGroup
+                key={day.date}
+                day={day}
+                label={Dates.dayLabel(day.date, info.timezone)}
+                open={isOpen(day.date)}
+                onToggle={() => toggleDay(day.date)}
+                currency_symbol={info.currency_symbol}
+                timezone={info.timezone}
+              />
+            ))
+          )}
+        </section>
+      </div>
+    </div>
   );
 }

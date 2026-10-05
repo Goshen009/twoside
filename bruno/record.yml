@@ -1,0 +1,27 @@
+info:
+  name: record
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: http://localhost:8080/record
+  body:
+    type: json
+    data: |-
+      {
+        "description": "Days ago test",
+        "amount": 240,
+        "transaction_date": "2026-10-03T22:30:00Z"
+      //   "tag": "Food"
+      }
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
