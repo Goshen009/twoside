@@ -30,8 +30,8 @@ class Tokens {
       domain: (() => {
       	switch (config.ENVIRONMENT) {
        		case "local": return undefined;
-         	case "staging": return "beta.twoside.dev";
-          case "production": return "twoside.dev";
+         	case "preview": return "preview.twoside.dev";
+         	case "beta": return "beta.twoside.dev";
        	}
       })(),
       secure: config.ENVIRONMENT === 'local' ? undefined : true,

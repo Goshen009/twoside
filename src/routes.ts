@@ -20,7 +20,7 @@ import { logout } from './routes/logout.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
-  	return { root: true }
+  	return { environment: this.config.ENVIRONMENT }
   });
 
   fastify.get("/google/auth-url", get_google_auth_url);
