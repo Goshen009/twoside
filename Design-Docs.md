@@ -14,15 +14,15 @@ Double entry, two accounts: **Expenses** and **Wallet**. Each transaction debits
 ## Actions the app must support
 
 1. **Record a spend.** Type a note, such as "bolt 1.5k" or "data 2k yesterday". Fields: description, amount, day (default today, backdating via a date picker or "yesterday"), and optional tag. A send always saves, even if the tag or day is unresolved.
-2. **See today's spend.** A banner at the top shows the total spent today and the entry count.
-3. **Browse transactions.** A list grouped by day with a daily total, filterable by tag and by date range, with a total shown for whatever is filtered.
+2. **See today's spend.** A banner at the top shows the total spent today and the entry count. ✅
+3. **Browse transactions.** A list grouped by day with a daily total, filterable by tag and by date range, with a total shown for whatever is filtered. ✅
 4. **See spend summaries.** For a chosen date range (week, month, or custom):
    - total per day
    - total per tag
-   - total per tag per day (a grid)
-5. **Tag a transaction.** Pick from existing tags or create one. The app remembers the word-to-tag link, so the next "bolt" is tagged automatically (user can override).
-6. **Fix mistakes.** Edit or delete any transaction.
-7. **Manage tags.** Rename, merge, and delete.
+   - total per tag per day (a grid) ✅
+5. **Tag a transaction.** Pick from existing tags or create one. The app remembers the word-to-tag link, so the next "bolt" is tagged automatically (user can override). ✅
+6. **Fix mistakes.** Edit or delete any transaction. ✅
+7. **Manage tags.** Rename, merge, and delete. ✅
 8. **Set a daily limit (optional).** One **global** daily limit, stored locally. Today's total turns red when it's exceeded. There is no per-tag limit.
 
 ## Important

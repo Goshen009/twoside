@@ -71,7 +71,7 @@ model Transaction {
 	entries									Entries[]
 
 	tag_id									String?
-	tag											Tag? @relation(fields: [tag_id], references: [id])
+	tag											Tag? @relation(fields: [tag_id], references: [id], onDelete: SetNull)
 
 	user_id									String
 	user										User @relation(fields: [user_id], references: [id])

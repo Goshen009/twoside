@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
+import { APIError } from "#/errors/APIError.js";
 import { z } from "zod/v4";
 
 const schema = z.object({
@@ -25,10 +26,10 @@ async function handler(
   ]);
 
   if (deleted.count === 0) {
-    return reply.code(404).send({ error: "Transaction not found" });
+    throw APIError.notFound("Transaction not found");
   }
 
   return reply.code(200).send({});
 }
 
-export const remove = { handler, schema: { params: schema } };
+export const delete_transaction = { handler, schema: { params: schema } };

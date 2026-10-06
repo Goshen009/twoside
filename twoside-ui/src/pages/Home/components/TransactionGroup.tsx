@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import type { Day } from "@/types/types";
+import type { Day, Transaction } from "@/types/types";
 import { useUIStore } from "@/stores/useUIStore";
 import { TransactionRow } from "./TransactionRow";
 
@@ -13,9 +13,10 @@ interface TransactionGroupProps {
   onToggle: () => void;
   currency_symbol: string;
   timezone: string;
+  onEntryClick: (t: Transaction) => void;
 }
 
-export function TransactionGroup({ day, label, open, onToggle, currency_symbol, timezone }: TransactionGroupProps) {
+export function TransactionGroup({ day, label, open, onToggle, currency_symbol, timezone, onEntryClick }: TransactionGroupProps) {
   const is_hidden = useUIStore((s) => s.is_amounts_hidden);
 
   return (
@@ -54,6 +55,7 @@ export function TransactionGroup({ day, label, open, onToggle, currency_symbol, 
                   transaction={t}
                   currency_symbol={currency_symbol}
                   timezone={timezone}
+                  onClick={() => onEntryClick(t)}
                 />
               ))}
             </div>

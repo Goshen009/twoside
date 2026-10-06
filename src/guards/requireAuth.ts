@@ -18,6 +18,7 @@ export default fp(async (fastify) => {
 					select: { id: true, type: true, name: true }
 				},
 				tags: {
+					orderBy: { name: 'asc' },
 					select: { id: true, name: true, lowercase_name: true }
 				}
 			}

@@ -1,4 +1,4 @@
-import type { InfoData, TransactionsResponse } from "@/types/types";
+import type { InfoData, EditPayload, RecordPayload, TransactionsResponse } from "@/types/types";
 import { APIClient } from "@/api/client";
 
 export class Endpoints {
@@ -13,5 +13,38 @@ export class Endpoints {
       method: "GET",
     });
     return data;
+  }
+  
+  static async record(payload: RecordPayload): Promise<void> {
+    await APIClient.request<object>("/transaction", { method: "POST", body: payload });
+  }
+
+  static async editTransaction(id: string, patch: EditPayload): Promise<void> {
+    await APIClient.request<object>(`/transaction/${id}`, {
+      method: "PATCH",
+      body: patch,
+    });
+  }
+  
+  static async deleteTransaction(id: string): Promise<void> {
+    await APIClient.request<object>(`/transaction/${id}`, { method: "DELETE" });
+  }
+
+  static async renameTag(tag_id: string, name: string): Promise<void> {
+    await APIClient.request<object>(`/tag/${tag_id}`, {
+      method: "PATCH",
+      body: { tag: name },
+    });
+  }
+  
+  static async deleteTag(tag_id: string): Promise<void> {
+    await APIClient.request<object>(`/tag/${tag_id}`, { method: "DELETE" });
+  }
+
+  static async mergeTag(tag_id: string, target_tag_id: string): Promise<void> {
+    await APIClient.request<object>(`/tag/${tag_id}/merge`, {
+      method: "POST",
+      body: { target_tag_id },
+    });
   }
 }

@@ -50,4 +50,4 @@ async function handler(
   return reply.code(200).send({ days: [...days.values()].map(d => ({ ...d, total: d.total.toFixed(2) })) });
 }
 
-export const transactions = { handler, schema: { querystring: schema } };
+export const get_transactions = { handler, schema: { querystring: schema } };

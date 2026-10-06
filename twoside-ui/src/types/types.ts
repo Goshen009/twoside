@@ -28,3 +28,17 @@ export interface Day {
 export interface TransactionsResponse {
   days: Day[];
 }
+
+export interface RecordPayload {
+  description: string;
+  amount: number;
+  transaction_date: string; // UTC ISO
+  tag?: string;
+}
+
+export interface EditPayload {
+  description?: string;
+  amount?: number;
+  transaction_date?: string;
+  tag?: string | null; // string = set, null = remove, omitted = leave alone
+}

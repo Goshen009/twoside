@@ -1,0 +1,26 @@
+info:
+  name: edit-tag
+  type: http
+  seq: 8
+
+http:
+  method: PATCH
+  url: http://localhost:8080/tag/:tag_id
+  params:
+    - name: tag_id
+      value: 4cfae1d7-4be2-4679-8940-f38736378216
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "tag": "Groceries"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

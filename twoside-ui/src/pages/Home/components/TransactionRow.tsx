@@ -9,16 +9,17 @@ interface TransactionRowProps {
   transaction: Transaction;
   currency_symbol: string;
   timezone: string;
+  onClick?: () => void;
 }
 
-export function TransactionRow({ transaction, currency_symbol, timezone }: TransactionRowProps) {
+export function TransactionRow({ transaction, currency_symbol, timezone, onClick }: TransactionRowProps) {
   const is_hidden = useUIStore((s) => s.is_amounts_hidden);
 
   // const meta = Constants.TRANSACTION_TYPE_META.EXPENSE;
   // const Icon = meta.icon;
 
   return (
-    <div className="py-3 flex items-center justify-between gap-3">
+    <div onClick={onClick} className="py-3 flex items-center justify-between gap-3">
       <div className="flex items-center gap-2 min-w-0">
         {/*<div className={`w-11 h-11 rounded-2xl ${meta.bg} ${meta.text} flex items-center justify-center shrink-0`}>
           <Icon className="w-5 h-5" />

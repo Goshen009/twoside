@@ -5,7 +5,7 @@ const schema = z.object({
 	description: z.string().min(1, "Description is required").max(100, "Description cannot be more than 100 letters."),
 	amount: z.number().positive("Amount must be greater than 0").multipleOf(0.01),
 	transaction_date: z.iso.datetime(),
-	tag: z.string().trim().min(1).optional()
+	tag: z.string().trim().min(1).max(50, "Tag name cannot be more than 50 letters").optional()
 });
 
 async function handler(
@@ -56,4 +56,4 @@ async function handler(
   return reply.code(200).send({});
 }
 
-export const record = { handler, schema: { body: schema } };
+export const add_transaction = { handler, schema: { body: schema } };

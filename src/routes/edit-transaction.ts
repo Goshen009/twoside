@@ -1,24 +1,28 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
+import { APIError } from "#/errors/APIError.js";
 import { Prisma } from "#/prisma/client.js";
 import { z } from "zod/v4";
-import { APIError } from "#/errors/APIError.js";
 
-const schema = z.object({
+const params_schema = z.object({
 	transaction_id: z.uuid(),
+});
+
+const body_schema = z.object({
 	description: z.string().min(1, "Description is required").max(100, "Description cannot be more than 100 letters.").optional(),
 	amount: z.number().positive("Amount must be greater than 0").max(9_999_999_999).multipleOf(0.01).optional(),
 	transaction_date: z.iso.datetime().optional(),
-	tag: z.string().trim().min(1).nullable().optional() // string = set, null = remove, omitted = leave alone
+	tag: z.string().trim().min(1).max(50, "Tag name cannot be more than 50 letters").nullable().optional() // string = set, null = remove, omitted = leave alone
 });
 
 async function handler(
   this: FastifyInstance,
-  request: FastifyRequest<{ Body: z.infer<typeof schema> }>,
+  request: FastifyRequest<{ Params: z.infer<typeof params_schema>, Body: z.infer<typeof body_schema> }>,
   reply: FastifyReply
 ) {
 	const user = await request.requireAuth();
 
-  const { transaction_id, description, amount, transaction_date, tag } = request.body;
+  const { description, amount, transaction_date, tag } = request.body;
+  const { transaction_id } = request.params;
 
   // undefined = don't touch, null = clear the tag, string = find or create it
   let tag_id: string | null | undefined;
@@ -54,4 +58,4 @@ async function handler(
   return reply.code(200).send({});
 }
 
-export const edit = { handler, schema: { body: schema } };
+export const edit_transaction = { handler, schema: { params: params_schema, body: body_schema } };

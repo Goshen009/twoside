@@ -1,0 +1,20 @@
+info:
+  name: delete-transaction
+  type: http
+  seq: 7
+
+http:
+  method: DELETE
+  url: http://localhost:8080/transaction/:transaction_id
+  params:
+    - name: transaction_id
+      value: 2ac09306-bdb8-4682-8fba-311743bc2bc1
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

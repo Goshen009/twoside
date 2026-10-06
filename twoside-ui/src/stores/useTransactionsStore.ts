@@ -41,14 +41,13 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
   refetch: async () => {
     const seq = ++request_seq;
     set({ is_refreshing: true });
-    
     try {
       const { days } = await Endpoints.getTransactions(get().tag_id);
       if (seq !== request_seq) return;
-      set({ days, error: null, is_refreshing: false });
-    } catch (err) {
+      set({ days, error: null, is_fetching: false, is_refreshing: false });
+    } catch {
       if (seq !== request_seq) return;
-      set({ error: ApiError.getErrorMessage(err), is_refreshing: false });
+      set({ is_refreshing: false });
     }
   },
 

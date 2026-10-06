@@ -1,0 +1,20 @@
+info:
+  name: delete-tag
+  type: http
+  seq: 10
+
+http:
+  method: DELETE
+  url: http://localhost:8080/tag/:tag_id
+  params:
+    - name: tag_id
+      value: a779f3f2-73e4-4acf-9574-e1cd8744f450
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

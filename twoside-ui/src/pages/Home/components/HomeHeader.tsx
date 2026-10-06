@@ -1,6 +1,7 @@
+import { Settings } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
 
-export function HomeHeader() {
+export function HomeHeader({ onSettingsClick }: { onSettingsClick: () => void }) {
   const username = useUserStore((s) => s.data?.username);
 
   return (
@@ -10,7 +11,14 @@ export function HomeHeader() {
       ) : (
         <h1 className="text-xl font-bold tracking-tight text-foreground">Hi {username},</h1>
       )}
-      <span className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+      <button
+        type="button"
+        aria-label="Settings"
+        onClick={onSettingsClick}
+        className="-mr-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+      >
+        <Settings className="h-5 w-5" />
+      </button>
     </header>
   );
 }

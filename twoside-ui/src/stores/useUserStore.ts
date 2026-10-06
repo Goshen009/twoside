@@ -10,6 +10,7 @@ interface UserState {
 
   fetch: () => Promise<void>;
   reset: () => void;
+  refetch: () => Promise<void>;
 }
 
 let request_seq = 0;
@@ -36,5 +37,16 @@ export const useUserStore = create<UserState>((set) => ({
   reset: () => {
     request_seq++;
     set({ data: null, error: null, is_fetching: false });
+  },
+
+  refetch: async () => {
+    const seq = ++request_seq;
+    try {
+      const data = await Endpoints.getInfo();
+      if (seq !== request_seq) return;
+      set({ data });
+    } catch {
+      // silent: keep whatever is on screen
+    }
   },
 }));

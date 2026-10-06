@@ -1,18 +1,21 @@
 info:
-  name: edit
+  name: edit-transaction
   type: http
-  seq: 7
+  seq: 6
 
 http:
-  method: POST
-  url: http://localhost:8080/edit
+  method: PATCH
+  url: http://localhost:8080/transaction/:transaction_id
+  params:
+    - name: transaction_id
+      value: 0f9de254-6961-4017-aa4a-09516c08e3cc
+      type: path
   body:
     type: json
     data: |-
       {
-        "transaction_id": "c2502677-3fcf-4184-8363-3dcf154e5846",
         "description": "Does it change?",
-        "transaction_date": "2026-10-04T22:30:00Z",
+        "transaction_date": "2026-10-06T08:39:00Z",
         "tag": "Transport",
         "amount": 50
       }

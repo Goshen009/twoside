@@ -1,13 +1,17 @@
 import { FastifyPluginAsync } from 'fastify';
 
-import { query } from './routes/query.js';
+import { get_user_info } from './routes/get-user-info.js';
 import { create_user } from './routes/create-user.js';
 import { login } from './routes/login.js';
-import { record } from './routes/record.js';
-import { transactions } from './routes/transactions.js';
-import { edit } from './routes/edit.js';
-import { remove } from './routes/remove.js';
-import { get_user_info } from './routes/get-user-info.js';
+
+import { add_transaction } from './routes/add-transaction.js';
+import { get_transactions } from './routes/get-transactions.js';
+import { edit_transaction } from './routes/edit-transaction.js';
+import { delete_transaction } from './routes/delete-transaction.js';
+
+import { edit_tag } from './routes/edit-tag.js';
+import { merge_tag } from './routes/merge-tag.js';
+import { delete_tag } from './routes/delete-tag.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -15,14 +19,18 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   });
 
   fastify.get("/info", get_user_info);
-  fastify.get("/transactions", transactions);
+  
+  fastify.get("/transactions", get_transactions);
+  fastify.post("/transaction", add_transaction);
+  fastify.patch("/transaction/:transaction_id", edit_transaction);
+  fastify.delete("/transaction/:transaction_id", delete_transaction);
 
-  fastify.get("/total-today", query);
+  fastify.patch("/tag/:tag_id", edit_tag);
+  fastify.delete("/tag/:tag_id", delete_tag);
+  fastify.post("/tag/:tag_id/merge", merge_tag);
+  
   fastify.post("/create", create_user);
   fastify.post("/login", login);
-  fastify.post("/record", record);
-  fastify.post("/edit", edit);
-  fastify.post("/remove/:transaction_id", remove);
 }
 
 export default routes

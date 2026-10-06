@@ -1,0 +1,26 @@
+info:
+  name: merge-tag
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: http://localhost:8080/tag/:tag_id/merge
+  params:
+    - name: tag_id
+      value: f4b550d0-013f-407a-8dae-12c5307dfa16
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "target_tag_id": "3f1fdcd0-edb7-44cf-ac5b-7f9006089d57"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
