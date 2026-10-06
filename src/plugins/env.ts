@@ -2,7 +2,7 @@ import fp from "fastify-plugin";
 import { z } from "zod/v4";
 
 const Schema = z.object({
-	ENVIRONMENT: z.enum(['local', 'staging', 'production']),
+	ENVIRONMENT: z.enum(['local', 'beta', 'staging', 'production']),
 	DATABASE_URL: z.string(),
   JWT_SECRET: z.string(),
   ZEPTO_TOKEN: z.string(),
