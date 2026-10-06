@@ -38,7 +38,7 @@ export class ApiError extends Error {
 
 export class APIClient {
   private static readonly api_base_url = import.meta.env.VITE_API_BASE_URL;
-  private static access_token: string | null = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI5OWJlNTMzLTk5NDYtNDkyZi04Y2NmLWM2OGE5ZWVhNjMzNSIsImlhdCI6MTc5MTIwMzUyNiwiZXhwIjoxNzkxMzc2MzI2fQ.8kJgSY7PulZrZixjSASTddrF7yFMKJucM2jEmvrzNHY';
+  private static access_token: string | null = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI5OWJlNTMzLTk5NDYtNDkyZi04Y2NmLWM2OGE5ZWVhNjMzNSIsImlhdCI6MTc5MTIyNTk4NywiZXhwIjoxNzkxMzk4Nzg3fQ.iwJqAz2fVryILi3uAD6Hua9AE3gTv0UMH9hxCvNfsQQ';
 
   static onUnauthorized: (() => void) | null = null;
 
