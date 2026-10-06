@@ -25,6 +25,10 @@ Double entry, two accounts: **Expenses** and **Wallet**. Each transaction debits
 7. **Manage tags.** Rename, merge, and delete. ✅
 8. **Set a daily limit (optional).** One **global** daily limit, stored locally. Today's total turns red when it's exceeded. There is no per-tag limit.
 
+## Auth
+- Google sign-in only. Users keyed by Google `sub`. Own access/refresh tokens after verification.
+- No passwords, no email flows. Revisit if users without Google accounts appear.
+
 ## Important
 - I am not adding in a date range for the time being. Instead, we'll give users the ability to collapse the days in the UI so that they can see at a glance how much was spent in each day without having to scroll to see each day.
 - No date range or pagination in v1. All transactions load at once.

@@ -27,6 +27,20 @@ export class APIError {
     });
   }
 
+  static sessionExpired(): ProblemDetail {
+  	return new ProblemDetail({
+   		status: 401,
+     	message: "Your session has expired. Please log in again."
+   	});
+  }
+
+  static forbidden(message: string): ProblemDetail {
+  	return new ProblemDetail({
+   		status: 403,
+     	message
+   	})
+  }
+
   static noProfileSet(): ProblemDetail {
   	return new ProblemDetail({
    		status: 403,

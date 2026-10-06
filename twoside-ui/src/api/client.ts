@@ -18,11 +18,11 @@ export class ApiError extends Error {
 
   static getErrorMessage(error: unknown): string {
     if (error instanceof ApiError) {
-     	if (error.status === 400 && error.fields && error.fields.length > 0) {
-       	return error.fields[0].message;
+      if (error.status === 400 && error.fields && error.fields.length > 0) {
+        return error.fields[0].message;
       }
       if (error.status >= 500) {
-      	return "Well, that's embarrassing. Something broke on my end — try again?";
+        return "Well, that's embarrassing. Something broke on my end — try again?";
       }
       return error.message;
     }
@@ -30,15 +30,16 @@ export class ApiError extends Error {
   }
 
   static getWarning(error: unknown): { code: string; message: string } | null {
-		if (!(error instanceof ApiError)) return null;
-		if (error.status !== 409 || error.extensions?.type !== "WARNING") return null;
-		return { code: String(error.extensions.code), message: error.message };
+    if (!(error instanceof ApiError)) return null;
+    if (error.status !== 409 || error.extensions?.type !== "WARNING") return null;
+    return { code: String(error.extensions.code), message: error.message };
   }
 }
 
 export class APIClient {
   private static readonly api_base_url = import.meta.env.VITE_API_BASE_URL;
-  private static access_token: string | null = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI5OWJlNTMzLTk5NDYtNDkyZi04Y2NmLWM2OGE5ZWVhNjMzNSIsImlhdCI6MTc5MTI3NDM4NCwiZXhwIjoxNzkxNDQ3MTg0fQ.3_XPU5dZKhgpfN87rjzDMWEyj0aR1oWlyWsZAJqqHbk';
+  private static access_token: string | null = null;
+  private static refresh_promise: Promise<boolean> | null = null;
 
   static onUnauthorized: (() => void) | null = null;
 
@@ -54,26 +55,30 @@ export class APIClient {
     return header.replace(/^Bearer\s+/i, "");
   }
 
-  static async refresh(): Promise<{ status: "FULLY_REGISTERED" | "REQUIRES_ONBOARDING", email: string } | null> {
+  static refresh(): Promise<boolean> {
+    if (!this.refresh_promise) {
+      this.refresh_promise = this.doRefresh().finally(() => {
+        this.refresh_promise = null;
+      });
+    }
+    return this.refresh_promise;
+  }
+
+  private static async doRefresh(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.api_base_url}/auth/refresh`, {
+      const res = await fetch(`${this.api_base_url}/refresh`, {
         method: "POST",
         credentials: "include",
       });
 
-      if (!res.ok) {
-        this.access_token = null;
-        this.onUnauthorized?.();
-        return null;
-      }
+      if (!res.ok) throw new Error("Refresh rejected");
 
       this.setAccessToken(this.extractAccessToken(res));
-      const data = await res.json();
-      return { status: data.status, email: data.email };
+      return true;
     } catch {
       this.access_token = null;
       this.onUnauthorized?.();
-      return null;
+      return false;
     }
   }
 
@@ -104,7 +109,7 @@ export class APIClient {
       });
 
       if (res.status === 401 && use_auth && attempt === 0) {
-        if ((await this.refresh()) !== null) {
+        if (await this.refresh()) {
           continue;
         }
       }

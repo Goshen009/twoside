@@ -17,6 +17,7 @@ async function handler(
   	data: {
 	 		name,
 	   	timezone: 'Africa/Lagos',
+			google_account_id: 'ada',
 	    accounts: {
 				createMany: {
 					data: [

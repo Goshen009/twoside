@@ -47,4 +47,25 @@ export class Endpoints {
       body: { target_tag_id },
     });
   }
+
+  static async getGoogleAuthUrl(): Promise<string> {
+    const { data } = await APIClient.request<{ url: string }>("/google/auth-url", {
+      method: "GET",
+      use_auth: false,
+    });
+    return data.url;
+  }
+  
+  static async googleCallback(code: string, state: string): Promise<void> {
+    const { response } = await APIClient.request<object>("/google/callback", {
+      method: "POST",
+      body: { code, state },
+      use_auth: false,
+    });
+    APIClient.setAccessToken(APIClient.extractAccessToken(response));
+  }
+  
+  static async logout(): Promise<void> {
+    await APIClient.request<object>("/auth/logout", { method: "POST", use_auth: false });
+  }
 }

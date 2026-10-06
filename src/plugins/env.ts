@@ -5,7 +5,10 @@ const Schema = z.object({
 	ENVIRONMENT: z.enum(['local', 'staging', 'production']),
 	DATABASE_URL: z.string(),
   JWT_SECRET: z.string(),
-  ZEPTO_TOKEN: z.string()
+  ZEPTO_TOKEN: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  GOOGLE_REDIRECT_URI: z.string(),
 });
 
 export type Config = z.infer<typeof Schema>;
