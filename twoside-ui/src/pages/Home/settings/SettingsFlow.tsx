@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ChevronRight, LogOut, User, Tag as TagIcon } from "lucide-react";
+import { ArrowLeft, ChevronRight, Download, LogOut, User, Tag as TagIcon } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { BottomPanel } from "@/components/BottomPanel";
 import { TagDetail } from "./TagDetail";
@@ -9,11 +9,14 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { ApiError } from "@/api/client";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EditName } from "./EditName";
+import { InstallGuide } from "../components/InstallGuide";
+
 
 type Screen =
   | { name: "menu" }
   | { name: "name" }
   | { name: "tags" }
+  | { name: "install" }
   | { name: "tag"; tag_id: string }
   | { name: "merge"; tag_id: string };
 
@@ -84,7 +87,8 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
 					    <Scroll>
 								<NavRow icon={<User className="h-4 w-4" />} label="Edit name" onClick={() => go({ name: "name" }, 1)} />
 					      <NavRow icon={<TagIcon className="h-4 w-4" />} label="Manage tags" onClick={() => go({ name: "tags" }, 1)} />
-													
+								<NavRow icon={<Download className="h-4 w-4" />} label="Install the app" onClick={() => go({ name: "install" }, 1)} />
+								
 					      <div className="space-y-2.5 border-t border-border pt-4">
 					        {logout_error && (
 					          <p role="alert" className="rounded-xl border border-rose/30 bg-rose/10 px-3 py-2 text-xs font-medium text-rose">
@@ -155,6 +159,18 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
 	            <MergeTag key={tag.id} tag={tag} tags={tags} onDone={onClose} />
 	          </>
 	        )}
+
+					{screen.name === "install" && (
+					  <>
+					    <Header title="Install the app" onBack={() => go({ name: "menu" }, -1)} />
+					    <Scroll>
+					      <p className="text-xs leading-relaxed text-muted">
+					        Add it to your home screen and it opens like any other app. No browser, no link, just tap and log.
+					      </p>
+					      <InstallGuide />
+					    </Scroll>
+					  </>
+					)}
 	      </motion.div>
 	    </AnimatePresence>
 	

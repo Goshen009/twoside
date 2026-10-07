@@ -15,6 +15,7 @@ import { AddTransactionFlow } from "./add/AddTransactionFlow";
 import type { Transaction } from "@/types/types";
 import { EditTransactionFlow } from "./edit/EditTransactionFlow";
 import { SettingsFlow } from "./settings/SettingsFlow";
+import { InstallHint } from "./components/InstallHint";
 
 // TODO: wire to localStorage when the daily-limit feature lands.
 const DAILY_LIMIT = null as number | null;
@@ -164,6 +165,7 @@ export default function HomePage() {
       <AddTransactionFlow open={add_open} onClose={() => setAddOpen(false)} />
       <EditTransactionFlow transaction={editing} onClose={() => setEditing(null)} />
       <SettingsFlow open={settings_open} onClose={() => setSettingsOpen(false)} />
+      <InstallHint />
     </div>
   );
 }

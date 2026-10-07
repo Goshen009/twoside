@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      devOptions: { enabled: true },
+      includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "Twoside",
         short_name: "Twoside",
@@ -18,10 +18,13 @@ export default defineConfig({
         theme_color: "#050506",
         background_color: "#050506",
         display: "standalone",
+        orientation: "portrait",
+        scope: "/",
         start_url: "/",
         icons: [
           { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
     }),
