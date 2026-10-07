@@ -17,6 +17,7 @@ import { get_google_auth_url } from './routes/get-google-auth-url.js';
 import { google_callback } from './routes/google-callback.js';
 import { refresh } from './routes/refresh.js';
 import { logout } from './routes/logout.js';
+import { free_text } from './routes/free-text/free-text.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -41,6 +42,7 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.post("/tag/:tag_id/merge", merge_tag);
   
   fastify.post("/login", login);
+  fastify.post("/free-text", free_text);
 }
 
 export default routes
