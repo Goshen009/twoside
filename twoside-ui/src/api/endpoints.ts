@@ -68,4 +68,8 @@ export class Endpoints {
   static async logout(): Promise<void> {
     await APIClient.request<object>("/logout", { method: "POST", use_auth: false });
   }
+
+  static async editInfo(patch: { name?: string }): Promise<void> {
+    await APIClient.request<object>("/info", { method: "PATCH", body: patch });
+  }
 }

@@ -12,6 +12,9 @@ async function handler(
   request: FastifyRequest<{ Body: z.infer<typeof schema> }>,
   reply: FastifyReply
 ) {
+	if (this.config.ENVIRONMENT !== 'local')
+		throw APIError.forbidden("You can't do this");
+	
   const { name } = request.body;
 
   const user = await this.prisma.user.findUnique({

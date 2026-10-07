@@ -1,11 +1,17 @@
 info:
-  name: get-user-info
+  name: edit-user-info
   type: http
-  seq: 2
+  seq: 3
 
 http:
-  method: GET
+  method: PATCH
   url: http://localhost:8080/info
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Goshen009"
+      }
   auth: inherit
 
 settings:

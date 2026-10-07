@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ChevronRight, LogOut, Tag as TagIcon } from "lucide-react";
+import { ArrowLeft, ChevronRight, LogOut, User, Tag as TagIcon } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { BottomPanel } from "@/components/BottomPanel";
 import { TagDetail } from "./TagDetail";
@@ -8,8 +8,14 @@ import { MergeTag } from "./MergeTag";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { ApiError } from "@/api/client";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { EditName } from "./EditName";
 
-type Screen = { name: "menu" } | { name: "tags" } | { name: "tag"; tag_id: string } | { name: "merge"; tag_id: string };
+type Screen =
+  | { name: "menu" }
+  | { name: "name" }
+  | { name: "tags" }
+  | { name: "tag"; tag_id: string }
+  | { name: "merge"; tag_id: string };
 
 const panelVariants = {
   enter: (dir: 1 | -1) => ({ x: dir * 50, opacity: 0 }),
@@ -76,6 +82,7 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
 					  <>
 					    <Header title="Settings" />
 					    <Scroll>
+								<NavRow icon={<User className="h-4 w-4" />} label="Edit name" onClick={() => go({ name: "name" }, 1)} />
 					      <NavRow icon={<TagIcon className="h-4 w-4" />} label="Manage tags" onClick={() => go({ name: "tags" }, 1)} />
 													
 					      <div className="space-y-2.5 border-t border-border pt-4">
@@ -99,6 +106,13 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
 					        </button>
 					      </div>
 					    </Scroll>
+					  </>
+					)}
+
+					{screen.name === "name" && (
+					  <>
+					    <Header title="Edit name" onBack={() => go({ name: "menu" }, -1)} />
+					    <EditName onDone={onClose} />
 					  </>
 					)}
 	

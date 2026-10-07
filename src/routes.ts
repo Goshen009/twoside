@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 
+import { edit_user_info } from './routes/edit-user-info.js';
 import { get_user_info } from './routes/get-user-info.js';
-import { create_user } from './routes/create-user.js';
 import { login } from './routes/login.js';
 
 import { add_transaction } from './routes/add-transaction.js';
@@ -29,6 +29,7 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.post("/logout", logout);
   
   fastify.get("/info", get_user_info);
+  fastify.patch("/info", edit_user_info);
   
   fastify.get("/transactions", get_transactions);
   fastify.post("/transaction", add_transaction);
@@ -39,7 +40,6 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.delete("/tag/:tag_id", delete_tag);
   fastify.post("/tag/:tag_id/merge", merge_tag);
   
-  fastify.post("/create", create_user);
   fastify.post("/login", login);
 }
 
