@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { APIClient, ApiError } from "@/api/client";
 import { Endpoints } from "@/api/endpoints";
+import { useUserStore } from "./useUserStore";
+import { useTransactionsStore } from "./useTransactionsStore";
+import { useUIStore } from "./useUIStore";
 
 const CALLBACK_PATH = "/auth/google/callback";
 
@@ -16,6 +19,12 @@ interface AuthState {
 
 // Cached so a double-fired effect can never post the single-use code twice.
 let init_promise: Promise<void> | null = null;
+
+const clearSessionData = () => {
+  useUserStore.getState().reset();
+  useTransactionsStore.getState().reset();
+  useUIStore.setState({ day_overrides: {} });
+}
 
 export const useAuthStore = create<AuthState>((set) => ({
   checking_session: true,
@@ -65,11 +74,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await Endpoints.logout();
     APIClient.setAccessToken(null);
+    clearSessionData();
     set({ is_authenticated: false });
   },
 }));
 
 // If a refresh fails mid-session, drop back to the login screen.
 APIClient.onUnauthorized = () => {
+	clearSessionData();
   useAuthStore.setState({ is_authenticated: false });
 };

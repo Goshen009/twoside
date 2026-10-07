@@ -44,7 +44,7 @@ export const useUserStore = create<UserState>((set) => ({
     try {
       const data = await Endpoints.getInfo();
       if (seq !== request_seq) return;
-      set({ data });
+      set({ data, is_fetching: false });
     } catch {
       // silent: keep whatever is on screen
     }

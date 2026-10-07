@@ -22,7 +22,7 @@ interface AddTransactionFlowProps {
 export function AddTransactionFlow({ open, onClose }: AddTransactionFlowProps) {
   return (
     <BottomPanel open={open} onClose={onClose}>
-      <FlowPanel onClose={onClose} />
+      {open && <FlowPanel onClose={onClose} />}
     </BottomPanel>
   );
 }

@@ -33,21 +33,28 @@ export default function HomePage() {
   const is_hidden = useUIStore((s) => s.is_amounts_hidden);
 
   // Only explicit user toggles are stored; everything else defaults to open.
-  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const overrides = useUIStore((s) => s.day_overrides);
+  const setOverrides = useUIStore((s) => s.setDayOverrides);
   const [add_open, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [settings_open, setSettingsOpen] = useState(false);
-
+  
   useEffect(() => {
-    fetchInfo();
-    fetchTransactions();
-  }, [fetchInfo, fetchTransactions]);
-
+    const user = useUserStore.getState();
+    const txns = useTransactionsStore.getState();
+  
+    if (user.data) user.refetch();
+    else user.fetch();
+  
+    if (txns.days) txns.refetch();
+    else txns.fetch(txns.tag_id);
+  }, []);
+  
   const retry = () => {
     fetchInfo();
     fetchTransactions(tag_id);
   };
-
+  
   const error = user_error ?? txn_error;
   const currency_symbol = info?.currency_symbol ?? "₦";
 
@@ -64,7 +71,7 @@ export default function HomePage() {
   const filtered_total = days && tag_id ? Money.sumAmounts(days.map((d) => d.total)) : null;
 
   return (
-    <div className="min-h-screen pb-28">
+    <div className="min-h-screen pb-36">
       <div className="px-5">
       	<HomeHeader onSettingsClick={() => setSettingsOpen(true)} />
       </div>
@@ -141,8 +148,8 @@ export default function HomePage() {
         </section>
       </div>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40">
-        <div className="mx-auto flex max-w-md justify-end px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40">
+        <div className="mx-auto flex max-w-md justify-end px-5 pb-4">
           <button
             type="button"
             aria-label="Add spend"
