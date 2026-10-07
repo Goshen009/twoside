@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Download, MoreVertical, Plus, Share } from "lucide-react";
 import { PWA } from "@/lib/PWA";
-import { usePWAStore } from "@/stores/usePWAStore";
+// import { usePWAStore } from "@/stores/usePWAStore";
 
 type Platform = "ios" | "android";
 type Step = { icon: ReactNode; text: ReactNode; image?: string }; // screenshots go in /public/help/
@@ -42,8 +42,8 @@ const STEPS: Record<Platform, Step[]> = {
 };
 
 export function InstallGuide() {
-  const install_event = usePWAStore((s) => s.install_event);
-  const promptInstall = usePWAStore((s) => s.promptInstall);
+  // const install_event = usePWAStore((s) => s.install_event);
+  // const promptInstall = usePWAStore((s) => s.promptInstall);
   const [platform, setPlatform] = useState<Platform>(() => (PWA.isIOS() ? "ios" : "android"));
 
   return (
@@ -63,7 +63,7 @@ export function InstallGuide() {
         ))}
       </div>
 
-      {platform === "android" && install_event && (
+      {/*{platform === "android" && install_event && (
         <button
           type="button"
           onClick={promptInstall}
@@ -72,7 +72,7 @@ export function InstallGuide() {
           <Download className="h-4 w-4" />
           Install now
         </button>
-      )}
+      )}*/}
 
       {STEPS[platform].map((step, i) => (
         <div key={i} className="rounded-2xl border border-picker-border bg-picker-background p-3">

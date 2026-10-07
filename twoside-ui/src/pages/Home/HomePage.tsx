@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
+import { ArrowDownRight, ChevronsDownUp, ChevronsUpDown, Plus, Receipt, SearchX } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTransactionsStore } from "@/stores/useTransactionsStore";
 import { useUIStore } from "@/stores/useUIStore";
@@ -10,7 +11,6 @@ import { TodayCard } from "./components/TodayCard";
 import { TagFilter } from "./components/TagFilter";
 import { TransactionGroup } from "./components/TransactionGroup";
 import { TransactionSkeletonList } from "./components/TransactionRow";
-import { Plus } from "lucide-react";
 import { AddTransactionFlow } from "./add/AddTransactionFlow";
 import type { Transaction } from "@/types/types";
 import { EditTransactionFlow } from "./edit/EditTransactionFlow";
@@ -129,9 +129,22 @@ export default function HomePage() {
           ) : !days || !info || is_fetching ? (
             <TransactionSkeletonList />
           ) : days.length === 0 ? (
-            <p className="text-sm text-muted text-center py-8">
-              {tag_id ? "Nothing matches this filter." : "No transactions found. Add some"}
-            </p>
+            tag_id ? (
+              <EmptyState
+                icon={SearchX}
+                title="Nothing under this tag"
+                message="No spends match this filter. Try another tag, or clear the filter."
+              />
+            ) : (
+              <EmptyState
+                icon={Receipt}
+                title="No spends logged yet"
+                message="Tap the big green + button to record your first one. It takes a few seconds."
+                hint={
+                  <ArrowDownRight className="mt-2 h-6 w-6 animate-bounce self-end text-primary/70" />
+                }
+              />
+            )
           ) : (
             days.map((day) => (
               <TransactionGroup
