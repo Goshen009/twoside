@@ -17,7 +17,7 @@ async function handler(
 	
   const { name } = request.body;
 
-  const user = await this.prisma.user.findUnique({
+  const user = await this.prisma.user.findFirst({
   	where: { name },
     include: { tags: true }
   });
