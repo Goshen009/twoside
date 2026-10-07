@@ -10,8 +10,8 @@ export default fp(async (fastify) => {
 
 	    const CORS_ORIGINS: Record<Environments, string[]> = {
 		    local:   [],
-	      preview: ['https://preview.myapp.com'],
-	      beta:    ['https://beta.myapp.com'],
+	      preview: ['https://preview.twoside.dev'],
+	      beta:    ['https://beta.twoside.dev'],
 	    };
     
       const allowed = CORS_ORIGINS[fastify.config.ENVIRONMENT];
