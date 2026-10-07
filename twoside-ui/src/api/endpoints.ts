@@ -66,6 +66,6 @@ export class Endpoints {
   }
   
   static async logout(): Promise<void> {
-    await APIClient.request<object>("/auth/logout", { method: "POST", use_auth: false });
+    await APIClient.request<object>("/logout", { method: "POST", use_auth: false });
   }
 }

@@ -1,8 +1,10 @@
 import fp from "fastify-plugin";
 import { z } from "zod/v4";
 
+const Environment = z.enum(['local', 'preview', 'beta']);
+
 const Schema = z.object({
-	ENVIRONMENT: z.enum(['local', 'preview', 'beta']),
+	ENVIRONMENT: Environment,
 	DATABASE_URL: z.string(),
   JWT_SECRET: z.string(),
   ZEPTO_TOKEN: z.string(),
@@ -12,6 +14,7 @@ const Schema = z.object({
 });
 
 export type Config = z.infer<typeof Schema>;
+export type Environments = z.infer<typeof Environment>;
 
 export default fp(
   async (fastify) => {

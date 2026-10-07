@@ -28,23 +28,23 @@ class Google {
   }
 
   private static async verifyIdToken(config: Config, id_token: string): Promise<GoogleProfile> {
-      const client = new OAuth2Client(config.GOOGLE_CLIENT_ID);
-      const ticket = await client.verifyIdToken({ idToken: id_token, audience: config.GOOGLE_CLIENT_ID });
-      const payload = ticket.getPayload();
+    const client = new OAuth2Client(config.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({ idToken: id_token, audience: config.GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
     
-      if (!payload?.email || !payload.sub)
-        throw APIError.custom({ status: 400, message: "Failed to authenticate with Google." });
+    if (!payload?.email || !payload.sub)
+      throw APIError.custom({ status: 400, message: "Failed to authenticate with Google." });
   
-      if (!payload.email_verified)
-        throw APIError.custom({ status: 400, message: "Your Google account's email is not verified with Google. Please verify it with Google, or sign up using a different method." });
+    if (!payload.email_verified)
+      throw APIError.custom({ status: 400, message: "Your Google account's email is not verified with Google. Please verify it with Google, or sign up using a different method." });
       
-      return {
-        sub: payload.sub,
-        email: payload.email,
-        email_verified: !!payload.email_verified,
-        name: payload.name ?? "",
-      };
-    }
+    return {
+      sub: payload.sub,
+      email: payload.email,
+      email_verified: !!payload.email_verified,
+      name: payload.name ?? "",
+    };
+  }
 
   static async exchangeCode(config: Config, code: string): Promise<GoogleProfile> {  
     const response = await fetch("https://oauth2.googleapis.com/token", {

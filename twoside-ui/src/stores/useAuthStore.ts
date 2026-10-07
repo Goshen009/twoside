@@ -63,11 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearError: () => set({ auth_error: null }),
 
   logout: async () => {
-    try {
-      await Endpoints.logout();
-    } catch {
-      // clear locally regardless
-    }
+    await Endpoints.logout();
     APIClient.setAccessToken(null);
     set({ is_authenticated: false });
   },

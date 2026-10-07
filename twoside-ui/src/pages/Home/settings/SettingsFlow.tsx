@@ -1,10 +1,13 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ChevronRight, Tag as TagIcon } from "lucide-react";
+import { ArrowLeft, ChevronRight, LogOut, Tag as TagIcon } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { BottomPanel } from "@/components/BottomPanel";
 import { TagDetail } from "./TagDetail";
 import { MergeTag } from "./MergeTag";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { ApiError } from "@/api/client";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 type Screen = { name: "menu" } | { name: "tags" } | { name: "tag"; tag_id: string } | { name: "merge"; tag_id: string };
 
@@ -23,78 +26,135 @@ export function SettingsFlow({ open, onClose }: { open: boolean; onClose: () => 
 }
 
 function SettingsBody({ onClose }: { onClose: () => void }) {
-  const tags = useUserStore((s) => s.data?.tags) ?? [];
+	const tags = useUserStore((s) => s.data?.tags) ?? [];
   const [state, setState] = useState<{ screen: Screen; dir: 1 | -1 }>({
     screen: { name: "menu" },
     dir: 1,
   });
   const { screen, dir } = state;
-
+	
+  const [confirm_logout, setConfirmLogout] = useState(false);
+  const [is_logging_out, setIsLoggingOut] = useState(false);
+  const [logout_error, setLogoutError] = useState<string | null>(null);
+  const in_flight = useRef(false);
+	
   const go = (next: Screen, d: 1 | -1) => setState({ screen: next, dir: d });
   const tag = "tag_id" in screen ? tags.find((t) => t.id === screen.tag_id) : undefined;
-
+	
+  async function handleLogout() {
+    if (in_flight.current) return;
+	
+    in_flight.current = true;
+    setIsLoggingOut(true);
+    setLogoutError(null);
+	
+    try {
+      await useAuthStore.getState().logout();
+      // Success: App swaps HomePage for LoginPage, so this whole panel unmounts.
+    } catch (err) {
+      setLogoutError(ApiError.getErrorMessage(err));
+      setConfirmLogout(false);
+      setIsLoggingOut(false);
+      in_flight.current = false;
+    }
+  }
+  
   return (
-    <AnimatePresence mode="wait" custom={dir} initial={false}>
-      <motion.div
-        key={"tag_id" in screen ? `${screen.name}-${screen.tag_id}` : screen.name}
-        custom={dir}
-        variants={panelVariants}
-        initial="enter"
-        animate="center"
-        exit="exit"
-        transition={{ duration: 0.16, ease: "easeOut" }}
-        className="flex min-h-0 flex-1 flex-col"
-      >
-        {screen.name === "menu" && (
-          <>
-            <Header title="Settings" />
-            <Scroll>
-              <NavRow icon={<TagIcon className="h-4 w-4" />} label="Manage tags" onClick={() => go({ name: "tags" }, 1)} />
-            </Scroll>
-          </>
-        )}
-
-        {screen.name === "tags" && (
-          <>
-            <Header title="Manage tags" onBack={() => go({ name: "menu" }, -1)} />
-            <Scroll>
-              {tags.length === 0 ? (
-                <p className="py-10 text-center text-xs text-muted">
-                  No tags yet. They show up once you log a spend with one.
-                </p>
-              ) : (
-                tags.map((t) => (
-                  <NavRow key={t.id} label={t.name} onClick={() => go({ name: "tag", tag_id: t.id }, 1)} />
-                ))
-              )}
-            </Scroll>
-          </>
-        )}
-
-        {screen.name === "tag" && tag && (
-          <>
-            <Header title={tag.name} onBack={() => go({ name: "tags" }, -1)} />
-            <TagDetail
-              key={tag.id}
-              tag={tag}
-              tags={tags}
-              onDone={onClose}
-              onMerge={() => go({ name: "merge", tag_id: tag.id }, 1)}
-            />
-          </>
-        )}
-        
-        {screen.name === "merge" && tag && (
-          <>
-            <Header
-              title={`Merge ${tag.name} into...`}
-              onBack={() => go({ name: "tag", tag_id: tag.id }, -1)}
-            />
-            <MergeTag key={tag.id} tag={tag} tags={tags} onDone={onClose} />
-          </>
-        )}
-      </motion.div>
-    </AnimatePresence>
+  	<>
+	    <AnimatePresence mode="wait" custom={dir} initial={false}>
+	      <motion.div
+	        key={"tag_id" in screen ? `${screen.name}-${screen.tag_id}` : screen.name}
+	        custom={dir}
+	        variants={panelVariants}
+	        initial="enter"
+	        animate="center"
+	        exit="exit"
+	        transition={{ duration: 0.16, ease: "easeOut" }}
+	        className="flex min-h-0 flex-1 flex-col"
+	      >
+	        {screen.name === "menu" && (
+					  <>
+					    <Header title="Settings" />
+					    <Scroll>
+					      <NavRow icon={<TagIcon className="h-4 w-4" />} label="Manage tags" onClick={() => go({ name: "tags" }, 1)} />
+													
+					      <div className="space-y-2.5 border-t border-border pt-4">
+					        {logout_error && (
+					          <p role="alert" className="rounded-xl border border-rose/30 bg-rose/10 px-3 py-2 text-xs font-medium text-rose">
+					            {logout_error}
+					          </p>
+					        )}
+					        <button
+					          type="button"
+					          onClick={() => {
+					            setLogoutError(null);
+					            setConfirmLogout(true);
+					          }}
+					          className="flex min-h-14 w-full items-center gap-3 rounded-2xl border border-rose/30 bg-rose/10 px-4 py-3 text-left transition-colors active:bg-rose/20"
+					        >
+					          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose/10 text-rose">
+					            <LogOut className="h-4 w-4" />
+					          </span>
+					          <span className="text-xs font-semibold text-rose">Log out</span>
+					        </button>
+					      </div>
+					    </Scroll>
+					  </>
+					)}
+	
+	        {screen.name === "tags" && (
+	          <>
+	            <Header title="Manage tags" onBack={() => go({ name: "menu" }, -1)} />
+	            <Scroll>
+	              {tags.length === 0 ? (
+	                <p className="py-10 text-center text-xs text-muted">
+	                  No tags yet. They show up once you log a spend with one.
+	                </p>
+	              ) : (
+	                tags.map((t) => (
+	                  <NavRow key={t.id} label={t.name} onClick={() => go({ name: "tag", tag_id: t.id }, 1)} />
+	                ))
+	              )}
+	            </Scroll>
+	          </>
+	        )}
+	
+	        {screen.name === "tag" && tag && (
+	          <>
+	            <Header title={tag.name} onBack={() => go({ name: "tags" }, -1)} />
+	            <TagDetail
+	              key={tag.id}
+	              tag={tag}
+	              tags={tags}
+	              onDone={onClose}
+	              onMerge={() => go({ name: "merge", tag_id: tag.id }, 1)}
+	            />
+	          </>
+	        )}
+	        
+	        {screen.name === "merge" && tag && (
+	          <>
+	            <Header
+	              title={`Merge ${tag.name} into...`}
+	              onBack={() => go({ name: "tag", tag_id: tag.id }, -1)}
+	            />
+	            <MergeTag key={tag.id} tag={tag} tags={tags} onDone={onClose} />
+	          </>
+	        )}
+	      </motion.div>
+	    </AnimatePresence>
+	
+	    <ConfirmDialog
+	      open={confirm_logout}
+	      title="Log out?"
+	      message="Are you sure you want to log out?"
+	      confirm_label="Yes, log out"
+	      danger
+	      loading={is_logging_out}
+	      onConfirm={handleLogout}
+	      onCancel={() => setConfirmLogout(false)}
+	    />
+   </>
   );
 }
 

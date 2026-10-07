@@ -1,36 +1,31 @@
+import { Environments } from './env.js';
 import cors from '@fastify/cors';
 import fp from "fastify-plugin";
 
 export default fp(async (fastify) => {
   fastify.register(cors, {
-    // origin: (origin, callback) => {
-    //   const allowedOrigins = [
-    //     'http://localhost:3000',
-    //     'http://localhost:5173',
-    //     'http://192.168.1.200:5173',
-    //     'http://100.103.127.67:3000',
-    //     'http://100.103.127.67:5173',
-    //     'http://100.99.208.67:5173'
-    //   ];
+    origin: (origin, callback) => {
+     	if (fastify.config.ENVIRONMENT === 'local' || !origin)
+      	return callback(null, true);
 
-    //   // Allow requests with no origin (like mobile apps or Postman)
-    //   if (!origin) {
-    //     callback(null, true);
-    //     return;
-    //   }
-
-    //   if (allowedOrigins.includes(origin)) {
-    //     callback(null, true);
-    //   } else {
-    //     callback(new Error('Not allowed by CORS'), false);
-    //   }
-    // },
-    origin: true,
+	    const CORS_ORIGINS: Record<Environments, string[]> = {
+		    local:   [],
+	      preview: ['https://preview.myapp.com'],
+	      beta:    ['https://beta.myapp.com'],
+	    };
+    
+      const allowed = CORS_ORIGINS[fastify.config.ENVIRONMENT];
+      if (allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'), false);
+      }
+    },
     credentials: true,
     exposedHeaders: ['Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
   })
 }, {
   name: 'cors',
-  dependencies: ['error-handler']
+  dependencies: ['env', 'error-handler']
 });
