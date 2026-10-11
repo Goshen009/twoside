@@ -1,0 +1,22 @@
+info:
+  name: frre-text
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8080/free-text
+  body:
+    type: json
+    data: |-
+      {
+        "text": "Bought minime 400 @Transpo"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
