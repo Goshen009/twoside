@@ -18,11 +18,14 @@ import { google_callback } from './routes/google-callback.js';
 import { refresh } from './routes/refresh.js';
 import { logout } from './routes/logout.js';
 import { free_text } from './routes/free-text/free-text.js';
+import { get_stats } from './routes/get-stats.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
   	return { environment: this.config.ENVIRONMENT }
   });
+
+  fastify.get("/stats", get_stats);
 
   fastify.get("/google/auth-url", get_google_auth_url);
   fastify.post("/google/callback", google_callback);
