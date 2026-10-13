@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Check, Loader2 } from "lucide-react";
+import { useDraftStore } from "@/stores/useDraftStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { Endpoints } from "@/api/endpoints";
 import { ApiError } from "@/api/client";
@@ -11,11 +12,16 @@ export function RecordForm({ onSaved }: { onSaved: () => void }) {
   const timezone = info?.timezone ?? "Africa/Lagos";
   const currency_symbol = info?.currency_symbol ?? "₦";
 
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date_iso, setDateIso] = useState(Dates.nowIso);
-  const [tag, setTag] = useState<string | null>(null);
+  const description = useDraftStore((s) => s.description);
+  const amount = useDraftStore((s) => s.amount);
+  const picked_date = useDraftStore((s) => s.date_iso);
+  const tag = useDraftStore((s) => s.tag);
+  const { setDescription, setAmount, setDate, setTag } = useDraftStore.getState();
 
+  // Fresh "now" on every open; a manual pick overrides it.
+  const [now_iso] = useState(Dates.nowIso);
+  const date_iso = picked_date ?? now_iso;
+  
   const [is_submitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const in_flight = useRef(false);
@@ -31,7 +37,7 @@ export function RecordForm({ onSaved }: { onSaved: () => void }) {
     setError(null);
 
     try {
-      await Endpoints.record({
+    	await Endpoints.record({
         description: description.trim(),
         amount: Number(amount),
         transaction_date: date_iso,
@@ -45,6 +51,7 @@ export function RecordForm({ onSaved }: { onSaved: () => void }) {
       setIsSubmitting(false);
     }
 
+    useDraftStore.getState().clear(); // only a successful save wipes the draft
     onSaved();
   }
 
@@ -53,7 +60,7 @@ export function RecordForm({ onSaved }: { onSaved: () => void }) {
       <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 pb-4 pt-3.5">
         <DescriptionField value={description} onChange={setDescription} />
         <AmountField value={amount} onChange={setAmount} currency_symbol={currency_symbol} />
-        <DateField value={date_iso} timezone={timezone} onChange={setDateIso} />
+        <DateField value={date_iso} timezone={timezone} onChange={setDate} />
         <TagField tags={info?.tags ?? []} value={tag} onChange={setTag} />
       </div>
 

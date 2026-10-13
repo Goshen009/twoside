@@ -1,8 +1,10 @@
+import { Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ChevronRight, MessageSquareText, TextCursorInput, type LucideIcon } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTransactionsStore } from "@/stores/useTransactionsStore";
+import { useDraftStore, selectHasDraft } from "@/stores/useDraftStore";
 import { RecordForm } from "./RecordForm";
 import { BottomPanel } from "@/components/BottomPanel";
 
@@ -54,7 +56,7 @@ function FlowPanel({ onClose }: { onClose: () => void }) {
 
         {mode === "form" && (
           <>
-            <FlowHeader title="Log a Spend" onBack={() => setMode(null)} />
+            <FlowHeader title="Log a Spend" onBack={() => setMode(null)} right={<ClearDraftButton />} />
             <RecordForm onSaved={handleSaved} />
           </>
         )}
@@ -70,7 +72,7 @@ function FlowPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-function FlowHeader({ title, onBack }: { title: string; onBack: () => void }) {
+function FlowHeader({ title, onBack, right }: { title: string; onBack: () => void; right?: ReactNode; }) {
   return (
     <header className="flex shrink-0 items-center gap-2.5 border-b border-border px-5 py-2">
       <button
@@ -82,7 +84,25 @@ function FlowHeader({ title, onBack }: { title: string; onBack: () => void }) {
         <ArrowLeft className="h-4 w-4" />
       </button>
       <h2 className="text-md font-semibold tracking-tight text-foreground">{title}</h2>
+      {right && <div className="ml-auto">{right}</div>}
     </header>
+  );
+}
+
+function ClearDraftButton() {
+  const has_draft = useDraftStore(selectHasDraft);
+  const clear = useDraftStore((s) => s.clear);
+
+  return (
+    <button
+      type="button"
+      onClick={clear}
+      disabled={!has_draft}
+      className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-2xs font-semibold text-muted transition-colors hover:text-rose disabled:pointer-events-none disabled:opacity-30"
+    >
+      <Trash2 className="h-3 w-3" />
+      Clear
+    </button>
   );
 }
 

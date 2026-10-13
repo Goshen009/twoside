@@ -4,6 +4,7 @@ import { Endpoints } from "@/api/endpoints";
 import { useUserStore } from "./useUserStore";
 import { useTransactionsStore } from "./useTransactionsStore";
 import { useUIStore } from "./useUIStore";
+import { useDraftStore } from "./useDraftStore";
 
 const CALLBACK_PATH = "/auth/google/callback";
 
@@ -24,6 +25,7 @@ const clearSessionData = () => {
   useUserStore.getState().reset();
   useTransactionsStore.getState().reset();
   useUIStore.setState({ day_overrides: {} });
+  useDraftStore.getState().clear();
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
