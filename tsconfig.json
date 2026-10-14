@@ -54,6 +54,7 @@
       "#/guards/*": ["src/guards/*"],
       "#/errors/*": ["src/errors/*"],
       "#/libs/*": ["src/libs/*"],
+      "#/cron/*": ["src/cron/*"],
     }
   },
   "include": ["src/**/*.ts"]

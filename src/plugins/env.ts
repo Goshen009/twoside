@@ -11,6 +11,8 @@ const Schema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_REDIRECT_URI: z.string(),
+  TELEGRAM_CHAT_ID: z.string(),
+  TELEGRAM_BOT_TOKEN: z.string()
 });
 
 export type Config = z.infer<typeof Schema>;

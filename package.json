@@ -23,7 +23,8 @@
     "#/plugins/*": "./dist/plugins/*",
     "#/guards/*": "./dist/guards/*",
     "#/errors/*": "./dist/errors/*",
-    "#/libs/*": "./dist/libs/*"
+    "#/libs/*": "./dist/libs/*",
+    "#/cron/*": "./dist/cron/*"
   },
   "dependencies": {
     "@fastify/autoload": "^6.3.1",
@@ -43,6 +44,7 @@
     "google-auth-library": "^11.1.0",
     "jsonwebtoken": "^9.0.3",
     "luxon": "^3.7.2",
+    "node-cron": "^4.6.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
