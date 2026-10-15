@@ -1,8 +1,12 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { z } from "zod/v4";
 
+import SupportedLocales from "#/libs/supported-locales.js";
+
 const schema = z.object({
-	name: z.string().trim().min(1, "Name is requred").max(50, "Name cannot be more than 50 letters").optional()
+	name: z.string().trim().min(1, "Name is required").max(50, "Name cannot be more than 50 letters").optional(),
+	currency_symbol: z.enum(SupportedLocales.SUPPORTED_CURRENCY_SYMBOLS).optional(),
+	timezone: z.enum(SupportedLocales.SUPPORTED_TIMEZONES).optional(),
 });
 
 async function handler(
@@ -12,12 +16,12 @@ async function handler(
 ) {
 	const user = await request.requireAuth();
 	
-  const { name } = request.body;
+  const { name, currency_symbol, timezone } = request.body;
 
   await this.prisma.user.update({
   	where: { id: user.id },
   	data: { 
-   		name
+   		name, currency_symbol, timezone
    	}
   });
 

@@ -31,6 +31,7 @@ async function handler(
     create: {
     	name: profile.name,
      	google_account_id: profile.sub,
+      currency_symbol: '₦',
     	timezone: 'Africa/Lagos',
 	    accounts: {
 				createMany: {

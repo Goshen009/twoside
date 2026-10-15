@@ -11,6 +11,7 @@ model User {
 	id											String @id @default(uuid())
 	name										String
 	timezone								String 
+	currency_symbol					String @default("₦")
 
 	google_account_id				String @unique
 
