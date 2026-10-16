@@ -5,6 +5,7 @@ import { useUserStore } from "./useUserStore";
 import { useTransactionsStore } from "./useTransactionsStore";
 import { useUIStore } from "./useUIStore";
 import { useDraftStore } from "./useDraftStore";
+import type { NewUser } from "@/types/types";
 
 const CALLBACK_PATH = "/auth/google/callback";
 
@@ -12,9 +13,11 @@ interface AuthState {
   checking_session: boolean;
   is_authenticated: boolean;
   auth_error: string | null;
+  new_user: NewUser | null;
 
   initialize: () => Promise<void>;
   clearError: () => void;
+  completeOnboarding: () => void;
   logout: () => Promise<void>;
 }
 
@@ -32,6 +35,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   checking_session: true,
   is_authenticated: false,
   auth_error: null,
+  new_user: null,
 
   initialize: () => {
     if (!init_promise) {
@@ -55,8 +59,8 @@ export const useAuthStore = create<AuthState>((set) => ({
           }
 
           try {
-            await Endpoints.googleCallback(code, state);
-            set({ is_authenticated: true, checking_session: false });
+            const { new_user } = await Endpoints.googleCallback(code, state);
+            set({ is_authenticated: true, new_user: new_user ?? null, checking_session: false });
           } catch (err) {
             set({ auth_error: ApiError.getErrorMessage(err), checking_session: false });
           }
@@ -73,16 +77,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   clearError: () => set({ auth_error: null }),
 
+  completeOnboarding: () => set({ new_user: null }),
+
   logout: async () => {
     await Endpoints.logout();
     APIClient.setAccessToken(null);
     clearSessionData();
-    set({ is_authenticated: false });
+    set({ is_authenticated: false, new_user: null });
   },
 }));
 
 // If a refresh fails mid-session, drop back to the login screen.
 APIClient.onUnauthorized = () => {
 	clearSessionData();
-  useAuthStore.setState({ is_authenticated: false });
+  useAuthStore.setState({ is_authenticated: false, new_user: null });
 };

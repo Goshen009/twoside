@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import HomePage from "@/pages/Home/HomePage";
 import InsightsPage from "@/pages/Insights/InsightsPage";
+import OnboardingPage from "@/pages/Auth/OnboardingPage";
 import LoginPage from "@/pages/Auth/LoginPage";
 import { AppNavbar } from "@/components/AppNavbar";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -19,6 +20,7 @@ export function App() {
   const checking_session = useAuthStore((s) => s.checking_session);
   const is_authenticated = useAuthStore((s) => s.is_authenticated);
   const initialize = useAuthStore((s) => s.initialize);
+  const new_user = useAuthStore((s) => s.new_user);
 
   useEffect(() => {
     initialize();
@@ -26,6 +28,7 @@ export function App() {
 
   if (checking_session) return null; // swap in a splash screen whenever you like
   if (!is_authenticated) return <LoginPage />;
+  if (new_user) return <OnboardingPage new_user={new_user} />;
 
   return (
     <BrowserRouter>

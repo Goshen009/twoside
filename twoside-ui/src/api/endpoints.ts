@@ -1,4 +1,4 @@
-import type { InfoData, EditPayload, RecordPayload, TransactionsResponse } from "@/types/types";
+import type { InfoData, EditPayload, RecordPayload, TransactionsResponse, GoogleCallbackResponse } from "@/types/types";
 import { APIClient } from "@/api/client";
 
 export class Endpoints {
@@ -56,20 +56,21 @@ export class Endpoints {
     return data.url;
   }
   
-  static async googleCallback(code: string, state: string): Promise<void> {
-    const { response } = await APIClient.request<object>("/google/callback", {
+  static async googleCallback(code: string, state: string): Promise<GoogleCallbackResponse> {
+    const { response, data } = await APIClient.request<GoogleCallbackResponse>("/google/callback", {
       method: "POST",
       body: { code, state },
       use_auth: false,
     });
     APIClient.setAccessToken(APIClient.extractAccessToken(response));
+    return data;
   }
   
   static async logout(): Promise<void> {
     await APIClient.request<object>("/logout", { method: "POST", use_auth: false });
   }
 
-  static async editInfo(patch: { name?: string, currency?: string, timezone?: string }): Promise<void> {
+  static async editInfo(patch: { name?: string; currency_symbol?: string; timezone?: string }): Promise<void> {
     await APIClient.request<object>("/info", { method: "PATCH", body: patch });
   }
 }

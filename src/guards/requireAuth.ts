@@ -14,6 +14,7 @@ export default fp(async (fastify) => {
 				id: true,
 				name: true,
 				timezone: true,
+				currency_symbol: true,
 				accounts: {
 					select: { id: true, type: true, name: true }
 				},
@@ -36,6 +37,7 @@ export type AuthenticatedUser = Prisma.UserGetPayload<{
 		id: true,
 		name: true,
 		timezone: true,
+		currency_symbol: true,
 		accounts: {
 			select: { id: true, type: true, name: true }
 		},

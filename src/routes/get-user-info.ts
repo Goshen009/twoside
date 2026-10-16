@@ -28,7 +28,7 @@ async function handler(
   return reply.code(200).send({
   	username: user.name,
    	timezone: user.timezone,
-    currency_symbol: "₦",
+    currency_symbol: user.currency_symbol,
     total_spent_today: total,
     tags: user.tags.map(t => ({
     	id: t.id,

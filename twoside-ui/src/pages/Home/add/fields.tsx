@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Calendar, Check, ChevronDown, ChevronRight, Pencil, Plus, Tag as TagIcon } from "lucide-react";
 import type { Tag } from "@/types/types";
-import { Sheet } from "../components/Sheet";
+import { Sheet } from "@/components/Sheet";
 import { Dates } from "@/lib/dates";
 
 const LABEL = "text-2xs font-semibold uppercase tracking-wider text-muted";

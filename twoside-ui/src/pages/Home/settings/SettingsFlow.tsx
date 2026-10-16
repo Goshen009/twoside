@@ -8,13 +8,12 @@ import { MergeTag } from "./MergeTag";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { ApiError } from "@/api/client";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { EditName } from "./EditName";
+import { EditProfile } from "./EditProfile";
 import { InstallGuide } from "../components/InstallGuide";
-
 
 type Screen =
   | { name: "menu" }
-  | { name: "name" }
+  | { name: "profile" }
   | { name: "tags" }
   | { name: "install" }
   | { name: "tag"; tag_id: string }
@@ -36,6 +35,7 @@ export function SettingsFlow({ open, onClose }: { open: boolean; onClose: () => 
 
 function SettingsBody({ onClose }: { onClose: () => void }) {
 	const tags = useUserStore((s) => s.data?.tags) ?? [];
+	const has_info = useUserStore((s) => !!s.data);
   const [state, setState] = useState<{ screen: Screen; dir: 1 | -1 }>({
     screen: { name: "menu" },
     dir: 1,
@@ -85,7 +85,7 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
 					  <>
 					    <Header title="Settings" />
 					    <Scroll>
-								<NavRow icon={<User className="h-4 w-4" />} label="Edit name" onClick={() => go({ name: "name" }, 1)} />
+								<NavRow icon={<User className="h-4 w-4" />} label="Edit profile" onClick={() => go({ name: "profile" }, 1)} />
 					      <NavRow icon={<TagIcon className="h-4 w-4" />} label="Manage tags" onClick={() => go({ name: "tags" }, 1)} />
 								<NavRow icon={<Download className="h-4 w-4" />} label="Install the app" onClick={() => go({ name: "install" }, 1)} />
 								
@@ -113,10 +113,14 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
 					  </>
 					)}
 
-					{screen.name === "name" && (
+					{screen.name === "profile" && (
 					  <>
-					    <Header title="Edit name" onBack={() => go({ name: "menu" }, -1)} />
-					    <EditName onDone={onClose} />
+					    <Header title="Edit profile" onBack={() => go({ name: "menu" }, -1)} />
+					    {has_info ? (
+					      <EditProfile onDone={onClose} />
+					    ) : (
+					      <p className="py-10 text-center text-xs text-muted">Loading…</p>
+					    )}
 					  </>
 					)}
 	

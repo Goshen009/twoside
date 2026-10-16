@@ -10,6 +10,9 @@ interface UIState {
   toggleAmountsHidden: () => void;
   setDayOverrides: (next: Overrides | ((prev: Overrides) => Overrides)) => void;
   snoozeInstallHint: () => void;
+  seen_announcements: string[];
+  markAnnouncementSeen: (id: string) => void;
+  markAllAnnouncementsSeen: (ids: string[]) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -22,11 +25,16 @@ export const useUIStore = create<UIState>()(
       setDayOverrides: (next) =>
         set((s) => ({ day_overrides: typeof next === "function" ? next(s.day_overrides) : next })),
       snoozeInstallHint: () => set({ install_hint_snoozed: true }),
+      seen_announcements: [],
+      markAnnouncementSeen: (id) =>
+        set((s) => (s.seen_announcements.includes(id) ? s : { seen_announcements: [...s.seen_announcements, id] })),
+      markAllAnnouncementsSeen: (ids) =>
+        set((s) => ({ seen_announcements: Array.from(new Set([...s.seen_announcements, ...ids])) })),
     }),
     {
       name: "ui-prefs",
       version: 1,
-      partialize: ({ is_amounts_hidden }) => ({ is_amounts_hidden }),
+      partialize: ({ is_amounts_hidden, seen_announcements }) => ({ is_amounts_hidden, seen_announcements }),
     }
   )
 );

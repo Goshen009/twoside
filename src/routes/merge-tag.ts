@@ -26,14 +26,11 @@ async function handler(
 
   try {
 	 	await this.prisma.$transaction(async (tx) => {
-	    const result = await tx.transaction.updateMany({
+	    await tx.transaction.updateMany({
 	      where: { user_id: user.id, tag_id: source_tag_id },
 	      data: { tag_id: target_tag_id },
 	    });
-	  
-	    if (result.count === 0)
-	      throw APIError.notFound("Source tag not found.");
-	  
+
 	    await tx.tag.deleteMany({
 	      where: { user_id: user.id, id: source_tag_id },
 	    });

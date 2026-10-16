@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, ListFilter } from "lucide-react";
 import type { Tag } from "@/types/types";
-import { Sheet } from "./Sheet";
+import { Sheet } from "@/components/Sheet";
 
 interface TagFilterProps {
   tags: Tag[];

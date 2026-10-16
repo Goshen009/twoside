@@ -42,3 +42,13 @@ export interface EditPayload {
   transaction_date?: string;
   tag?: string | null; // string = set, null = remove, omitted = leave alone
 }
+
+export interface NewUser {
+  name: string;
+  currency_symbol: string;
+  timezone: string;
+}
+
+export interface GoogleCallbackResponse {
+  new_user: NewUser | null;
+}

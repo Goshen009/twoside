@@ -24,12 +24,18 @@ async function handler(
   	throw APIError.forbidden("Expired or invalid login attempt. Please try again.");
 
   const profile = await Google.exchangeCode(this.config, code);
+
+  const existing = await this.prisma.user.findUnique({
+    where: { google_account_id: profile.sub },
+    select: { id: true },
+  });
   
   const user = await this.prisma.user.upsert({
   	where: { google_account_id: profile.sub },
    	update: { },
     create: {
     	name: profile.name,
+     	email: profile.email,
      	google_account_id: profile.sub,
       currency_symbol: '₦',
     	timezone: 'Africa/Lagos',
@@ -49,7 +55,9 @@ async function handler(
   return reply
   	.header('Authorization', `Bearer ${access_token}`)
    	.setCookie('refresh_token', refresh_token, Tokens.COOKIE_CONFIG(this.config, 'REFRESH'))
-   	.code(200).send({});
+   	.code(200).send({
+    	new_user: !existing ? { name: user.name, currency_symbol: user.currency_symbol, timezone: user.timezone } : null
+    });
 }
 
 export const google_callback = { handler, schema: { body: schema } };

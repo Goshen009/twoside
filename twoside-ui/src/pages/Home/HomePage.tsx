@@ -16,6 +16,8 @@ import type { Transaction } from "@/types/types";
 import { EditTransactionFlow } from "./edit/EditTransactionFlow";
 import { SettingsFlow } from "./settings/SettingsFlow";
 import { InstallHint } from "./components/InstallHint";
+import { Announcements } from "@/lib/Announcements";
+import { AnnouncementBanner } from "./components/AnnouncementBanner";
 
 // TODO: wire to localStorage when the daily-limit feature lands.
 const DAILY_LIMIT = null as number | null;
@@ -36,9 +38,13 @@ export default function HomePage() {
   // Only explicit user toggles are stored; everything else defaults to open.
   const overrides = useUIStore((s) => s.day_overrides);
   const setOverrides = useUIStore((s) => s.setDayOverrides);
+  const seen_announcements = useUIStore((s) => s.seen_announcements);
+  const markAnnouncementSeen = useUIStore((s) => s.markAnnouncementSeen);
   const [add_open, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [settings_open, setSettingsOpen] = useState(false);
+  
+  const announcement = Announcements.LIST.find((a) => !seen_announcements.includes(a.id));
   
   useEffect(() => {
     const user = useUserStore.getState();
@@ -78,6 +84,13 @@ export default function HomePage() {
       </div>
 
       <div className="px-5 space-y-5">
+	     	{info && announcement && (
+	        <AnnouncementBanner
+	          announcement={announcement}
+	          onDismiss={() => markAnnouncementSeen(announcement.id)}
+	        />
+	      )}
+      
         <TodayCard
           total={info?.total_spent_today ?? "0.00"}
           currency_symbol={currency_symbol}
