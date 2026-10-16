@@ -21,8 +21,27 @@ model User {
 
 	tags										Tag[]
 	accounts								Account[]
+	app_opens								AppOpen[]
 	transactions						Transaction[]
 	refresh_tokens					RefreshToken[]
+}
+
+model AppOpen {
+	id											String @id @default(uuid())
+	device     							Device
+  is_pwa     							Boolean
+  created_at 							DateTime @default(now()) @db.Timestamptz(6)
+
+	user_id    						String
+  user      					 	User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, created_at])
+}
+
+enum Device {
+	IOS
+	ANDROID
+	DESKTOP
 }
 
 model RefreshToken {

@@ -1,4 +1,1 @@
 name: local
-variables:
-  - secret: true
-    name: access_token

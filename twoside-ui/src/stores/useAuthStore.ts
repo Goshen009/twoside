@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         }
 
         // Normal load or reload: try to resume from the refresh cookie.
-        const ok = await APIClient.refresh();
+        const ok = await APIClient.refresh(true);
         set({ is_authenticated: ok, checking_session: false });
       })();
     }

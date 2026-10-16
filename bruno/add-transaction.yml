@@ -1,7 +1,7 @@
 info:
   name: add-transaction
   type: http
-  seq: 5
+  seq: 7
 
 http:
   method: POST

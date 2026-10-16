@@ -1,3 +1,5 @@
+import { PWA } from "@/lib/PWA";
+
 export class ApiError extends Error {
   status: number;
   fields?: { field: string; message: string }[];
@@ -55,20 +57,27 @@ export class APIClient {
     return header.replace(/^Bearer\s+/i, "");
   }
 
-  static refresh(): Promise<boolean> {
+  static refresh(report_usage = false): Promise<boolean> {
     if (!this.refresh_promise) {
-      this.refresh_promise = this.doRefresh().finally(() => {
+      this.refresh_promise = this.doRefresh(report_usage).finally(() => {
         this.refresh_promise = null;
       });
     }
     return this.refresh_promise;
   }
 
-  private static async doRefresh(): Promise<boolean> {
+  private static async doRefresh(report_usage: boolean): Promise<boolean> {
     try {
       const res = await fetch(`${this.api_base_url}/refresh`, {
         method: "POST",
         credentials: "include",
+        ...(report_usage && {
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+	          is_pwa: PWA.isStandalone(),
+	          device: PWA.getDevice(),
+         }),
+        }),
       });
 
       if (!res.ok) throw new Error("Refresh rejected");

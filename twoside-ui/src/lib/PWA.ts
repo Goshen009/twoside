@@ -1,5 +1,7 @@
 const DONE_KEY = "install_hint_done";
 
+export type Device = "IOS" | "ANDROID" | "DESKTOP";
+
 export class PWA {
   // Already running as an installed app, so no need to nag.
   static isStandalone(): boolean {
@@ -7,6 +9,16 @@ export class PWA {
       window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as unknown as { standalone?: boolean }).standalone === true
     );
+  }
+
+  static isAndroid(): boolean {
+    return /android/i.test(navigator.userAgent);
+  }
+  
+  static getDevice(): Device {
+    if (this.isIOS()) return "IOS";
+    if (this.isAndroid()) return "ANDROID";
+    return "DESKTOP";
   }
 
   static isIOS(): boolean {

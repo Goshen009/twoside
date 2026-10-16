@@ -1,0 +1,27 @@
+info:
+  name: refresh
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8080/refresh
+  headers:
+    - name: Cookie
+      value: refresh_token=37440f35cd5c22dab71149027386707f00617e34b14efe0c7dea24ae02970f5a
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          bru.setEnvVar("access_token", res.body.access_token);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
