@@ -73,4 +73,12 @@ export class Endpoints {
   static async editInfo(patch: { name?: string; currency_symbol?: string; timezone?: string }): Promise<void> {
     await APIClient.request<object>("/info", { method: "PATCH", body: patch });
   }
+
+  static async addWebPushSubscription(subscription: PushSubscriptionJSON): Promise<void> {
+    await APIClient.request<object>("/webpush", { method: "POST", body: { subscription } });
+  }
+  
+  static async deleteWebPushSubscription(endpoint: string): Promise<void> {
+    await APIClient.request<object>("/webpush", { method: "DELETE", body: { endpoint } });
+  }
 }

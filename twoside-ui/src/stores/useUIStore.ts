@@ -13,6 +13,8 @@ interface UIState {
   seen_announcements: string[];
   markAnnouncementSeen: (id: string) => void;
   markAllAnnouncementsSeen: (ids: string[]) => void;
+  reminder_prompt_done: boolean;
+  markReminderPromptDone: () => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -30,11 +32,25 @@ export const useUIStore = create<UIState>()(
         set((s) => (s.seen_announcements.includes(id) ? s : { seen_announcements: [...s.seen_announcements, id] })),
       markAllAnnouncementsSeen: (ids) =>
         set((s) => ({ seen_announcements: Array.from(new Set([...s.seen_announcements, ...ids])) })),
+      reminder_prompt_done: false,
+      markReminderPromptDone: () => set({ reminder_prompt_done: true }),
     }),
     {
       name: "ui-prefs",
-      version: 1,
-      partialize: ({ is_amounts_hidden, seen_announcements }) => ({ is_amounts_hidden, seen_announcements }),
+      version: 2,
+      partialize: ({ is_amounts_hidden, seen_announcements, reminder_prompt_done }) => ({
+        is_amounts_hidden,
+        seen_announcements,
+        reminder_prompt_done,
+      }),
+      // Anyone who already has v1 prefs is an existing user: skip the soft-ask,
+      // they get the announcement + Settings toggle instead. Brand-new users
+      // have nothing stored, so they start at false and see the prompt.
+      migrate: (persisted, version) => {
+        const state = (persisted ?? {}) as Partial<UIState>;
+        if (version < 2) return { ...state, reminder_prompt_done: true } as UIState;
+        return state as UIState;
+      },
     }
   )
 );

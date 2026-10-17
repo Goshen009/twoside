@@ -18,6 +18,7 @@ import { SettingsFlow } from "./settings/SettingsFlow";
 import { InstallHint } from "./components/InstallHint";
 import { Announcements } from "@/lib/Announcements";
 import { AnnouncementBanner } from "./components/AnnouncementBanner";
+import { ReminderPrompt } from "./components/ReminderPrompt";
 
 // TODO: wire to localStorage when the daily-limit feature lands.
 const DAILY_LIMIT = null as number | null;
@@ -192,6 +193,7 @@ export default function HomePage() {
       <EditTransactionFlow transaction={editing} onClose={() => setEditing(null)} />
       <SettingsFlow open={settings_open} onClose={() => setSettingsOpen(false)} />
       <InstallHint />
+      <ReminderPrompt />
     </div>
   );
 }

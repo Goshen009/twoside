@@ -19,6 +19,8 @@ import { refresh } from './routes/refresh.js';
 import { logout } from './routes/logout.js';
 import { free_text } from './routes/free-text/free-text.js';
 import { get_stats } from './routes/get-stats.js';
+import { add_webpush_subscription } from './routes/add-webpush-subscription.js';
+import { delete_webpush_subscription } from './routes/delete-webpush-subscription.js';
 
 const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/', async function (request, reply) {  
@@ -43,6 +45,9 @@ const routes: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.patch("/tag/:tag_id", edit_tag);
   fastify.delete("/tag/:tag_id", delete_tag);
   fastify.post("/tag/:tag_id/merge", merge_tag);
+
+  fastify.post("/webpush", add_webpush_subscription);
+  fastify.delete("/webpush", delete_webpush_subscription);
   
   fastify.post("/login", login);
   fastify.post("/free-text", free_text);

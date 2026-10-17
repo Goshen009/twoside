@@ -5,6 +5,7 @@ import { useUserStore } from "./useUserStore";
 import { useTransactionsStore } from "./useTransactionsStore";
 import { useUIStore } from "./useUIStore";
 import { useDraftStore } from "./useDraftStore";
+import { usePushStore } from "./usePushStore";
 import type { NewUser } from "@/types/types";
 
 const CALLBACK_PATH = "/auth/google/callback";
@@ -80,6 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   completeOnboarding: () => set({ new_user: null }),
 
   logout: async () => {
+  	await usePushStore.getState().teardown(true); // needs the token, so it goes before logout
     await Endpoints.logout();
     APIClient.setAccessToken(null);
     clearSessionData();
@@ -89,6 +91,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 // If a refresh fails mid-session, drop back to the login screen.
 APIClient.onUnauthorized = () => {
+	void usePushStore.getState().teardown(false); // local only: calling the server here could loop back into this handler
 	clearSessionData();
   useAuthStore.setState({ is_authenticated: false, new_user: null });
 };

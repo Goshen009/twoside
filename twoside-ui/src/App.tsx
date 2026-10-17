@@ -6,8 +6,11 @@ import OnboardingPage from "@/pages/Auth/OnboardingPage";
 import LoginPage from "@/pages/Auth/LoginPage";
 import { AppNavbar } from "@/components/AppNavbar";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { usePushStore } from "./stores/usePushStore";
 
 function ProtectedLayout() {
+	useEffect(() => { usePushStore.getState().refresh(); }, []);
+	
   return (
     <>
       <Outlet />

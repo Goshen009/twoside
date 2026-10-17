@@ -15,6 +15,7 @@ export function InstallHint() {
   const gotIt = () => {
     PWA.markDone();
     setDone(true);
+    snooze(); // lets the reminder prompt know the hint is out of the way
   };
 
   const open = !done && !installed && !snoozed;

@@ -11,5 +11,9 @@ export class Announcements {
       id: "profile-locale",
       message: "You can now change your currency and timezone. Open Settings, then Edit profile.",
     },
+    { 
+    	id: "daily-reminders",
+     	message: "Daily reminders are here. Open Settings and switch on Daily reminders."
+    }
   ];
 }

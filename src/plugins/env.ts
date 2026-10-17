@@ -12,7 +12,10 @@ const Schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_REDIRECT_URI: z.string(),
   TELEGRAM_CHAT_ID: z.string(),
-  TELEGRAM_BOT_TOKEN: z.string()
+  TELEGRAM_BOT_TOKEN: z.string(),
+  VAPID_MAILTO: z.string(),
+  VAPID_PRIVATE_KEY: z.string(),
+  VAPID_PUBLIC_KEY: z.string(),
 });
 
 export type Config = z.infer<typeof Schema>;

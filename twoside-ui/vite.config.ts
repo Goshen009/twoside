@@ -11,6 +11,9 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       devOptions: { enabled: true },
+      workbox: {
+        importScripts: ['/push-sw.js'],
+      },
       manifest: {
         name: "Twoside",
         short_name: "Twoside",
