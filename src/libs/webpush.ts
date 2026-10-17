@@ -11,9 +11,9 @@ export interface NotificationPayload {
 const limit = pLimit(20);
 
 class Webpush {
-	static async sendPushNotifications(prisma: PrismaClient, config: Config, messages: Map<string, NotificationPayload>) {
+	static async sendPushNotifications(prisma: PrismaClient, config: Config, messages: Record<string, NotificationPayload>) {
 		const subscriptions = await prisma.webPushSubscription.findMany({
-			where: { user_id: { in: [...messages.keys()] } }
+			where: { user_id: { in: Object.keys(messages) } }
 		});
 
 		const results = await Promise.allSettled(
@@ -23,7 +23,7 @@ class Webpush {
 						endpoint: sub.endpoint,
 						keys: { p256dh: sub.p256dh, auth: sub.auth }
 					},
-					JSON.stringify(messages.get(sub.user_id)!),
+					JSON.stringify(messages[sub.user_id]!),
 					{
 						urgency: 'normal',
 						timeout: 10_000,
@@ -38,7 +38,10 @@ class Webpush {
 		);
 
 		const expired_subscriptions = results.map((result, i) => {
+			console.log(subscriptions[i]!.user_id);
+			console.log(result);
 			if (result.status === 'rejected') {
+				console.log(result.errors);
 				const status = result.reason?.statusCode;
 				if (status === 404 || status === 410) return subscriptions[i]?.endpoint
 			}
