@@ -41,7 +41,6 @@ class Webpush {
 			console.log(subscriptions[i]!.user_id);
 			console.log(result);
 			if (result.status === 'rejected') {
-				console.log(result.errors);
 				const status = result.reason?.statusCode;
 				if (status === 404 || status === 410) return subscriptions[i]?.endpoint
 			}
