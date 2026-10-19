@@ -32,7 +32,9 @@ async function handler(
   
   const user = await this.prisma.user.upsert({
   	where: { google_account_id: profile.sub },
-   	update: { },
+   	update: { 
+    	email: profile.email
+    },
     create: {
     	name: profile.name,
      	email: profile.email,
