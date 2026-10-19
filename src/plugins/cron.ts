@@ -23,6 +23,7 @@ export default fp(async (fastify) => {
   cron.schedule('*/15 * * * *', async () => {
   	if (fastify.config.ENVIRONMENT === 'beta' || fastify.config.ENVIRONMENT === 'preview') {
 			try {
+				console.log("This shii ran!")
 				await DailyReminder.run(fastify.prisma, fastify.config);
 			} catch (err) {
 				fastify.log.error(err, 'daily reminder failed');
