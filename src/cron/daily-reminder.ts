@@ -29,8 +29,6 @@ class DailyReminder {
 			}
 		});
 
-		console.log(users);
-
 		const due: DueUser[] = [];
 
 		for (const user of users) {
@@ -75,8 +73,6 @@ class DailyReminder {
 			});
 		}
 
-		console.log(due);
-		
 		if (due.length === 0) return;
 
 		await Webpush.sendToTargets(prisma, config, due);

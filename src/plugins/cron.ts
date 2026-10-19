@@ -20,10 +20,9 @@ export default fp(async (fastify) => {
    	}
   }, { timezone: 'Africa/Lagos' });
 
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('*/15 * * * *', async () => {
   	if (fastify.config.ENVIRONMENT === 'beta' || fastify.config.ENVIRONMENT === 'preview') {
 			try {
-				console.log("This shii ran!");
 				await DailyReminder.run(fastify.prisma, fastify.config);
 			} catch (err) {
 				fastify.log.error(err, 'daily reminder failed');
