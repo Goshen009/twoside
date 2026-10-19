@@ -29,6 +29,8 @@ class DailyReminder {
 			}
 		});
 
+		console.log(users);
+
 		const due: DueUser[] = [];
 
 		for (const user of users) {
@@ -72,6 +74,8 @@ class DailyReminder {
 				payload: { title: "Twoside", body: "Don't forget to log today's spends." }
 			});
 		}
+
+		console.log(due);
 		
 		if (due.length === 0) return;
 

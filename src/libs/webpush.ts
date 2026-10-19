@@ -55,6 +55,8 @@ class Webpush {
 	static async sendToTargets(prisma: PrismaClient, config: Config, targets: PushTarget[]) {
 		const jobs = targets.flatMap((t) => t.subscriptions.map((sub) => ({ sub, body: JSON.stringify(t.payload) })) );
 		if (jobs.length === 0) return;
+
+		console.log(jobs);
 	
 		const results = await mapPool(jobs, 20, ({ sub, body }) =>
 			webpush.sendNotification(
@@ -73,6 +75,8 @@ class Webpush {
 				}
 			)
 		);
+
+		console.log(results);
 	
 		const expired: string[] = [];
 		results.forEach((r, i) => {
@@ -83,6 +87,8 @@ class Webpush {
 			if (status === 404 || status === 410) expired.push(endpoint);
 			else console.warn("push failed", new URL(endpoint).host, status ?? r.reason?.code ?? r.reason?.message);
 		});
+
+		console.log(expired);
 	
 		if (expired.length > 0) {
 			await prisma.webPushSubscription.deleteMany({ where: { endpoint: { in: expired } } });
